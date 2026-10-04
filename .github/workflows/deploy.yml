@@ -21,7 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/configure-pages@v5
+      - id: pages
+        uses: actions/configure-pages@v5
 
       - uses: actions/setup-go@v5
         with:
@@ -43,11 +44,24 @@ jobs:
       - name: Verify captures are untouched
         run: bash scripts/check_captures.sh
 
-      - uses: peaceiris/actions-hugo@v3
-        with:
-          hugo-version: "0.148.1"
-          extended: true
-          minify: true
+      # Hugo is installed and invoked explicitly rather than through an action
+      # wrapper. The wrapper accepts no `minify` input and hid the build's own
+      # output, so a failing build reported nothing but a later missing
+      # directory. Running hugo directly surfaces its errors and pins the
+      # destination this workflow expects.
+      - name: Install Hugo (extended)
+        run: |
+          set -euo pipefail
+          version=0.167.0
+          url="https://github.com/gohugoio/hugo/releases/download/v${version}/hugo_extended_${version}_linux-amd64.tar.gz"
+          curl -fsSL "$url" -o /tmp/hugo.tgz
+          tar -xzf /tmp/hugo.tgz -C /usr/local/bin hugo
+          hugo version
+
+      - name: Build
+        run: hugo --gc --minify --destination public
+        env:
+          HUGO_ENVIRONMENT: production
 
       # check_links.py resolves internal links against the BUILT output, so it
       # must come after Hugo. Running it earlier fails with "no build output"

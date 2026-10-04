@@ -141,7 +141,21 @@ def main() -> int:
             if not target:
                 continue
             if not target.startswith("/"):
-                target = url.rsplit("/", 1)[0] + "/" + target if url != "/" else "/" + target
+                # Resolve relative to the CONTAINING DIRECTORY, not the page's
+                # full URL. On /adr/readme/ the link "0005-....md" means
+                # /adr/0005-....md; joining onto the whole page URL would give
+                # /adr/readme/0005-....md and report every cross-reference
+                # between the ADRs as dead.
+                # A trailing slash means the URL IS a directory, so the
+                # relative link resolves against the directory's PARENT:
+                #   /adr/readme/   -> base /adr/   (not /adr/readme/)
+                #   /captures/x.html -> base /captures/
+                #   /faq/          -> base /
+                if url.endswith("/"):
+                    base = url[: url.rfind("/", 0, len(url) - 1) + 1] or "/"
+                else:
+                    base = url[: url.rfind("/") + 1] or "/"
+                target = base + target
             internal += 1
 
             # A directory URL resolves to its index.html; that file already
@@ -156,6 +170,35 @@ def main() -> int:
             # reachable as /captures/gauge/, so accept it rather than reporting
             # a false positive against the standalone capture documents.
             if target.endswith("/") and target[:-1] in pages:
+                continue
+
+            # Hugo rewrites a relative link to a source .md file into the
+            # directory URL of the page it renders, e.g.
+            # "0005-input-decoding.md#anchor" -> /adr/0005-input-decoding/#anchor.
+            # Mapping the .md target onto that directory is required, or every
+            # cross-reference between the ADRs is reported as a dead link while
+            # being perfectly valid in the built site.
+            if target.endswith(".md"):
+                stem = target[:-3]
+                for cand in (stem + "/", stem):
+                    if cand in pages:
+                        anchor = unquote(parsed.fragment)
+                        if anchor and cand in ids and anchor not in ids[cand]:
+                            broken.append(f"{url} → {href}  (no such id on {cand})")
+                        break
+                else:
+                    broken.append(f"{url} → {href}  (no such page or file)")
+                continue
+
+            # A .md link that Hugo emitted UNREWRITTEN. Hugo turns
+            # "other.md" into "/dir/other/" but leaves "other.md#anchor" as
+            # written, so a browser resolves it to /dir/page/other.md and gets
+            # a 404. The page exists; the href is wrong in the built HTML.
+            if target.endswith(".md"):
+                broken.append(
+                    f"{url} → {href}  (Hugo did not rewrite this .md link to "
+                    "the page directory; it will 404 in a browser)"
+                )
                 continue
 
             broken.append(f"{url} → {href}  (no such page or file)")

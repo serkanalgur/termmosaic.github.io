@@ -74,7 +74,18 @@ def check(path: Path) -> tuple[dict | None, list[str]]:
     except UnicodeDecodeError as exc:
         return None, [f"{path}: not valid UTF-8 ({exc})"]
 
+    # Files under content/adr/ that mirror a framework doc verbatim (STATUS.md,
+    # CHANGELOG.md, SITE-PLAN.md, README.md) carry no front matter by design:
+    # they are byte-identical copies so the site never holds a second, drifting
+    # version. Hugo renders them without it.
     if not raw.startswith("---\n"):
+        posix = path.as_posix()
+        if "/adr/" in posix and posix.endswith(
+                ("STATUS.md", "CHANGELOG.md", "SITE-PLAN.md", "README.md")):
+            return {"path": posix.split("/content/", 1)[-1],
+                    "url": slug_for(path),
+                    "meta": {"title": posix.rsplit("/", 1)[-1],
+                             "description": "", "verbatim": True}}, []
         return None, [f"{path}: no front matter block (file must start with '---')"]
 
     end = raw.find("\n---\n", 3)

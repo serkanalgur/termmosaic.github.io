@@ -1,0 +1,200 @@
+# Architecture Decision Records
+
+TermMosaic's architecture decisions are recorded here as ADRs. Each is a
+short, dated document that states what was decided, what was rejected, and why.
+
+An ADR is not deleted when it stops being true. If a decision is reversed, the
+original stays and a new one supersedes it, so the reasoning history survives.
+
+## Index
+
+| # | Title | Status | Date |
+|---|---|---|---|
+| [0001](0001-backend-strategy.md) | Backend strategy | Accepted | 2026-10-03 |
+| [0002](0002-buffer-representation.md) | Cell buffer representation | Accepted | 2026-10-03 |
+| [0003](0003-renderer-mode.md) | Renderer mode | Accepted | 2026-10-03 |
+| [0004](0004-layout-engine.md) | Layout engine | Accepted | 2026-10-03 |
+| [0005](0005-input-decoding.md) | Input decoding | Accepted | 2026-10-04 |
+| [0006](0006-subbuffer-cell-access.md) | Sub-buffer cell access | Accepted | 2026-10-04 |
+| [0007](0007-responsive-screens.md) | Responsive screen composition | Accepted | 2026-10-04 |
+| [0008](0008-style-and-text.md) | Style, theme, and text | Accepted | 2026-10-04 |
+
+## Decisions at a glance
+
+- **0001 — Backend: pluggable, own the core.** Two narrow interfaces
+  (`Terminal`, `Sink`) with a direct `golang.org/x/sys` implementation and a
+  headless memory sink. We wrap **no** terminal library. The evidence that
+  settled it: `tcell`'s flush costs 280,814 ns/op on a one-row-dirty workload
+  where our two-tier diff costs 7,133 ns/op, and `tcell`'s headless backend
+  cannot expose the cell buffer that widget tests need.
+
+- **0002 — Buffer: AoS with a padding-free 16-byte `Cell`.** This **overturned
+  the previous leaning toward struct-of-arrays.** OpenTUI's SoA row-skip
+  advantage is a Zig `mem.eql` advantage and does not transfer to Go: the
+  packed AoS row skip *ties* with SoA (5,373 vs 5,128 ns/op) and is 4.4×
+  *faster* when every row is dirty (147.2 vs 636.7 ns/op), because it is one
+  wide memcmp instead of four. A two-tier diff on a 200×60 scene writes ~141×
+  fewer bytes than a full repaint. Byte-wise row comparison additionally
+  requires the compared range to be **contiguous**, not just `Cell` to be
+  padding-free — see the 2026-10-04 amendment.
+
+- **0003 — Renderer: hybrid.** A retained widget tree invalidated by rectangle,
+  with widgets describing themselves on demand. No reconciler, no Elm loop.
+  Static chrome is cheap because of the diff, not because of the renderer mode.
+
+- **0004 — Layout: constraint-based, own solver.** `Length`/`Min`/`Max`/
+  `Percentage`/`Ratio`/`Fill`, matching what Bubble Tea users already know.
+  `Fill` is **order-insensitive** — a deliberate, tested divergence from tmux's
+  priority-ordered rule. Flexbox via Yoga was rejected because **cgo breaks
+  `CGO_ENABLED=0` cross-compilation**, contradicting the single-static-binary
+  goal.
+
+- **0005 — Input: a pure decoder under a resumable driver, in a new `input`
+  package.** `Decode(seq []byte, cfg Config) (Event, int, Status)` is pure, so
+  the worst input bug — a sequence split across two `read(2)` calls — is a
+  one-line table-driven test rather than a flaky timing test. A `Parser` holds
+  only the unavoidable bytes, and a `Source` merges input and resize into one
+  ordered stream. Scope verdicts: **kitty keyboard IN** (progressive
+  enhancement, request only `disambiguate`, 100 ms bounded probe); **paste IN**
+  and always **one `EventPaste` carrying the whole payload**, never a stream;
+  **mouse decoding IN** (SGR 1006, urxvt 1015, X10) but **capture OFF by
+  default** because it steals selection and scrollback from the user's shell;
+  **focus decoding IN**, reporting OFF by default; **IME DEFERRED and scoped
+  out**, with `EventCompose` and a `Compose` payload field reserved so it is a
+  later feature rather than a rewrite.
+
+- **0006 — Cell access: a row accessor, not a flat slice.** `Buffer.Cells()`
+  is **removed**. It returns the flat backing slice, whose index
+  `y*Width()+x` is silently wrong for a sub-buffer — the same unsoundness ADR
+  0002 fixed once already, in `SubBuffer`, left open at a different door. It is
+  replaced by `Row(y) []Cell`, which is correct on top-level buffers and views
+  alike because the stride never leaves the `buffer` package. `RowBytes` becomes
+  a `*Buffer` method that **panics on a sub-buffer** — settling ADR 0002's v1.0
+  risk item 1b now rather than at v1.0 — and `diff.Frame` carries
+  `*buffer.Buffer` instead of `[]buffer.Cell`, so the "diff only top-level
+  buffers" rule is enforced by a type rather than by a doc comment. `Stride()` is
+  deliberately not exported.
+
+- **0007 — Responsive screens: a budget, not a reflow.** There are **no size
+  classes and no framework breakpoints** — a size class is a lossy function of
+  two numbers and a product decision in the wrong layer, and every threshold a
+  widget needs is a local named constant beside its own `Draw`. What the
+  framework shares is the *arithmetic*: `geometry.ClampCount(n, available)`,
+  `geometry.Budget(regions, available)` with a four-value `Priority` scale, and
+  an optional `termmosaic.Minimizable` interface declaring a widget's smallest
+  meaningful size. Policy stays per widget; safety and arithmetic are shared.
+  **The `Widget` interface is unchanged** — the space is already reachable from
+  `Bounds()`, and adaptation is lazy and self-detecting (a widget re-derives
+  anything size-derived when `Bounds()` differs), which beats a fourth mandatory
+  method precisely because a widget cannot forget it. **Degenerate sizes are a
+  decided contract: no panic, ever; clip, never blank** — below `MinSize()` a
+  widget draws its minimum layout clipped, and 0×0 is a valid size that writes
+  zero bytes. A resize always repaints the whole screen, because
+  `buffer.Resize` discards the cells a partial diff would need; and drag-resize
+  coalescing is **free**, because an app that calls `r.Resize` per event and
+  lets the pacer decide when to paint already gets it. **Amended 2026-10-04:**
+  the rect is not the only thing a size-derived cache depends on. A widget that
+  caches column widths on `Bounds()` and is then handed `Header = true` renders
+  the old layout *permanently* — nothing will produce a different rect to
+  repair it. So `Invalidate()` now also means **drop every value the widget has
+  cached**, and a widget exposing a setter for anything `Draw` reads must
+  invalidate in that setter.
+
+- **0008 — Style, theme, and text: one `Style` value, one `Span` type, one
+  border vocabulary, and deliberately no theme in v1.** `buffer.Style` bundles
+  fg/bg/attr and is passed **by value** — 12 bytes, three registers, no
+  allocation, so it costs exactly what the three loose arguments it replaces cost
+  and keeps ADR 0002's 0-allocs frame path. It lives in `buffer` because
+  `geometry` cannot hold it without an import cycle (`buffer` imports
+  `geometry`; `Style` needs `Colour`), which is the same cycle-exclusion
+  reasoning that put ADR 0007's vocabulary in the leaf. Styled text goes through
+  `Span` + `Buffer.SetSpans`, whose load-bearing rule is that **a wide glyph's
+  continuation cell takes its owning span's style** — a mismatched one never
+  compares equal and flickers that row forever. `Wrap`/`Truncate` **allocate
+  and are therefore never called from `Draw`**; they are built on the
+  size-change check ADR 0007 §3 already established. **There is no theme in
+  v1**: widgets carry `Style` fields, the framework's defaults are the terminal's
+  own colours plus named attribute styles, and a theme is triggered by the first
+  role two widgets must share. Borders are one set of names —
+  `BorderPlain`/`Rounded`/`Double`/`Thick`/`ASCII` — with the glyph tables in
+  `buffer` and one `Block` as the only thing in the catalog that draws one. The
+  ASCII rung is a single boolean passed to `BorderStyle.Glyphs(ascii)`. `NO_COLOR`
+  and the 16-colour rung stay **encode-time only**; nothing in the widget path
+  knows about them. `ansi.Style` becomes an alias of `buffer.Style`, removing a
+  two-types-one-name collision already present in the tree.
+  **Amended 2026-10-04:** `Wrap` now treats LF as a hard break (there is
+  deliberately no `WrapLines` variant — a mode flag is a one-character slip and
+  a second function leaves the broken one reachable); `Wrapped` gained
+  `Ranges []LineRange` so editable text stops re-deriving line→rune offsets,
+  on a **rune-index-into-the-input** basis counting zero-width runes; and four
+  zero-allocation **range-clipped** writers (`SetSpansIn`, `SetStringIn`,
+  `SetSpansCappedIn`, `SetSpansWindowIn`) replace the span writers two widget
+  packages had each written for themselves, which also fixed a marker landing on
+  a wide glyph's continuation cell and leaving an unpaired glyph flickering.
+
+## How these were decided
+
+Decisions 1 and 2 were made **empirically**. A scratch Go module was built
+outside the repository and real numbers were measured on darwin/arm64 (Apple
+M1), Go 1.23.0:
+
+```
+cd /tmp/tm-bench
+go test -run '^$' -bench . -benchmem -benchtime=20000x -count=5
+```
+
+Raw output is quoted inline in ADRs 0001 and 0002, including the workloads that
+did *not* produce a clean result. Benchmarks were run for the buffer and diff
+design only; the renderer-mode, layout and input-decoding decisions were made on
+API-surface, testability and dependency grounds and are labelled as such.
+**Decision 5 explicitly records that no benchmark informed it**: input decoding
+is I/O-bound, and the one number that matters — 0 allocations on the key path —
+is a property the ADR specifies and a test must pin rather than a measurement
+made today.
+
+Decision 6 follows the same pattern for the same reason: it is a narrow API
+question about an existing data structure, made on the existing
+`TestSubBufferRowsAreStrided` evidence rather than on a new measurement. Its one
+performance claim — that the diff's row hoisting leaves ADR 0002's figures
+intact — is a claim a benchmark must re-confirm, and ADR 0006 says so rather
+than asserting a number it did not measure.
+
+Decision 7 follows the same pattern and says so in its own risks section: every
+cost it quotes about a drag-resize is **derived from existing code and from
+ADR 0002/0003's measurements**, not from an observed resize. It has never run
+against a real terminal being dragged, and it names the scripted resize sweep
+that should be written before the catalog is finished.
+
+Decision 8 follows the same pattern for a partly-different reason: the `Style`
+size question was settled by reading Go's register ABI against ADR 0002's
+existing measurements rather than by a new benchmark, and its wide-character and
+ASCII-rung claims are **inherited** from `buffer/width.go` and `term/caps.go`,
+both of which already document their own limits. Its risk section names which of
+its claims are unbenchmarked.
+
+**Caveat worth repeating:** OpenTUI is a Zig core with TypeScript FFI bindings.
+Its numbers do not transfer to Go, and ADR 0002 exists precisely because we
+checked that assumption instead of inheriting it.
+
+## Still open
+
+These are tracked in [STATUS.md](../STATUS.md) and are **not** decided:
+
+- Colour model and degradation ladder
+- Headless backend as v1 vs v0.5 — largely settled by ADR 0001 in favour of
+  v1, but the assertion surface is still open
+- Kitty **graphics** in v1 (the kitty *keyboard* protocol is decided by ADR 0005)
+
+### Scoped out by ADR 0005, with triggers recorded
+
+These are no longer open questions; they are deferrals with stated triggers,
+listed in [ADR 0005 §10](0005-input-decoding.md#10-deferred-items-with-triggers):
+
+- **IME / composition** — scoped out and documented as unsupported, with
+  `EventCompose` and a `Compose` payload field reserved in the event model so
+  adding it later is a feature rather than a rewrite of thirty widgets.
+- **Kitty `F13`–`F35`** — when added, appended at the end of the `Key` iota
+  block so existing constants do not renumber.
+- **tmux / screen DCS passthrough** — a real gap, not an oversight: without it
+  a program under tmux on a modern terminal can lose key and mouse reporting.
+- **X11 UTF-8 extended mouse and 1016 pixel coordinates.**
