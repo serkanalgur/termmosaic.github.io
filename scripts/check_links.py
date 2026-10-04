@@ -37,6 +37,21 @@ from urllib.parse import unquote, urlparse
 
 REPO = Path(__file__).resolve().parent.parent
 
+# The site is served from a SUB-PATH (https://serkanalgur.github.io/termmosaic.github.io/),
+# so Hugo emits every asset as /termmosaic.github.io/... rather than /....
+# The built tree under public/ has no such prefix, so the checker has to strip
+# it before comparing. Read from hugo.toml rather than hardcoding, so changing
+# baseURL cannot silently turn every link into a false alarm.
+try:
+    import tomllib as _toml
+    _cfg = _toml.loads((REPO / "hugo.toml").read_text(encoding="utf-8"))
+    _base = str(_cfg.get("baseURL", "")).rstrip("/")
+    PREFIX = _base[len("https://serkanalgur.github.io"):] if _base.startswith("https://serkanalgur.github.io") else ""
+except Exception:  # noqa: BLE001 - a missing config must not crash the checker
+    PREFIX = ""
+if PREFIX and not PREFIX.startswith("/"):
+    PREFIX = "/" + PREFIX
+
 # Hugo emits ids on headings as <h2 id="...">, and Pagefind does not add any.
 ID_ATTR = re.compile(r'\bid="([^"]+)"')
 HREF = re.compile(r'href="([^"]*)"')
@@ -106,7 +121,7 @@ def main() -> int:
     parsers: dict[str, PageParser] = {}
 
     for path in html_files:
-        url = url_for(path, public)
+        url = PREFIX + url_for(path, public)
         pages[url] = path
         parser = parse(path)
         parsers[url] = parser
@@ -114,7 +129,7 @@ def main() -> int:
 
     # A published non-HTML file is a valid target too (captures, css, sitemap).
     assets = {
-        "/" + str(p.relative_to(public)).replace("\\", "/")
+        PREFIX + "/" + str(p.relative_to(public)).replace("\\", "/")
         for p in public.rglob("*")
         if p.is_file()
     }
@@ -139,6 +154,16 @@ def main() -> int:
             parsed = urlparse(href)
             target = unquote(parsed.path)
             if not target:
+                continue
+            # A root-absolute link written WITHOUT the deploy prefix is broken
+            # in production and correct in the build. Report it as such rather
+            # than silently resolving it, because that is the bug this checker
+            # exists to catch.
+            if PREFIX and target.startswith("/") and target != PREFIX and not target.startswith(PREFIX + "/"):
+                broken.append(
+                    f"{url} → {href}  (absolute link is missing the "
+                    f"{PREFIX} deploy prefix; it 404s in production)"
+                )
                 continue
             if not target.startswith("/"):
                 # Resolve relative to the CONTAINING DIRECTORY, not the page's

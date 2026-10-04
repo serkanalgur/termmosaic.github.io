@@ -25,6 +25,25 @@
 {{- $url := $dest -}}
 {{- $sibling := false -}}
 {{- $external := or (hasPrefix $dest "http://") (hasPrefix $dest "https://") (hasPrefix $dest "//") (hasPrefix $dest "mailto:") (hasPrefix $dest "#") -}}
+{{- /* A root-absolute link like (/widgets/gauge/) is left untouched by Hugo:
+       it is emitted as written, and on a sub-path deploy that resolves to the
+       domain ROOT and 404s. There are 619 of these across content/. Resolve
+       them through the page lookup and use the site's own RelPermalink, which
+       carries the deploy prefix. */ -}}
+{{- if and (not $external) (hasPrefix $dest "/") -}}
+  {{- /* GetPage needs the PATH only; a "#anchor" would make the lookup fail. */ -}}
+  {{- $path := $dest -}}
+  {{- $frag := "" -}}
+  {{- if strings.Contains $dest "#" -}}
+    {{- $parts := split $dest "#" -}}
+    {{- $path = index $parts 0 -}}
+    {{- $frag = printf "#%s" (index $parts 1) -}}
+  {{- end -}}
+  {{- with .Page.GetPage (strings.TrimPrefix "/" $path) -}}
+    {{- $url = printf "%s%s" .RelPermalink $frag -}}
+    {{- $sibling = true -}}
+  {{- end -}}
+{{- end -}}
 {{- if and (not $external) (hasSuffix $dest ".md") -}}
   {{- $dir := path.Dir .Page.File.Path -}}
   {{- $base := path.Base $dest | strings.TrimSuffix ".md" -}}
@@ -41,7 +60,10 @@
     {{- $repoPath := strings.TrimPrefix "../" $dest -}}
     {{- if eq $repoPath "README.md" -}}
       {{- /* docs/adr/README.md is this page's own source; point at the page. */ -}}
-      {{- $url = "/adr/" | relURL -}}
+      {{- /* absURL, not relURL: Hugo's relURL leaves a leading-slash input
+             alone, so on a sub-path deploy this emitted "/adr/" and 404'd.
+             See the other absURL uses in layouts/. */ -}}
+      {{- $url = "/adr/" | absURL -}}
     {{- else -}}
       {{- if not (hasPrefix $repoPath "docs/") -}}
         {{- $repoPath = printf "docs/%s" $repoPath -}}

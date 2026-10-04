@@ -1,7 +1,7 @@
 {{- $page := . -}}
 <header class="masthead">
   <div class="masthead-inner">
-    <a class="wordmark" href="{{ "/" | relURL }}">
+    <a class="wordmark" href="{{ "/" | absURL }}">
       <span class="wordmark-name">TermMosaic</span>
       <span class="wordmark-tag">pre-alpha</span>
     </a>
@@ -22,6 +22,6 @@
   </div>
   <p class="alpha-bar">
     <strong>Pre-alpha.</strong> The API is not stable and will break without notice until v1.0.0.
-    Read the <a href="{{ "/limitations/" | relURL }}">limitations</a> before you rely on anything here.
+    Read the <a href="{{ "/limitations/" | absURL }}">limitations</a> before you rely on anything here.
   </p>
 </header>
