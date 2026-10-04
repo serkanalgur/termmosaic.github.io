@@ -71,7 +71,10 @@ jobs:
         run: |
           set -euo pipefail
           version=1.5.2
-          asset="pagefind-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+          # Verified against the release API: there is no -gnu build, only -musl.
+          # A constructed asset name 404s at run time and the whole step fails
+          # with curl's exit 22, which says nothing useful.
+          asset="pagefind-v${version}-x86_64-unknown-linux-musl.tar.gz"
           curl -fsSL "https://github.com/CloudCannon/pagefind/releases/download/v${version}/${asset}" -o /tmp/pagefind.tgz
           mkdir -p /tmp/pagefind && tar -xzf /tmp/pagefind.tgz -C /tmp/pagefind
           /tmp/pagefind/pagefind --site public
