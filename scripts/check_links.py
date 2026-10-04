@@ -134,6 +134,19 @@ def main() -> int:
         if p.is_file()
     }
 
+    # Pagefind's loader is referenced by the search shortcode. If the index
+    # build step is ever dropped or fails, every page still ships the script
+    # tag and the request 404s, so search dies silently on a live site. Assert
+    # the bundle is present rather than waiting for a user to notice.
+    pf = public / "pagefind" / "pagefind.js"
+    if not pf.is_file():
+        print(
+            "public/pagefind/pagefind.js is missing: search will 404. "
+            "Run `pagefind --site public` after hugo.",
+            file=sys.stderr,
+        )
+        return 2
+
     internal = 0
     external: set[str] = set()
     broken: list[str] = []

@@ -63,6 +63,20 @@ jobs:
         env:
           HUGO_ENVIRONMENT: production
 
+      # Pagefind indexes the BUILT html, so it must run after Hugo. Without
+      # this step the search UI ships, pagefind.js is requested, and every
+      # request 404s: search fails silently on a live site, which is exactly
+      # what it was doing before this step existed.
+      - name: Build the Pagefind search index
+        run: |
+          set -euo pipefail
+          version=1.5.2
+          asset="pagefind-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -fsSL "https://github.com/CloudCannon/pagefind/releases/download/v${version}/${asset}" -o /tmp/pagefind.tgz
+          mkdir -p /tmp/pagefind && tar -xzf /tmp/pagefind.tgz -C /tmp/pagefind
+          /tmp/pagefind/pagefind --site public
+          test -f public/pagefind/pagefind.js
+
       # check_links.py resolves internal links against the BUILT output, so it
       # must come after Hugo. Running it earlier fails with "no build output"
       # and says nothing about the content.
