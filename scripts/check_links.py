@@ -52,6 +52,15 @@ except Exception:  # noqa: BLE001 - a missing config must not crash the checker
 if PREFIX and not PREFIX.startswith("/"):
     PREFIX = "/" + PREFIX
 
+# Origin of this site, derived from baseURL, so an absolute link back to our
+# own pages is recognised as internal rather than waved through as external.
+try:
+    import re as _re
+    _m = _re.match(r"^(https?://[^/]+)", _base)
+    SITE_ORIGIN = _m.group(1) if _m else ""
+except Exception:  # noqa: BLE001
+    SITE_ORIGIN = ""
+
 # Hugo emits ids on headings as <h2 id="...">, and Pagefind does not add any.
 ID_ATTR = re.compile(r'\bid="([^"]+)"')
 HREF = re.compile(r'href="([^"]*)"')
@@ -149,6 +158,8 @@ def main() -> int:
 
     internal = 0
     external: set[str] = set()
+    pages_checked_absolute: list[tuple[str, str]] = []
+    absolute_prefix_ok: list[str] = []
     broken: list[str] = []
 
     for url, parser in parsers.items():
@@ -156,6 +167,24 @@ def main() -> int:
             if not href or href.startswith(("mailto:", "tel:", "data:", "javascript:")):
                 continue
             if href.startswith(("http://", "https://", "//")):
+                # An ABSOLUTE link to this site is still internal. Treating it
+                # as external is how six links to our own pages reached
+                # production as 404s while the checker reported "0 broken":
+                # absURL discards the base path on a sub-path deploy, and the
+                # result looked like a normal external URL.
+                if SITE_ORIGIN and href.replace("https://", "").replace(
+                        "http://", "").startswith(SITE_ORIGIN.lstrip("/")):
+                    target_path = href.split(SITE_ORIGIN, 1)[1]
+                    if target_path:
+                        # Must carry the deploy prefix, exactly like the
+                        # root-absolute case above. absURL produced a
+                        # domain-root URL that 404'd on every page.
+                        if PREFIX and not target_path.startswith(PREFIX):
+                            broken.append(
+                                f"{url} → {href}  (absolute link is missing the "
+                                f"{PREFIX} deploy prefix; it 404s in production)"
+                            )
+                        continue
                 external.add(href)
                 continue
             if href.startswith("#"):

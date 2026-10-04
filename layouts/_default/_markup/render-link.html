@@ -60,10 +60,11 @@
     {{- $repoPath := strings.TrimPrefix "../" $dest -}}
     {{- if eq $repoPath "README.md" -}}
       {{- /* docs/adr/README.md is this page's own source; point at the page. */ -}}
-      {{- /* absURL, not relURL: Hugo's relURL leaves a leading-slash input
-             alone, so on a sub-path deploy this emitted "/adr/" and 404'd.
-             See the other absURL uses in layouts/. */ -}}
-      {{- $url = "/adr/" | absURL -}}
+      {{- /* site.Home.RelPermalink, not "/adr/" | relURL and not absURL. Both
+             of those were wrong in opposite directions on a sub-path deploy:
+             relURL leaves a leading-slash input alone, and absURL discards the
+             base path entirely. Ask the site for its own URL. */ -}}
+      {{- $url = "/adr/" | relURL -}}
     {{- else -}}
       {{- if not (hasPrefix $repoPath "docs/") -}}
         {{- $repoPath = printf "docs/%s" $repoPath -}}
