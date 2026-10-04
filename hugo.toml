@@ -4,7 +4,7 @@
 # repo (cmd/capture) and are committed here untouched. Do not hand-edit them and
 # do not regenerate them from this repo — see README.md.
 
-baseURL = "https://serkanalgur.github.io/termmosaic.github.io"
+baseURL = "https://serkanalgur.github.io/termmosaic.github.io/"
 locale = "en-gb"
 title = "TermMosaic"
 enableRobotsTXT = true

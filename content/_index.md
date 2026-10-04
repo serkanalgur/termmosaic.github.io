@@ -48,7 +48,7 @@ from ADR 0002/0003's numbers; no resize has ever been observed against a real
 terminal being dragged. `docs/STATUS.md` says so itself and this site does not
 paper over it.
 
-## {{< widget-capture "barchart" >}}
+{{< widget-capture "barchart" >}}
 
 That is a `BarChart` at three widths, rendered by the framework's own capture
 tool from the cells the renderer produced.
