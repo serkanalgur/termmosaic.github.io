@@ -1,0 +1,16 @@
+# Split — A container that divides its rectangle among focusable panes.
+# package: widgets/split
+# constructor: split.New(d layout.Direction, panes ...termmosaic.Widget) *split.Split
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ modules ────────────────────────────────────────────────────────────╮ ╭ packages ────────────────────────────────────╮
+│  module           size state                                        │ │   input                                      │
+│  buffer         8.2 kB stable                                       │ │   layout                                     │
+│  geometry       3.1 kB stable                                       │ │>  render                                    █│
+│› headless      11.4 kB beta                                         │ │   term                                      █│
+│  layout         6.7 kB stable                                       │ │   virtual                                   █│
+│  render        14.9 kB beta                                         │ │   widgets/basic                             █│
+│  virtual        5.0 kB alpha                                        │ │   widgets/block                             █│
+│                                                                     │ │   widgets/data                               │
+│                                                                     │ │   widgets/form                               │
+╰─────────────────────────────────────────────────────────────────────╯ ╰──────────────────────────────────────────────╯

@@ -1,0 +1,9 @@
+# Tabs — A horizontal strip of labels, one of which is the active pane.
+# package: widgets/form
+# constructor: form.NewTabs(r buffer.Rect, labels []string) *form.Tabs
+# 120 columns x 4 rows, rendered through widgettest.Capture
+
+ Logs [Metrics] Traces  Config
+
+
+

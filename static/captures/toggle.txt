@@ -1,0 +1,8 @@
+# Toggle — A two-state switch with an on and an off rendering.
+# package: widgets/form
+# constructor: form.NewToggle(r buffer.Rect, label string) *form.Toggle
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+[on ] wrap text
+
+

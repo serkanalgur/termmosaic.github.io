@@ -1,0 +1,8 @@
+# KeyHint — A one-line bar of key names and their meanings.
+# package: widgets/form
+# constructor: form.NewKeyHint(r buffer.Rect, bindings []form.Binding) *form.KeyHint
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+[tab] next pane  [enter] activate  [q] quit  [?] all keys
+
+

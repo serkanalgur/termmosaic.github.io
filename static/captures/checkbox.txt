@@ -1,0 +1,10 @@
+# Checkbox — A tri-state box: unchecked, checked, or indeterminate.
+# package: widgets/form
+# constructor: form.NewCheckbox(r buffer.Rect, label string) *form.Checkbox
+# 120 columns x 5 rows, rendered through widgettest.Capture
+
+[x] widgets (22)
+
+[-] visualisation (5)
+
+[ ] release (0)

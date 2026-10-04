@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Gauge capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Gauge" data-package="widgets/viz">
+<h1 class="tm-name">Gauge</h1>
+<p class="tm-meta"><code>viz.NewGauge(r buffer.Rect) *viz.Gauge</code> &mdash; <code>widgets/viz</code></p>
+<p class="tm-meta">A bounded reading drawn as a Braille dial or a fallback bar.</p>
+<p class="tm-note">The dial is Braille, U+2800..28FF: eight levels of vertical resolution in each cell, two samples per cell. A web font that gives those glyphs a different advance width destroys the arc, which is why the plain-text capture beside it is mandatory rather than a nicety.</p>
+<p class="tm-meta">MinSize() = 11 &times; 7 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> dashboard </span><span style="color:#9aa4b8;font-weight:700">───────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">               </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠁⠑⠛⠛</span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠛⠙⠉⠁</span><span style="font-weight:700">               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">               </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠛⠛⠁</span><span style="font-weight:700">  </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠂⠛⠙</span><span style="font-weight:700">               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">               </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠁⠙⠁</span><span style="font-weight:700">  </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠁⠛⠛</span><span style="font-weight:700">               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">               </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠂⠛⠛⠛⠛⠛⠛⠁</span><span style="font-weight:700">               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│render</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700"> </span><span style="color:#7fb0ff;font-weight:700">70</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">                             </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> dashboard </span><span style="color:#9aa4b8;font-weight:700">───────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                     </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠁⠁</span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠁⠁</span><span style="font-weight:700">                                     </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                    </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠓⠛⠃</span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠃⠛⠉</span><span style="font-weight:700">                                    </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                    </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠙⠉⠁⠁⠓⠛</span><span style="font-weight:700">                                    </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                     </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠃⠛⠛⠃</span><span style="font-weight:700">                                     </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│render</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700"> </span><span style="color:#7fb0ff;font-weight:700">70</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">                                                                     </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> dashboard </span><span style="color:#9aa4b8;font-weight:700">───────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                         </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠁⠁</span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠁⠁</span><span style="font-weight:700">                                                         </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                        </span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">⠓⠛⠃</span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠃⠛⠉</span><span style="font-weight:700">                                                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                        </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠙⠉⠁⠁⠓⠛</span><span style="font-weight:700">                                                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                         </span><span style="color:#0e1118;background-color:#8cd98a;font-weight:700">⠃⠛⠛⠃</span><span style="font-weight:700">                                                         </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│render</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700"> </span><span style="color:#7fb0ff;font-weight:700">70</span><span style="color:#e8ecf4;background-color:#1c212c;font-weight:700">                                                                                                             </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Gauge — A bounded reading drawn as a Braille dial or a fallback bar.
+# package: widgets/viz
+# constructor: viz.NewGauge(r buffer.Rect) *viz.Gauge
+# 120 columns x 9 rows, rendered through widgettest.Capture
+
+╭ dashboard ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                         ⠁⠁⠁⠁                                                         │
+│                                                        ⠓⠛⠃⠃⠛⠉                                                        │
+│                                                        ⠙⠉⠁⠁⠓⠛                                                        │
+│                                                         ⠃⠛⠛⠃                                                         │
+│                                                                                                                      │
+│render 70                                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</article>
+</body>
+</html>

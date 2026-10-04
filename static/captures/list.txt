@@ -1,0 +1,16 @@
+# List — A scrollable, selectable list with a marker gutter and a scrollbar.
+# package: widgets/data
+# constructor: data.NewList(r buffer.Rect, items ...data.ListItem) *data.List
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ packages ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│   input                                                                                                              │
+│   layout                                                                                                             │
+│>  render                                                                                                            █│
+│   term                                                                                                              █│
+│   virtual                                                                                                           █│
+│   widgets/basic                                                                                                     █│
+│   widgets/block                                                                                                     █│
+│   widgets/data                                                                                                       │
+│   widgets/form                                                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,15 @@
+{{ define "main" }}
+<article class="page error-page" data-pagefind-body>
+  <p class="eyebrow">404</p>
+  <h1>No page here</h1>
+  <p class="lede">That URL is not part of this site.</p>
+  <p>If you followed a link from here, that is a bug in the site and worth
+  reporting: <a href="{{ site.Params.repo }}/issues" rel="noopener">open an issue</a>.</p>
+  <ul>
+    <li><a href="{{ "/" | relURL }}">Start page</a></li>
+    <li><a href="{{ "/widgets/" | relURL }}">The 22-widget catalog</a></li>
+    <li><a href="{{ "/getting-started/quickstart/" | relURL }}">Quickstart</a></li>
+    <li><a href="{{ site.Params.godoc }}" rel="noopener">pkg.go.dev</a> — the API reference is never out of date</li>
+  </ul>
+</article>
+{{ end }}

@@ -1,0 +1,55 @@
+{{- /*
+  Pagefind search UI.
+
+  Pagefind indexes the *built* HTML after Hugo runs, so the bundle only exists
+  in public/pagefind/. This shortcode is the whole integration: a mount point, a
+  query input, and Pagefind's own ~14 KB loader. No framework, no bundler, and
+  the script is absent from every page except this one.
+*/ -}}
+<div class="pagefind-box">
+  <label for="pagefind-input" class="pagefind-label">Search the documentation</label>
+  <input id="pagefind-input" type="search" placeholder="Try &ldquo;Braille&rdquo; or &ldquo;NO_COLOR&rdquo;" autocomplete="off">
+  <p class="pagefind-status" id="pagefind-status">Type to search. The index covers every page except this one.</p>
+  <ul class="search-results" id="pagefind-results"></ul>
+</div>
+<script src="{{ "pagefind/pagefind.js" | relURL }}"></script>
+<script>
+  // Progressive enhancement: the page is fully usable without any of this, and
+  // every other page on the site ships zero JavaScript.
+  (function () {
+    var input = document.getElementById("pagefind-input");
+    var status = document.getElementById("pagefind-status");
+    var results = document.getElementById("pagefind-results");
+    if (!input || !window.pagefind) { status.textContent = "Search index is unavailable."; return; }
+
+    function reset(msg) { results.innerHTML = ""; status.textContent = msg; }
+
+    var timer = null;
+    input.addEventListener("input", function () {
+      clearTimeout(timer);
+      var q = input.value.trim();
+      if (q.length < 2) { reset("Type at least two characters."); return; }
+      status.textContent = "Searching…";
+      timer = setTimeout(function () {
+        window.pagefind.search(q).then(function (response) {
+          var hits = response.results.slice(0, 40);
+          if (!hits.length) { reset("No matches."); return; }
+          var pending = hits.length;
+          var html = "";
+          hits.forEach(function (data) {
+            data.data().then(function (hit) {
+              html += '<li><a href="' + hit.url + '">' + hit.meta.title +
+                      '</a><span class="hit-url">' + hit.meta.path + "</span>" +
+                      '<div class="hit-excerpt">' + hit.excerpt + "</div></li>";
+              if (--pending === 0) {
+                results.innerHTML = html;
+                status.textContent = response.results.length +
+                  (response.results.length === 1 ? " match." : " matches.");
+              }
+            });
+          });
+        });
+      }, 180);
+    });
+  })();
+</script>

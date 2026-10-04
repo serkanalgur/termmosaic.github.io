@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Text capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Text" data-package="widgets/basic">
+<h1 class="tm-name">Text</h1>
+<p class="tm-meta"><code>basic.NewText(r buffer.Rect, spans []buffer.Span) *basic.Text</code> &mdash; <code>widgets/basic</code></p>
+<p class="tm-meta">A single line of styled spans, aligned within its rectangle.</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#7fb0ff;font-weight:700">TermMosaic</span><span style="color:#9aa4b8;font-weight:700"> — </span><span style="color:#8cd98a;font-weight:700">22 widgets</span><span style="color:#9aa4b8;font-weight:700">, 2 dependencies</span><span style="color:#e8ecf4;font-weight:700"> </span>
+<span style="color:#e8ecf4;font-weight:700">                                        </span>
+<span style="color:#e8ecf4;font-weight:700">                                        </span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#7fb0ff;font-weight:700">TermMosaic</span><span style="color:#9aa4b8;font-weight:700"> — </span><span style="color:#8cd98a;font-weight:700">22 widgets</span><span style="color:#9aa4b8;font-weight:700">, 2 dependencies</span><span style="color:#e8ecf4;font-weight:700">                                         </span>
+<span style="color:#e8ecf4;font-weight:700">                                                                                </span>
+<span style="color:#e8ecf4;font-weight:700">                                                                                </span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#7fb0ff;font-weight:700">TermMosaic</span><span style="color:#9aa4b8;font-weight:700"> — </span><span style="color:#8cd98a;font-weight:700">22 widgets</span><span style="color:#9aa4b8;font-weight:700">, 2 dependencies</span><span style="color:#e8ecf4;font-weight:700">                                                                                 </span>
+<span style="color:#e8ecf4;font-weight:700">                                                                                                                        </span>
+<span style="color:#e8ecf4;font-weight:700">                                                                                                                        </span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Text — A single line of styled spans, aligned within its rectangle.
+# package: widgets/basic
+# constructor: basic.NewText(r buffer.Rect, spans []buffer.Span) *basic.Text
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+TermMosaic — 22 widgets, 2 dependencies
+
+
+</pre>
+</article>
+</body>
+</html>

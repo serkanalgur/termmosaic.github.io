@@ -1,0 +1,14 @@
+# Select — A single-choice control that expands into a scrollable list.
+# package: widgets/form
+# constructor: form.NewSelect(r buffer.Rect, labels []string) *form.Select
+# 120 columns x 9 rows, rendered through widgettest.Capture
+
+  alpine
+  bookworm
+  cachyos
+  debian
+>  endeavouros
+  fedora
+  gentoo
+  nixos
+  void

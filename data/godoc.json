@@ -1,0 +1,536 @@
+{
+  "packages": {
+    "widgets/basic": {
+      "extra": null,
+      "intro": "Package basic provides the two text widgets: Text, which writes styled spans on\none line, and Paragraph, which wraps them.\n\nBoth follow the same two rules, which are the rules every widget in the catalog\nfollows:\n\n  - The available space is Bounds(), never buf.Size(). The buffer is the screen;\n    the rect is the widget's space (ADR 0007 §1 rule 1).\n  - Nothing derived from the size is built in Draw. Wrap and Truncate both\n    allocate, so Paragraph caches its Wrapped and Text caches its truncation\n    against the rect they were computed for, and recompute only when Bounds()\n    differs (ADR 0007 §3, ADR 0008 §4)."
+    },
+    "widgets/block": {
+      "extra": null,
+      "intro": "Package block provides Block, the catalog's only owner of borders and titles.\n\nADR 0008 §2 fixes Block's contract for the whole catalog, and this file is that\ncontract rather than a widget's opinion of it. List, Table, Tree, Pager, Tabs\nand everything else chrome-bearing compose a Block or call one; none of them\ncontains a glyph table, a corner loop or a title threshold. If a second border\nappears anywhere in TermMosaic, that is a bug of exactly the kind this package\nexists to make impossible — the same collision that two copies of\ninternal/ansi.Style had already produced in this repository.\n\nEverything visible here comes from buffer: every rune from\nbuffer.BorderStyle.Glyphs, every style from a buffer.Style read through\nResolved, every title run from a buffer.Span. Block spells no border rune and\ninvents no styling vocabulary."
+    },
+    "widgets/data": {
+      "extra": "- Its space is Bounds(), never buf.Size() (ADR 0007 §1 rule 1). The only\n    place a screen dimension is read is inside a test.\n  - It repaints its whole Bounds() before drawing content (rule 3). Every\n    widget here does that by composing widgets/block.Block, whose Draw fills\n    the rect in Background before it draws anything else — the sanctioned way\n    to express it (ADR 0008 §2). No widget in this package draws a border, a\n    corner or a title itself.\n  - Its Draw is allocation-free (ADR 0008 §4). Anything derived from a widget's\n    own size — which columns are visible, which chrome survives the budget,\n    which rows map to which items — is computed in the size-change check,\n    cached against the rect it was computed for, and only read in Draw.\n  - Draw is total. Every rect including 0x0 and 1x1 is defined, and a widget\n    below its own MinSize draws its minimum layout clipped rather than\n    blanking itself (ADR 0007 §4).\n  - Colour is never the only signal. Selection is carried by a marker column\n    as well as by SelectedStyle, the tree's expansion state by a glyph, and\n    the pager's matches by a rendition attribute rather than a hue.",
+      "intro": "Package data provides the catalog's scrolling data widgets: List, Table,\nTree and Pager."
+    },
+    "widgets/form": {
+      "extra": "Four rules, each of which is a consequence of something decided elsewhere, and\neach of which is enforced by this package's tests rather than by convention:\n\n 1. A widget's space is Bounds(), never buf.Size() (ADR 0007 §1 rule 1).\n 2. Every widget repaints its entire Bounds() before drawing content, because\n    the renderer diffs and never clears (ADR 0007 §1 rule 3).\n 3. Draw is total for every rect, including 0×0, 1×1 and anything below\n    MinSize, and it clips rather than blanking (ADR 0007 §4).\n 4. Nothing derived from the size or from the text is built inside Draw.\n    Wrap, Truncate and span construction allocate, so each widget caches the\n    result against the rect it was computed for and rebuilds when the rect,\n    the text or the styles change (ADR 0007 §3, ADR 0008 §4).",
+      "intro": "Package form provides the input widgets: TextInput, TextArea, Select,\nCheckbox, Radio, Toggle, Tabs, Button and KeyHint."
+    },
+    "widgets/split": {
+      "extra": "A widget receives its rectangle through Bounds, and nothing in the framework\nhands it one: there is no Resize method to push down the tree (ADR 0007 rejects\nit), so a container must be able to SET bounds. Hence Bounded, which a pane\nimplements by having a SetBounds method — block.Block, basic.Text and\nbasic.Paragraph all do. A pane that does not implement it is still drawn, with\nwhatever rectangle the application gave it; Split never invents one.",
+      "intro": "Package split provides Split, the pane composer: it solves one layout and hands\neach pane a rectangle.\n\nIt exists because a terminal application that wants two panes needs three\nthings and none of them is interesting: solve a constraint list, hand the\nresults out as rectangles, and let the user move the divider. The first is\nlayout's job and Split calls it rather than reimplementing it — ADR 0004 chose a\nclosed, predictable constraint set precisely so that exactly one solver exists,\nand a second arithmetic pass inside a widget is how two solvers start to\ndisagree about overflow."
+    },
+    "widgets/viz": {
+      "extra": "1. Its space is Bounds(), never buf.Size() (ADR 0007 §1 rule 1).\n 2. It repaints its whole Bounds() before drawing content (rule 3), by composing\n    widgets/block.Block, whose Draw fills the rect in Background before anything\n    else. No widget here draws a border, a corner or a title itself.\n 3. Its Draw is allocation-free (ADR 0008 §4). Everything derived from the size\n    — which regions survived the budget, where the axis labels go, the glyph\n    ramp for a sparkline — is computed in the size-change check, cached against\n    the rect, and only read in Draw.",
+      "intro": "Package viz provides the catalog's measurement and display widgets: ProgressBar,\nGauge, Meter, Sparkline and BarChart."
+    }
+  },
+  "widgets": {
+    "barchart": {
+      "intro": "BarChart is a categorical bar chart, vertical or horizontal, with an axis and\nvalue labels.\n\nIt is a plain termmosaic.Widget: a chart is not selectable.",
+      "sections": {
+        "The scale, and why it defaults to the data": "Max <= 0 means \"use the largest value\", which is what a reader expects from a\ncategorical chart. A caller who pins Max pins the comparison between two charts,\nwhich is the only reason to want it.",
+        "Two orientations, one arithmetic": "Vertical is the default and the case a dashboard usually wants: categories across,\nmagnitude up. Horizontal exists because a category with a long name, or a chart\nwith forty categories, does not fit the other way round. The scale is shared —\none Max, one value-to-cells conversion — so switching orientation cannot change\nwhat a value looks like.",
+        "Values": "A negative or NaN value draws as no bar at all, and the category's label and\nvalue are still printed. That is deliberate: a chart that dropped the category\nwould make a negative measurement look like a missing one."
+      }
+    },
+    "block": {
+      "intro": "Block is a bordered region with an optional title. It draws chrome only: it\nhas no content of its own beyond the background and the border.\n\nThe zero Block draws no border (Border is BorderNone) with the terminal's own\ncolours, which is a legal and unremarkable block. It is usable as constructed.\n\nA Block is a plain value in every respect that matters: it is not safe for\nconcurrent use, because SetBounds and Draw race by design — the renderer owns\nBounds between frames (ADR 0003).",
+      "sections": {}
+    },
+    "button": {
+      "intro": "Button is a focusable label that activates on Enter, Space or a click.",
+      "keyContract": {
+        "after": "",
+        "before": "Keys are consumed only while focused, and a disabled button consumes nothing — not a click and not a key — so a form can disable an action without having to remove the widget from the tree.",
+        "rows": [
+          [
+            "activate",
+            "KeyEnter, KeySpace"
+          ],
+          [
+            "focus",
+            "a left click inside Bounds, which also activates"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "Focus is a SHAPE: the label is ringed with brackets — \"[Save]\" — while focused\nand padded with spaces — \" Save \" — while not. Brackets rather than colour,\nbecause the one thing a user must be able to see on a form full of buttons is\nwhich button Enter is about to press.\n\nThe two rings are the same width, so a button's size does not depend on its\nfocus state. A form whose buttons reflow every time the user tabs between them\nis worse than one whose focus is a little less obvious.",
+        "Key contract": "Keys are consumed only while focused, and a disabled button consumes nothing —\nnot a click and not a key — so a form can disable an action without having to\nremove the widget from the tree.\n\n\tactivate      KeyEnter, KeySpace\n\tfocus         a left click inside Bounds, which also activates"
+      }
+    },
+    "checkbox": {
+      "intro": "Checkbox is a toggleable box with an optional label, in one of three states.",
+      "keyContract": {
+        "after": "Toggling moves Unchecked → Checked → Unchecked, and Indeterminate → Checked, because a user pressing space on a mixed box is asserting \"yes, all of it\". Reaching Indeterminate is done by SetState, from the application's own knowledge of its children. TriState additionally lets Left and Right walk all three states, which is what an application whose children can be partially selected needs in order to clear the mixed state from the keyboard.",
+        "before": "Keys are consumed only while focused.",
+        "rows": [
+          [
+            "toggle",
+            "KeySpace or KeyEnter"
+          ],
+          [
+            "cycle left",
+            "KeyLeft, but only when TriState is set cycle right KeyRight, but only when TriState is set"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "The marker is the state: \"[ ]\", \"[x]\" or \"[-]\". Three different SHAPES, so\nthe state survives a monochrome terminal, NO_COLOR, and a reader who cannot\ndistinguish the colours an application might add. CheckedStyle may make the\nchecked box bolder or brighter, but nothing is lost if it does not.",
+        "Key contract": "Keys are consumed only while focused.\n\n\ttoggle      KeySpace or KeyEnter\n\tcycle left  KeyLeft, but only when TriState is set\n\tcycle right KeyRight, but only when TriState is set\n\nToggling moves Unchecked → Checked → Unchecked, and Indeterminate → Checked,\nbecause a user pressing space on a mixed box is asserting \"yes, all of it\".\nReaching Indeterminate is done by SetState, from the application's own\nknowledge of its children. TriState additionally lets Left and Right walk all\nthree states, which is what an application whose children can be partially\nselected needs in order to clear the mixed state from the keyboard."
+      }
+    },
+    "gauge": {
+      "intro": "Gauge is a single bounded value on a dial, with a bar fallback.",
+      "sections": {
+        "The fallback, and why it exists": "Below dialMinW by dialMinH the interior cannot hold a circle — at three cells tall\na dial would be a smear — so Gauge draws a horizontal bar with the value printed\nbeside it. That is not a lesser widget: it is the same reading, and ADR 0007 §4\nasks for a widget to draw its minimum layout clipped rather than to blank itself.",
+        "Values": "Set takes a value on the gauge's own scale and clamps it: below ScaleMin is\nScaleMin, above ScaleMax is ScaleMax, and a NaN is ScaleMin. ScaleMax <=\nScaleMin reads as empty rather than dividing by zero.",
+        "Why a dial, and what one costs": "A Braille cell is a 2-by-4 dot grid, so a dial is drawn by testing each of a\nrectangle's dots against the ring's inner and outer radii and against the swept\nangle. That is real geometry rather than a bar drawn twice, and it is why a Gauge\nis worth having where a ProgressBar is not: the needle's POSITION carries the\nvalue, which no colour and no amount of bar length can improve on."
+      }
+    },
+    "keyhint": {
+      "intro": "KeyHint renders the keys available right now: the discoverability half of the\nform catalog.\n\nIt is a widget rather than a string helper because a hint is the one piece of a\nform that changes whenever the state changes — a Select with no options has\nnothing to activate, so its hint goes away — and because it must obey the same\nrepaint and clipping rules as everything else. Drawing it by hand at each call\nsite is how a form ends up with three different hint styles.",
+      "sections": {
+        "Accessibility": "Each binding's key is BRACKETED — \"[tab] next field\" — so the key is a shape\ndistinct from its description and the hint is readable without colour. No\ncolour is used at all by default: KeyStyle, HelpStyle and SeparatorStyle all\nresolve to the terminal's own colours, and the hint is legible as plain text.",
+        "Layout": "One line. An over-long hint is TRUNCATED with buffer's marker rather than\nclipped, so a narrow pane tells the user that there were more keys rather than\nsilently cutting the last one in half. The truncation is cached against the\nrect, so it never happens inside Draw."
+      }
+    },
+    "list": {
+      "intro": "List is a selectable, scrollable list of items.\n\nIt is Focusable: keys are consumed only while it has focus, and a press\ninside its rectangle takes focus as well as selecting, so a click is a\ncomplete interaction without the application writing a click handler.",
+      "keyContract": {
+        "after": "KeyTab is NOT consumed, so a form can move focus out of a list with the keyboard exactly as it moves out of a text input.",
+        "before": "Consumed only while focused. Every key also scrolls the selection into view, which is virtual's ScrollIntoView rather than a per-widget re-centring rule (ADR 0007 §6 rule 2: clamp, do not recentre).",
+        "rows": [
+          [
+            "up / down",
+            "move the selection by one row"
+          ],
+          [
+            "page up/down",
+            "move it by a screen, less one row of overlap"
+          ],
+          [
+            "home / end",
+            "first / last row"
+          ],
+          [
+            "enter, space",
+            "activate the selection, calling OnActivate"
+          ],
+          [
+            "wheel up/down",
+            "scroll WITHOUT moving the selection"
+          ],
+          [
+            "press",
+            "select the pressed row and take focus"
+          ]
+        ]
+      },
+      "sections": {
+        "Cost": "O(visible rows) per frame, whatever the item count. The scroll arithmetic is\nvirtual.Model's and the row count is derived from the interior height with\ngeometry.ClampCount; nothing in Draw or Handle touches the items slice beyond\nthe rows it is painting. BenchmarkList100K and TestListHundredThousandItems\nare the evidence.",
+        "Key contract": "Consumed only while focused. Every key also scrolls the selection into view,\nwhich is virtual's ScrollIntoView rather than a per-widget re-centring rule\n(ADR 0007 §6 rule 2: clamp, do not recentre).\n\n\tup / down       move the selection by one row\n\tpage up/down    move it by a screen, less one row of overlap\n\thome / end      first / last row\n\tenter, space    activate the selection, calling OnActivate\n\twheel up/down   scroll WITHOUT moving the selection\n\tpress           select the pressed row and take focus\n\nKeyTab is NOT consumed, so a form can move focus out of a list with the\nkeyboard exactly as it moves out of a text input."
+      }
+    },
+    "meter": {
+      "intro": "Meter is a bounded value with named zones and a threshold marker.",
+      "sections": {
+        "The two non-colour signals": "1. The active zone's NAME is drawn as text. \"ok\", \"warn\", \"critical\" is a\n    sentence, and a sentence survives a monochrome terminal and a colour-blind\n    reader, which a hue shift does not.\n 2. The threshold is marked with a '|' glyph, and the zone boundaries with a '+',\n    so the SHAPE of the budget is visible independently of its colour.",
+        "Values": "Set takes a value on the meter's own scale and clamps it into [From, To) of the\nfirst and last zones; a NaN is zero. The default scale is 0..100, which is what\na percentage-shaped measurement wants and what every default zone below assumes."
+      }
+    },
+    "pager": {
+      "intro": "Pager is a read-only view over a large text, wrapped to its width, with search.\n\nIt is Focusable: keys are consumed only while it has focus. It cannot be edited\n— that is what TextArea in widgets/form is for, and a pager that accepted\nkeystrokes would need a caret, a selection and an undo history to be worth\nhaving.",
+      "keyContract": {
+        "after": "The QUERY ITSELF IS THE APPLICATION'S: SetQuery takes it, because a read-only widget has no way to receive typed text without becoming an editor. KeyTab is NOT consumed.",
+        "before": "Consumed only while focused.",
+        "rows": [
+          [
+            "up / down",
+            "scroll one visual row"
+          ],
+          [
+            "page up/down",
+            "scroll one screen"
+          ],
+          [
+            "home / end",
+            "first / last screen"
+          ],
+          [
+            "n",
+            "jump to the next match of the current query"
+          ],
+          [
+            "N (shift+n)",
+            "jump to the previous match"
+          ],
+          [
+            "wheel up/down",
+            "scroll WITHOUT moving anything else"
+          ],
+          [
+            "press",
+            "move the caret to the pressed position — a pager has none, so a press is consumed and does nothing but take focus"
+          ]
+        ]
+      },
+      "sections": {
+        "Cost": "O(visible cells) per frame: the wrap of the visible lines is recomputed each\nframe into a scratch buffer the pager owns, so there is no cache to invalidate\non a resize and nothing to allocate. Text can be any size; TestPagerScrollsAHugeDocument\nis the evidence.",
+        "Key contract": "Consumed only while focused.\n\n\tup / down       scroll one visual row\n\tpage up/down    scroll one screen\n\thome / end      first / last screen\n\tn               jump to the next match of the current query\n\tN (shift+n)     jump to the previous match\n\twheel up/down   scroll WITHOUT moving anything else\n\tpress           move the caret to the pressed position — a pager has none, so\n\t                a press is consumed and does nothing but take focus\n\nThe QUERY ITSELF IS THE APPLICATION'S: SetQuery takes it, because a read-only\nwidget has no way to receive typed text without becoming an editor. KeyTab is NOT\nconsumed.",
+        "Why the scroll position is a (line, sub-row) pair and not a row index": "A visual row index would need the wrapped height of every line before it, which\nis O(document) on every width change — exactly the cost ADR 0007 §6 rules out,\nand it would make a resize of a 10 MB log proportional to the log rather than to\nthe screen. So the pager stores which source line is at the top and which of\nITS wrapped rows is showing, and walks one row at a time. The consequences are\nworth stating: scrolling a screen is O(one screen of text), End is O(one screen)\nwalking backwards from the last line, and there is no proportional scrollbar —\nthe status line reports \"Ln 1204/9000\" instead, which is exact and free."
+      }
+    },
+    "paragraph": {
+      "intro": "Paragraph renders wrapped, aligned, styled text over as many lines as fit.\n\nIt shows the TOP of its content: there is no scrolling here, because scrolling a\nblock of text is Pager's job and a Paragraph that scrolled by itself would be a\nsecond scroll model. The paragraph that does not fit is the one that gets\ndropped content, which is ADR 0007's \"information budget\" case stated for text:\nshow what fits, clip the rest, never blank.",
+      "sections": {}
+    },
+    "progressbar": {
+      "intro": "ProgressBar is a determinate bar with a label, a percentage and a fill\ncharacter.\n\nIt is a plain termmosaic.Widget: nothing about a bar is selectable, and a widget\nthat claimed focus would swallow the keys its neighbours needed.",
+      "sections": {
+        "Values": "Set takes a ratio in [0, 1] and clamps it: below zero is zero, above one is one,\nand a NaN is zero. See ratioOf, which is the one place that policy lives.",
+        "What survives a narrow rect": "The bar is PrioAlways: it is the widget. The label and the percentage compete for\nwhat is left, and geometry.Budget decides, with the label first because \"downloading\"\nsays more than \"62%\". A rect too narrow for even the bar still draws the bar's\ntrack, so the widget degrades to a coloured rule rather than to nothing."
+      }
+    },
+    "radio": {
+      "intro": "Radio is a one-of-N group of options: exactly one is chosen, and the choice is\nvisible without colour.",
+      "keyContract": {
+        "after": "",
+        "before": "Keys are consumed only while focused. Moving with an arrow CHOOSES, which is how every radio group behaves: there is no separate \"commit\" step, because a radio group has no unselected state to commit from.",
+        "rows": [
+          [
+            "up / down",
+            "KeyUp / KeyDown choose the previous / next option and fire"
+          ],
+          [
+            "left / right",
+            "KeyLeft / KeyRight, so the group works in a horizontal form"
+          ],
+          [
+            "home / end",
+            "KeyHome / KeyEnd choose the first / last option"
+          ],
+          [
+            "page up/down",
+            "KeyPageUp / KeyPageDown choose one screenful away"
+          ],
+          [
+            "activate",
+            "KeyEnter or KeySpace re-fires OnSelect for the chosen option, which is what a user pressing it to confirm expects"
+          ],
+          [
+            "wheel",
+            "MouseWheelUp / MouseWheelDown scroll without choosing"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "Two independent non-colour signals, which is what a radio group needs and one\ncheckbox is not enough of:\n  - the chosen option's marker is \"(o)\" and every other option's is \"( )\", so\n    the choice is a SHAPE difference;\n  - the focused option carries a \">\" in its own focus column, so focus is not\n    signalled by the same thing that signals selection.",
+        "Key contract": "Keys are consumed only while focused. Moving with an arrow CHOOSES, which is\nhow every radio group behaves: there is no separate \"commit\" step, because a\nradio group has no unselected state to commit from.\n\n\tup / down      KeyUp / KeyDown choose the previous / next option and fire\n\tleft / right   KeyLeft / KeyRight, so the group works in a horizontal form\n\thome / end     KeyHome / KeyEnd choose the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown choose one screenful away\n\tactivate       KeyEnter or KeySpace re-fires OnSelect for the chosen option,\n\t               which is what a user pressing it to confirm expects\n\twheel          MouseWheelUp / MouseWheelDown scroll without choosing"
+      }
+    },
+    "select": {
+      "intro": "Select is a closed list of options with one highlighted, scrollable when the\noptions do not all fit.",
+      "keyContract": {
+        "after": "A closed list never changes what it contains, so there is no type-ahead and no Remove: a Select whose options change is a different widget.",
+        "before": "Keys are consumed only while focused. The wheel is consumed whether or not the widget is focused, because pointing at a list and scrolling it does not require taking focus away from whatever is being typed in.",
+        "rows": [
+          [
+            "up / down",
+            "KeyUp / KeyDown highlight one option"
+          ],
+          [
+            "left / right",
+            "KeyLeft / KeyRight highlight one option, so the widget works in a horizontal form layout too"
+          ],
+          [
+            "home / end",
+            "KeyHome / KeyEnd highlight the first / last option"
+          ],
+          [
+            "page up/down",
+            "KeyPageUp / KeyPageDown highlight one screenful"
+          ],
+          [
+            "activate",
+            "KeyEnter or KeySpace accepts the highlighted option, which fires OnSelect without changing the highlight"
+          ],
+          [
+            "wheel",
+            "MouseWheelUp / MouseWheelDown scroll without moving the highlight"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "The highlighted option is marked by SelectDefaultMarker in its own marker\ncolumn; every other option carries a space in that column. That is the\nnon-colour signal, and it is deliberately a separate column rather than part\nof the label: a marker that moved with the text would shift every row's label\none cell, which is exactly the misalignment a column exists to prevent.",
+        "Key contract": "Keys are consumed only while focused. The wheel is consumed whether or not the\nwidget is focused, because pointing at a list and scrolling it does not require\ntaking focus away from whatever is being typed in.\n\n\tup / down      KeyUp / KeyDown highlight one option\n\tleft / right   KeyLeft / KeyRight highlight one option, so the widget works\n\t               in a horizontal form layout too\n\thome / end     KeyHome / KeyEnd highlight the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown highlight one screenful\n\tactivate       KeyEnter or KeySpace accepts the highlighted option, which\n\t               fires OnSelect without changing the highlight\n\twheel          MouseWheelUp / MouseWheelDown scroll without moving the\n\t               highlight\n\nA closed list never changes what it contains, so there is no type-ahead and no\nRemove: a Select whose options change is a different widget."
+      }
+    },
+    "sparkline": {
+      "intro": "Sparkline is a series of values drawn in one row — or one column — with\nsub-cell resolution.",
+      "sections": {
+        "Colour is never the only signal": "The data IS geometry here — a sample's height is its value — so the series is\nfully readable with no colour at all. The styles are emphasis layered on top, and\nthe ones this widget ships are ATTRIBUTE-based (reverse, bold) rather than\nhue-based for exactly that reason.",
+        "Values": "A NaN sample is drawn as zero rather than skipped: dropping it would shift every\nlater sample one cell left, which silently misreports the series. Samples are\nnormalised against Min and Max, which default to the series' own extremes and\ncan be pinned by the caller; a series where max == min is drawn flat rather than\ndividing by zero.",
+        "Why the glyphs are what they are": "One cell of a terminal cannot show a fraction of a bar, so a sparkline that drew\nwhole blocks per sample would quantise a series to its sample count and lose every\npeak between two samples. Two encodings fix that, and this widget offers both\nbecause they trade along different axes:\n\n\tBraille (default)  two samples per cell, four levels each: eight quanta per cell\n\t                   along the HORIZONTAL axis, so a 40-cell sparkline resolves 80\n\t                   values\n\tBlock              one sample per cell, eight levels: eight quanta per cell along\n\t                   the VERTICAL axis, so a short wide sparkline reads a trend far\n\t                   better than a braille one\n\nBraille is a Block Elements neighbour (U+2800–28FF) and is legitimate texture\nrather than a border, which is why it is legal outside buffer/border.go."
+      }
+    },
+    "split": {
+      "intro": "Split arranges panes along one axis.",
+      "sections": {}
+    },
+    "table": {
+      "intro": "Table shows rows in columns, with a header, a selection and horizontal\nscrolling.\n\nIt is Focusable on the same terms as List: keys are consumed only while it has\nfocus, and a press inside it selects a row and takes focus.",
+      "keyContract": {
+        "after": "KeyTab is NOT consumed, for the same reason List does not consume it.",
+        "before": "Consumed only while focused.",
+        "rows": [
+          [
+            "up / down",
+            "move the selection by one row"
+          ],
+          [
+            "page up/down",
+            "move it by a screen, less one row of overlap"
+          ],
+          [
+            "home / end",
+            "first / last row"
+          ],
+          [
+            "shift+home/end",
+            "first / last column"
+          ],
+          [
+            "left / right",
+            "scroll one column horizontally"
+          ],
+          [
+            "enter, space",
+            "activate the selection, calling OnActivate"
+          ],
+          [
+            "wheel up/down",
+            "scroll vertically WITHOUT moving the selection"
+          ],
+          [
+            "wheel + shift",
+            "scroll horizontally"
+          ],
+          [
+            "press",
+            "select the pressed row and take focus"
+          ]
+        ]
+      },
+      "sections": {
+        "Column widths": "Three modes, resolved per rect in this order:\n\n\tWidth > 0    fixed, exactly that many cells\n\tGrow > 0     a share of the cells left over, solved by layout.Solve rather\n\t             than by a private distribution loop\n\totherwise    measured from the VISIBLE ROWS ONLY\n\nMeasuring from the visible rows is not an approximation, it is the only\naffordable answer: a 100,000-row table that measured its content would be\nO(item count) on every resize, which ADR 0007 §6 rules out outright. The\nconsequence worth stating plainly is that a content-derived column can change\nwidth as different content scrolls through, so a caller who needs stable widths\ngives explicit Width or Grow values. That is the honest answer rather than a\nhidden cache over the whole collection.",
+        "Cost": "O(visible rows × visible columns) per frame, and the same on a resize. It is\nthe horizontal axis, the header, the gutter and the scrollbar that are each\nO(1) or O(columns), never O(rows).",
+        "Key contract": "Consumed only while focused.\n\n\tup / down        move the selection by one row\n\tpage up/down     move it by a screen, less one row of overlap\n\thome / end       first / last row\n\tshift+home/end   first / last column\n\tleft / right     scroll one column horizontally\n\tenter, space     activate the selection, calling OnActivate\n\twheel up/down    scroll vertically WITHOUT moving the selection\n\twheel + shift    scroll horizontally\n\tpress            select the pressed row and take focus\n\nKeyTab is NOT consumed, for the same reason List does not consume it."
+      }
+    },
+    "tabs": {
+      "intro": "Tabs is a single row of tab labels with one selected, scrollable when the tabs\ndo not all fit.",
+      "keyContract": {
+        "after": "",
+        "before": "Keys are consumed only while focused. Moving with an arrow SELECTS, as in every tab bar: there is no separate commit step, because a tab bar has no unselected state to commit from.",
+        "rows": [
+          [
+            "left / right",
+            "KeyLeft / KeyRight select the previous / next tab"
+          ],
+          [
+            "up / down",
+            "KeyUp / KeyDown do the same, so a tab bar works in a vertical form layout too"
+          ],
+          [
+            "home / end",
+            "KeyHome / KeyEnd select the first / last tab"
+          ],
+          [
+            "page up/down",
+            "KeyPageUp / KeyPageDown select as many tabs as fit"
+          ],
+          [
+            "activate",
+            "KeyEnter or KeySpace fires OnSelect for the selected tab"
+          ],
+          [
+            "wheel",
+            "MouseWheelUp / MouseWheelDown scroll without selecting"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "The selected tab is BRACKETED — \"[Name]\" — and every other tab is space-padded\n— \" Name \". The bracket is a shape, so the selection is readable in a\nmonochrome terminal, under NO_COLOR, and by a reader who sees no difference\nbetween two colours an application chose. This is the requirement from ADR\n0008's accessibility rule: a selected tab must be distinguishable without\ncolour.\n\nKeeping the unselected mark a space rather than nothing is deliberate. It means\nevery tab is exactly its label plus two cells, so selecting a different tab\ncannot reflow the row, and the brackets are unambiguously the selection\nindicator rather than decoration.",
+        "Key contract": "Keys are consumed only while focused. Moving with an arrow SELECTS, as in every\ntab bar: there is no separate commit step, because a tab bar has no unselected\nstate to commit from.\n\n\tleft / right   KeyLeft / KeyRight select the previous / next tab\n\tup / down      KeyUp / KeyDown do the same, so a tab bar works in a vertical\n\t               form layout too\n\thome / end     KeyHome / KeyEnd select the first / last tab\n\tpage up/down   KeyPageUp / KeyPageDown select as many tabs as fit\n\tactivate       KeyEnter or KeySpace fires OnSelect for the selected tab\n\twheel          MouseWheelUp / MouseWheelDown scroll without selecting",
+        "Scrolling": "A tab bar is a HORIZONTAL strip, so it does not use virtual.Model: that engine\ncounts rows in a viewport of a given HEIGHT, and one row of tabs would mean a\ncapacity of one tab no matter how wide the pane is. The offset here is clamped\n— never re-derived — in the same spirit as ADR 0007 §6: moving the selection\npast the right edge scrolls the minimum amount that shows it."
+      }
+    },
+    "text": {
+      "intro": "Text renders styled spans on one line.\n\nIt is the smallest widget in the catalog and the one most often composed: a\nlabel in a form, a value beside it, a status line. It truncates rather than\nwraps, because wrapping is Paragraph's job and a widget that both wrapped and\ndid not would be two widgets.",
+      "sections": {}
+    },
+    "textarea": {
+      "intro": "TextArea is a multi-line editable text region that wraps rather than scrolls\nhorizontally.\n\nThe wrapping is buffer's, not this widget's: the content is handed to\nbuffer.Wrap and the resulting Wrapped is cached against the rect it was built\nfor. Wrap allocates twice over, so calling it in Draw would add an allocation\nto every frame — the failure ADR 0008 §4 exists to prevent. The first Draw\nafter a width change wraps; every Draw after that reads the cache.",
+      "keyContract": {
+        "after": "KeyTab is NOT consumed: in a form, tab moves between fields, and swallowing it here would make a text area impossible to leave with the keyboard.",
+        "before": "Keys are consumed only while focused, and the caret moves by VISUAL line and cell column, so Up and Down follow the wrapping rather than the newline characters.",
+        "rows": [
+          [
+            "insert",
+            "any printable rune"
+          ],
+          [
+            "newline",
+            "KeyEnter inserts U+000A"
+          ],
+          [
+            "backspace",
+            "KeyBackspace; ModCtrl or ModAlt deletes the word before"
+          ],
+          [
+            "delete",
+            "KeyDelete; ModCtrl or ModAlt deletes the word after"
+          ],
+          [
+            "left / right",
+            "KeyLeft / KeyRight; ModShift extends the selection, ModCtrl or ModAlt moves by word"
+          ],
+          [
+            "up / down",
+            "KeyUp / KeyDown, one visual line"
+          ],
+          [
+            "home / end",
+            "KeyHome / KeyEnd within the visual line; with ModCtrl, within the whole text"
+          ],
+          [
+            "page up/down",
+            "KeyPageUp / KeyPageDown, one screen"
+          ],
+          [
+            "select all",
+            "ModCtrl+'a'"
+          ],
+          [
+            "undo",
+            "ModCtrl+'z'"
+          ],
+          [
+            "paste",
+            "EventPaste, inserted verbatim INCLUDING newlines"
+          ]
+        ]
+      },
+      "sections": {
+        "Key contract": "Keys are consumed only while focused, and the caret moves by VISUAL line and\ncell column, so Up and Down follow the wrapping rather than the newline\ncharacters.\n\n\tinsert         any printable rune\n\tnewline        KeyEnter inserts U+000A\n\tbackspace      KeyBackspace; ModCtrl or ModAlt deletes the word before\n\tdelete         KeyDelete; ModCtrl or ModAlt deletes the word after\n\tleft / right   KeyLeft / KeyRight; ModShift extends the selection, ModCtrl\n\t               or ModAlt moves by word\n\tup / down      KeyUp / KeyDown, one visual line\n\thome / end     KeyHome / KeyEnd within the visual line; with ModCtrl, within\n\t               the whole text\n\tpage up/down   KeyPageUp / KeyPageDown, one screen\n\tselect all     ModCtrl+'a'\n\tundo           ModCtrl+'z'\n\tpaste          EventPaste, inserted verbatim INCLUDING newlines\n\nKeyTab is NOT consumed: in a form, tab moves between fields, and swallowing it\nhere would make a text area impossible to leave with the keyboard."
+      }
+    },
+    "textinput": {
+      "intro": "TextInput is a single-line editable text field: a caret, an optional\nselection, word motions, undo, and bracketed paste.\n\nIt is the reference implementation of the whole form set, because ADR 0005 §4\nwas written about it. Three properties are load-bearing and each is pinned by\na test:\n\n  - EventPaste is ONE undoable operation. A 10,000-character paste is one\n    step on the undo stack, so one Ctrl-Z removes the whole of it.\n  - Draw allocates nothing in steady state. The visible runs are rebuilt only\n    when the text, the caret, the styles or the rect change, which is\n    ADR 0007 §3's rect-keyed adaptation applied to a per-keystroke value.\n  - Draw is total for every rect, including 0×0 and 1×1, and below its\n    MinSize it clips rather than blanking.",
+      "keyContract": {
+        "after": "A newline cannot be typed: KeyEnter is NOT consumed, so the enclosing form decides what Enter means. That is why multi-line editing is TextArea's job and not this widget's.",
+        "before": "Keys are consumed only while the field is focused, so an unfocused field in a form cannot be typed into. Modifiers are read through KeyMod.Has, which is why every binding below has a spelled-out modifier rather than an exact match.",
+        "rows": [
+          [
+            "insert",
+            "any printable rune"
+          ],
+          [
+            "backspace",
+            "KeyBackspace; with ModCtrl or ModAlt, the word before ModCtrl+'h' is accepted too, because a terminal sends Ctrl-Backspace as 0x08 or as 'h' depending on terminfo"
+          ],
+          [
+            "delete",
+            "KeyDelete; with ModCtrl or ModAlt, the word after"
+          ],
+          [
+            "left / right",
+            "KeyLeft / KeyRight; with ModShift extends the selection, with ModCtrl or ModAlt moves by word"
+          ],
+          [
+            "home / end",
+            "KeyHome / KeyEnd; with ModCtrl the whole text"
+          ],
+          [
+            "select all",
+            "ModCtrl+'a'"
+          ],
+          [
+            "undo",
+            "ModCtrl+'z'"
+          ],
+          [
+            "paste",
+            "EventPaste, inserted verbatim minus CR and LF"
+          ]
+        ]
+      },
+      "sections": {
+        "Key contract": "Keys are consumed only while the field is focused, so an unfocused field in a\nform cannot be typed into. Modifiers are read through KeyMod.Has, which is why\nevery binding below has a spelled-out modifier rather than an exact match.\n\n\tinsert         any printable rune\n\tbackspace      KeyBackspace; with ModCtrl or ModAlt, the word before\n\t               ModCtrl+'h' is accepted too, because a terminal sends\n\t               Ctrl-Backspace as 0x08 or as 'h' depending on terminfo\n\tdelete         KeyDelete; with ModCtrl or ModAlt, the word after\n\tleft / right   KeyLeft / KeyRight; with ModShift extends the selection, with\n\t               ModCtrl or ModAlt moves by word\n\thome / end     KeyHome / KeyEnd; with ModCtrl the whole text\n\tselect all     ModCtrl+'a'\n\tundo           ModCtrl+'z'\n\tpaste          EventPaste, inserted verbatim minus CR and LF\n\nA newline cannot be typed: KeyEnter is NOT consumed, so the enclosing form\ndecides what Enter means. That is why multi-line editing is TextArea's job and\nnot this widget's."
+      }
+    },
+    "toggle": {
+      "intro": "Toggle is an on/off switch with an optional label.\n\nIt is not a Checkbox with a different marker: a toggle means \"this is running\nright now\" and a checkbox means \"include this in the operation\", and users\nread them differently. The difference is spelled in the marker — the words \"on\"\nand \"off\" — because a bare \"[x]\" would be ambiguous between the two.",
+      "keyContract": {
+        "after": "",
+        "before": "Keys are consumed only while focused. Every binding toggles; there is no \"set to on\" key, because a toggle has two states and reaching either is the same action.",
+        "rows": [
+          [
+            "toggle",
+            "KeySpace, KeyEnter, KeyLeft, KeyRight"
+          ]
+        ]
+      },
+      "sections": {
+        "Accessibility": "The state is the WORD: \"[on]\" or \"[off]\", both five cells wide so the label\nnever moves when the state changes. Nothing about the state depends on colour.",
+        "Key contract": "Keys are consumed only while focused. Every binding toggles; there is no\n\"set to on\" key, because a toggle has two states and reaching either is the\nsame action.\n\n\ttoggle      KeySpace, KeyEnter, KeyLeft, KeyRight"
+      }
+    },
+    "tree": {
+      "intro": "Tree shows a hierarchy with expandable nodes, keyboard navigation and lazy\nrendering of the visible rows.\n\nIt is Focusable on the same terms as List and Table.",
+      "keyContract": {
+        "after": "KeyTab is NOT consumed, as in List and Table.",
+        "before": "Consumed only while focused. Selection is a ROW, so it follows expansion: with a node collapsed, the rows below it are simply gone.",
+        "rows": [
+          [
+            "up / down",
+            "move the selection by one visible row"
+          ],
+          [
+            "page up/down",
+            "move it by a screen, less one row of overlap"
+          ],
+          [
+            "home / end",
+            "first / last visible row"
+          ],
+          [
+            "right",
+            "expand the selected node, or step into it if it is open"
+          ],
+          [
+            "left",
+            "collapse the selected node, or step out to its parent"
+          ],
+          [
+            "enter, space",
+            "toggle the selected node"
+          ],
+          [
+            "wheel up/down",
+            "scroll WITHOUT moving the selection"
+          ],
+          [
+            "press",
+            "select the pressed row and take focus"
+          ]
+        ]
+      },
+      "sections": {
+        "How laziness is achieved, and what it costs": "SetNodes flattens the hierarchy ONCE into parallel arrays — depth, subtree\nend, parent, expansion — and keeps a third list, visible, of the node indices\ncurrently on screen as rows. A collapsed node's entire subtree is skipped in\none step rather than walked, so building the visible list is O(visible rows),\nnot O(nodes), and drawing a frame is O(visible rows) with no walking at all:\nrow k is visible[k], an array read.\n\nThe visible list is rebuilt whenever expansion changes — SetNodes, Toggle,\nExpandAll, CollapseAll — which is a key press rather than a frame. Its cost is\nO(visible rows), so expanding a node inside a 100,000-node tree is as cheap as\nthe tree is tall, and is the minimum any correct implementation can be: you\ncannot know what is on screen without counting it.\n\nPer-frame cost does not depend on the node count at all, which\nTestTreeHundredThousandNodesIsFlat measures rather than asserts.",
+        "Key contract": "Consumed only while focused. Selection is a ROW, so it follows expansion: with\na node collapsed, the rows below it are simply gone.\n\n\tup / down       move the selection by one visible row\n\tpage up/down    move it by a screen, less one row of overlap\n\thome / end      first / last visible row\n\tright           expand the selected node, or step into it if it is open\n\tleft            collapse the selected node, or step out to its parent\n\tenter, space    toggle the selected node\n\twheel up/down   scroll WITHOUT moving the selection\n\tpress           select the pressed row and take focus\n\nKeyTab is NOT consumed, as in List and Table."
+      }
+    }
+  }
+}

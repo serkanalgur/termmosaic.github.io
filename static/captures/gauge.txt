@@ -1,0 +1,14 @@
+# Gauge — A bounded reading drawn as a Braille dial or a fallback bar.
+# package: widgets/viz
+# constructor: viz.NewGauge(r buffer.Rect) *viz.Gauge
+# 120 columns x 9 rows, rendered through widgettest.Capture
+
+╭ dashboard ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                         ⠁⠁⠁⠁                                                         │
+│                                                        ⠓⠛⠃⠃⠛⠉                                                        │
+│                                                        ⠙⠉⠁⠁⠓⠛                                                        │
+│                                                         ⠃⠛⠛⠃                                                         │
+│                                                                                                                      │
+│render 70                                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,8 @@
+# Text — A single line of styled spans, aligned within its rectangle.
+# package: widgets/basic
+# constructor: basic.NewText(r buffer.Rect, spans []buffer.Span) *basic.Text
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+TermMosaic — 22 widgets, 2 dependencies
+
+

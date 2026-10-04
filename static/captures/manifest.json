@@ -1,0 +1,566 @@
+{
+  "tool": "cmd/capture",
+  "widths": [
+    40,
+    80,
+    120
+  ],
+  "widgetCount": 22,
+  "widgets": [
+    {
+      "name": "Block",
+      "slug": "block",
+      "package": "widgets/block",
+      "constructor": "block.New(r buffer.Rect) *block.Block",
+      "summary": "A bordered, titled, padded rectangle that other widgets draw inside.",
+      "note": "A Block draws chrome only — it has no children. What goes inside it is the application's business: wrap a widget, or use a Split to place several. The capture shows the padding and the interior band, which is the part of the widget that is actually drawn.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        9,
+        9,
+        9
+      ],
+      "minSize": {
+        "w": 5,
+        "h": 5
+      },
+      "text": "block.txt",
+      "textBytes": 1785,
+      "html": "block.html",
+      "htmlBytes": 10651
+    },
+    {
+      "name": "Text",
+      "slug": "text",
+      "package": "widgets/basic",
+      "constructor": "basic.NewText(r buffer.Rect, spans []buffer.Span) *basic.Text",
+      "summary": "A single line of styled spans, aligned within its rectangle.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "text": "text.txt",
+      "textBytes": 279,
+      "html": "text.html",
+      "htmlBytes": 3483
+    },
+    {
+      "name": "Paragraph",
+      "slug": "paragraph",
+      "package": "widgets/basic",
+      "constructor": "basic.NewParagraph(r buffer.Rect, spans []buffer.Span) *basic.Paragraph",
+      "summary": "Wrapped, styled prose that reflows to the width it is given.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        10,
+        9,
+        7
+      ],
+      "text": "paragraph.txt",
+      "textBytes": 516,
+      "html": "paragraph.html",
+      "htmlBytes": 5884
+    },
+    {
+      "name": "Split",
+      "slug": "split",
+      "package": "widgets/split",
+      "constructor": "split.New(d layout.Direction, panes ...termmosaic.Widget) *split.Split",
+      "summary": "A container that divides its rectangle among focusable panes.",
+      "note": "Focus moves between panes with Tab and the focused pane is the one that takes keys. A still frame cannot show that; the marker in the second pane's title is where the capture has to stop.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        11,
+        11
+      ],
+      "minSize": {
+        "w": 3,
+        "h": 1
+      },
+      "text": "split.txt",
+      "textBytes": 2100,
+      "html": "split.html",
+      "htmlBytes": 28889
+    },
+    {
+      "name": "TextInput",
+      "slug": "textinput",
+      "package": "widgets/form",
+      "constructor": "form.NewTextInput(r buffer.Rect) *form.TextInput",
+      "summary": "A single-line editable field with a cursor, a selection and undo.",
+      "note": "This capture is taken with the field focused, so the cursor mark is live.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 1
+      },
+      "text": "textinput.txt",
+      "textBytes": 267,
+      "html": "textinput.html",
+      "htmlBytes": 3416
+    },
+    {
+      "name": "TextArea",
+      "slug": "textarea",
+      "package": "widgets/form",
+      "constructor": "form.NewTextArea(r buffer.Rect) *form.TextArea",
+      "summary": "A multi-line editable field with wrapping, selection and undo.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        7,
+        7,
+        7
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 1
+      },
+      "text": "textarea.txt",
+      "textBytes": 415,
+      "html": "textarea.html",
+      "htmlBytes": 4419
+    },
+    {
+      "name": "Select",
+      "slug": "select",
+      "package": "widgets/form",
+      "constructor": "form.NewSelect(r buffer.Rect, labels []string) *form.Select",
+      "summary": "A single-choice control that expands into a scrollable list.",
+      "note": "A Select draws its options below the field rather than over the page, so the capture shows ten of the ten labels with the fifth highlighted.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        9,
+        9,
+        9
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 1
+      },
+      "text": "select.txt",
+      "textBytes": 321,
+      "html": "select.html",
+      "htmlBytes": 5097
+    },
+    {
+      "name": "Checkbox",
+      "slug": "checkbox",
+      "package": "widgets/form",
+      "constructor": "form.NewCheckbox(r buffer.Rect, label string) *form.Checkbox",
+      "summary": "A tri-state box: unchecked, checked, or indeterminate.",
+      "note": "Indeterminate is never produced by toggling. Only an application that has computed it from its children can set it, so the capture sets it directly.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        5,
+        5,
+        5
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 5
+      },
+      "text": "checkbox.txt",
+      "textBytes": 288,
+      "html": "checkbox.html",
+      "htmlBytes": 3366
+    },
+    {
+      "name": "Radio",
+      "slug": "radio",
+      "package": "widgets/form",
+      "constructor": "form.NewRadio(r buffer.Rect, labels []string) *form.Radio",
+      "summary": "A single-choice group of labels, navigated with the arrow keys.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        6,
+        6,
+        6
+      ],
+      "minSize": {
+        "w": 6,
+        "h": 1
+      },
+      "text": "radio.txt",
+      "textBytes": 280,
+      "html": "radio.html",
+      "htmlBytes": 4860
+    },
+    {
+      "name": "Toggle",
+      "slug": "toggle",
+      "package": "widgets/form",
+      "constructor": "form.NewToggle(r buffer.Rect, label string) *form.Toggle",
+      "summary": "A two-state switch with an on and an off rendering.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 6,
+        "h": 1
+      },
+      "text": "toggle.txt",
+      "textBytes": 240,
+      "html": "toggle.html",
+      "htmlBytes": 3124
+    },
+    {
+      "name": "Tabs",
+      "slug": "tabs",
+      "package": "widgets/form",
+      "constructor": "form.NewTabs(r buffer.Rect, labels []string) *form.Tabs",
+      "summary": "A horizontal strip of labels, one of which is the active pane.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        4,
+        4,
+        4
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 1
+      },
+      "text": "tabs.txt",
+      "textBytes": 264,
+      "html": "tabs.html",
+      "htmlBytes": 3536
+    },
+    {
+      "name": "Button",
+      "slug": "button",
+      "package": "widgets/form",
+      "constructor": "form.NewButton(r buffer.Rect, label string) *form.Button",
+      "summary": "A labelled, activatable control with a default and a disabled state.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 3,
+        "h": 1
+      },
+      "text": "button.txt",
+      "textBytes": 264,
+      "html": "button.html",
+      "htmlBytes": 4605
+    },
+    {
+      "name": "KeyHint",
+      "slug": "keyhint",
+      "package": "widgets/form",
+      "constructor": "form.NewKeyHint(r buffer.Rect, bindings []form.Binding) *form.KeyHint",
+      "summary": "A one-line bar of key names and their meanings.",
+      "note": "At 40 columns the bar has fewer cells than bindings, so it drops the lowest-priority ones rather than truncating mid-word. That trade is visible in the narrow capture.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 1,
+        "h": 1
+      },
+      "text": "keyhint.txt",
+      "textBytes": 292,
+      "html": "keyhint.html",
+      "htmlBytes": 4085
+    },
+    {
+      "name": "List",
+      "slug": "list",
+      "package": "widgets/data",
+      "constructor": "data.NewList(r buffer.Rect, items ...data.ListItem) *data.List",
+      "summary": "A scrollable, selectable list with a marker gutter and a scrollbar.",
+      "note": "The scrollbar thumb's POSITION is the signal; its colour is not.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        11,
+        11
+      ],
+      "minSize": {
+        "w": 10,
+        "h": 3
+      },
+      "text": "list.txt",
+      "textBytes": 2080,
+      "html": "list.html",
+      "htmlBytes": 13869
+    },
+    {
+      "name": "Table",
+      "slug": "table",
+      "package": "widgets/data",
+      "constructor": "data.NewTable(r buffer.Rect, cols ...data.Column) *data.Table",
+      "summary": "Rows in columns, with a header, a selection and horizontal scrolling.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        10,
+        10,
+        10
+      ],
+      "minSize": {
+        "w": 12,
+        "h": 4
+      },
+      "text": "table.txt",
+      "textBytes": 1951,
+      "html": "table.html",
+      "htmlBytes": 19742
+    },
+    {
+      "name": "Tree",
+      "slug": "tree",
+      "package": "widgets/data",
+      "constructor": "data.NewTree(r buffer.Rect, nodes ...data.Node) *data.Tree",
+      "summary": "A hierarchy with expandable nodes, keyboard navigation and lazy row rendering.",
+      "note": "Expansion is state, and a still frame shows it only by the twisties and the indent. The example program is where a reader sees a node open.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        13,
+        13,
+        13
+      ],
+      "minSize": {
+        "w": 14,
+        "h": 4
+      },
+      "text": "tree.txt",
+      "textBytes": 2325,
+      "html": "tree.html",
+      "htmlBytes": 13292
+    },
+    {
+      "name": "Pager",
+      "slug": "pager",
+      "package": "widgets/data",
+      "constructor": "data.NewPager(r buffer.Rect) *data.Pager",
+      "summary": "A scrollable long text with search, match highlighting and a position readout.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        11,
+        11
+      ],
+      "minSize": {
+        "w": 10,
+        "h": 4
+      },
+      "text": "pager.txt",
+      "textBytes": 2036,
+      "html": "pager.html",
+      "htmlBytes": 11101
+    },
+    {
+      "name": "ProgressBar",
+      "slug": "progressbar",
+      "package": "widgets/viz",
+      "constructor": "viz.NewProgressBar(r buffer.Rect) *viz.ProgressBar",
+      "summary": "A ratio from 0 to 1 drawn as a filled block-element bar.",
+      "note": "Filled with U+2588 FULL BLOCK. The difference between FillStyle and TrackStyle carries an attribute as well as a colour, so the bar is readable without either.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        4,
+        4,
+        4
+      ],
+      "minSize": {
+        "w": 14,
+        "h": 3
+      },
+      "text": "progressbar.txt",
+      "textBytes": 1295,
+      "html": "progressbar.html",
+      "htmlBytes": 8173
+    },
+    {
+      "name": "Gauge",
+      "slug": "gauge",
+      "package": "widgets/viz",
+      "constructor": "viz.NewGauge(r buffer.Rect) *viz.Gauge",
+      "summary": "A bounded reading drawn as a Braille dial or a fallback bar.",
+      "note": "The dial is Braille, U+2800..28FF: eight levels of vertical resolution in each cell, two samples per cell. A web font that gives those glyphs a different advance width destroys the arc, which is why the plain-text capture beside it is mandatory rather than a nicety.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        9,
+        9
+      ],
+      "minSize": {
+        "w": 11,
+        "h": 7
+      },
+      "text": "gauge.txt",
+      "textBytes": 1826,
+      "html": "gauge.html",
+      "htmlBytes": 13157
+    },
+    {
+      "name": "Meter",
+      "slug": "meter",
+      "package": "widgets/viz",
+      "constructor": "viz.NewMeter(r buffer.Rect) *viz.Meter",
+      "summary": "A budget with named zones, a threshold marker and the active zone's name in words.",
+      "note": "Two non-colour signals: the zone boundaries are drawn as '+', the threshold as '|', and the active band is named in text.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 18,
+        "h": 3
+      },
+      "text": "meter.txt",
+      "textBytes": 1070,
+      "html": "meter.html",
+      "htmlBytes": 6627
+    },
+    {
+      "name": "Sparkline",
+      "slug": "sparkline",
+      "package": "widgets/viz",
+      "constructor": "viz.NewSparkline(r buffer.Rect) *viz.Sparkline",
+      "summary": "A series of numbers drawn as Braille or block elements, scaled to its own range.",
+      "note": "Braille encoding, two samples per cell, so the series holds twice the values the width can show. The threshold defaults to reverse video, which is an attribute rather than a colour.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        3,
+        3,
+        3
+      ],
+      "minSize": {
+        "w": 5,
+        "h": 3
+      },
+      "text": "sparkline.txt",
+      "textBytes": 1292,
+      "html": "sparkline.html",
+      "htmlBytes": 6258
+    },
+    {
+      "name": "BarChart",
+      "slug": "barchart",
+      "package": "widgets/viz",
+      "constructor": "viz.NewBarChart(r buffer.Rect) *viz.BarChart",
+      "summary": "Categorical magnitudes as horizontal or vertical bars, with an axis and per-bar values.",
+      "note": "Bars are Block Elements. The value beside each bar is the colour-independent reading and the capture keeps it.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        11,
+        11
+      ],
+      "minSize": {
+        "w": 8,
+        "h": 6
+      },
+      "text": "barchart.txt",
+      "textBytes": 2089,
+      "html": "barchart.html",
+      "htmlBytes": 19457
+    }
+  ]
+}

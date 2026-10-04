@@ -1,0 +1,18 @@
+# Tree — A hierarchy with expandable nodes, keyboard navigation and lazy row rendering.
+# package: widgets/data
+# constructor: data.NewTree(r buffer.Rect, nodes ...data.Node) *data.Tree
+# 120 columns x 13 rows, rendered through widgettest.Capture
+
+╭ repository ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  - termmosaic                                                                                                        │
+│    - buffer                                                                                                          │
+│        cell.go                                                                                                       │
+│›       style.go                                                                                                      │
+│        wrap.go                                                                                                       │
+│    - render                                                                                                          │
+│        renderer.go                                                                                                   │
+│        diff.go                                                                                                       │
+│      widgets                                                                                                         │
+│      headless                                                                                                        │
+│  - examples                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

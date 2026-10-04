@@ -1,0 +1,8 @@
+# Button — A labelled, activatable control with a default and a disabled state.
+# package: widgets/form
+# constructor: form.NewButton(r buffer.Rect, label string) *form.Button
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+
+   [Render]       Save
+

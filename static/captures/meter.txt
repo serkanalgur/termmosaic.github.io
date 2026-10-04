@@ -1,0 +1,8 @@
+# Meter — A budget with named zones, a threshold marker and the active zone's name in words.
+# package: widgets/viz
+# constructor: viz.NewMeter(r buffer.Rect) *viz.Meter
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+╭ disk ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│used                                                                   +                █       |    +           78   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

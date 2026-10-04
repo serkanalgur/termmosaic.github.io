@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Paragraph capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Paragraph" data-package="widgets/basic">
+<h1 class="tm-name">Paragraph</h1>
+<p class="tm-meta"><code>basic.NewParagraph(r buffer.Rect, spans []buffer.Span) *basic.Paragraph</code> &mdash; <code>widgets/basic</code></p>
+<p class="tm-meta">Wrapped, styled prose that reflows to the width it is given.</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 10 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#e8ecf4">A capture is one settled frame after N</span>
+<span style="color:#e8ecf4">frames have been </span><span style="color:#7fb0ff;font-weight:700">rendered</span><span style="color:#e8ecf4;font-weight:700">.</span><span style="font-weight:700">              </span>
+<span style="color:#e8ecf4;font-weight:700">It cannot show a keypress, a selection</span><span style="font-weight:700">  </span>
+<span style="color:#e8ecf4;font-weight:700">moving, a cell flickering or a pager</span><span style="font-weight:700">    </span>
+<span style="color:#e8ecf4;font-weight:700">scrolling. </span><span style="color:#8cd98a;font-weight:700">Every widget page therefore</span><span style="font-weight:700">  </span>
+<span style="color:#8cd98a;font-weight:700">links a runnable program: the capture is</span>
+<span style="color:#8cd98a;font-weight:700">a still, and the program is the widget.</span><span style="font-weight:700"> </span>
+<span style="font-weight:700">                                        </span>
+<span style="font-weight:700">                                        </span>
+<span style="font-weight:700">                                        </span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#e8ecf4">A capture is one settled frame after N frames have been </span><span style="color:#7fb0ff;font-weight:700">rendered</span><span style="color:#e8ecf4;font-weight:700">.</span><span style="font-weight:700">               </span>
+<span style="color:#e8ecf4;font-weight:700">It cannot show a keypress, a selection moving, a cell flickering or a pager</span><span style="font-weight:700">     </span>
+<span style="color:#e8ecf4;font-weight:700">scrolling. </span><span style="color:#8cd98a;font-weight:700">Every widget page therefore links a runnable program: the capture is</span><span style="font-weight:700"> </span>
+<span style="color:#8cd98a;font-weight:700">a still, and the program is the widget.</span><span style="font-weight:700">                                         </span>
+<span style="font-weight:700">                                                                                </span>
+<span style="font-weight:700">                                                                                </span>
+<span style="font-weight:700">                                                                                </span>
+<span style="font-weight:700">                                                                                </span>
+<span style="font-weight:700">                                                                                </span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 7 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#e8ecf4">A capture is one settled frame after N frames have been </span><span style="color:#7fb0ff;font-weight:700">rendered</span><span style="color:#e8ecf4;font-weight:700">.</span><span style="font-weight:700">                                                       </span>
+<span style="color:#e8ecf4;font-weight:700">It cannot show a keypress, a selection moving, a cell flickering or a pager scrolling. </span><span style="color:#8cd98a;font-weight:700">Every widget page therefore links</span>
+<span style="color:#8cd98a;font-weight:700">a runnable program: the capture is a still, and the program is the widget.</span><span style="font-weight:700">                                              </span>
+<span style="font-weight:700">                                                                                                                        </span>
+<span style="font-weight:700">                                                                                                                        </span>
+<span style="font-weight:700">                                                                                                                        </span>
+<span style="font-weight:700">                                                                                                                        </span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Paragraph — Wrapped, styled prose that reflows to the width it is given.
+# package: widgets/basic
+# constructor: basic.NewParagraph(r buffer.Rect, spans []buffer.Span) *basic.Paragraph
+# 120 columns x 7 rows, rendered through widgettest.Capture
+
+A capture is one settled frame after N frames have been rendered.
+It cannot show a keypress, a selection moving, a cell flickering or a pager scrolling. Every widget page therefore links
+a runnable program: the capture is a still, and the program is the widget.
+
+
+
+
+</pre>
+</article>
+</body>
+</html>

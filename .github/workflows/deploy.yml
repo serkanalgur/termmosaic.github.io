@@ -1,0 +1,72 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; never cancel one mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/setup-go@v5
+        with:
+          # Pinned deliberately: raising this floor is what would unpin
+          # golang.org/x/term in the framework repo. See
+          # github.com/serkanalgur/termmosaic docs/adr/0001-backend-strategy.md
+          go-version: "1.23"
+
+      # A content change must not silently break the build. Both checkers are
+      # pure-Python and need no Hugo, so they run before the expensive step.
+      - name: Install docs check dependencies
+        run: pip install --quiet PyYAML
+
+      - name: Validate front matter
+        run: python3 scripts/check_frontmatter.py
+
+      - name: Check internal links
+        run: python3 scripts/check_links.py
+
+      - name: Verify captures are untouched
+        run: bash scripts/check_captures.sh
+
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.148.1"
+          extended: true
+          minify: true
+
+      - name: Fail on Hugo warnings
+        run: |
+          # --panicOnWarning is set in hugo.toml's build environment; a
+          # deprecated or broken shortcode must not publish silently.
+          test -f public/index.html
+          echo "pages built: $(find public -name index.html | wc -l)"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

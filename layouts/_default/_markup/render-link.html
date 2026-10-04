@@ -1,0 +1,54 @@
+{{- /*
+  Link render hook.
+
+  Its job: rewrite links that were written relative to the *repository*, not to
+  the *site*.
+
+  The eight ADRs are copied into content/adr/ byte for byte, and they link to
+  each other and to the status document with plain relative Markdown links —
+  `[ADR 0002](0002-buffer-representation.md)` and `[STATUS](../STATUS.md)`. Left
+  alone those resolve against the page's URL and 404. Rewriting them here rather
+  than in the ADR source is the whole point: the ADRs on this site are
+  byte-identical to the framework's, so there is nothing that can drift.
+
+  Two kinds of rewrite, and a deliberate difference between them:
+
+    0005-input-decoding.md  → a sibling PAGE here, /adr/0005-input-decoding/
+    ../STATUS.md            → not a page here at all; it lives in the framework
+                              repository, so it points at GitHub
+
+  Anything that does not resolve is left exactly as written, which leaves a
+  visible broken link rather than a silently wrong one. Both scripts/check_links.py
+  and the build warning below fail on either.
+*/ -}}
+{{- $dest := .Destination -}}
+{{- $url := $dest -}}
+{{- $sibling := false -}}
+{{- $external := or (hasPrefix $dest "http://") (hasPrefix $dest "https://") (hasPrefix $dest "//") (hasPrefix $dest "mailto:") (hasPrefix $dest "#") -}}
+{{- if and (not $external) (hasSuffix $dest ".md") -}}
+  {{- $dir := path.Dir .Page.File.Path -}}
+  {{- $base := path.Base $dest | strings.TrimSuffix ".md" -}}
+  {{- if eq $dir "." }}{{ $dir = "" }}{{ end -}}
+  {{- with .Page.GetPage (path.Join $dir $base) -}}
+    {{- $url = .RelPermalink -}}
+    {{- $sibling = true -}}
+  {{- else -}}
+    {{- /*
+      Not a page here. `../STATUS.md` from content/adr/ means docs/STATUS.md in
+      the framework repo, so resolve it there rather than inventing a site page.
+    */ -}}
+    {{- /* Hugo's TrimPrefix takes (PREFIX, STRING) — prefix first. */ -}}
+    {{- $repoPath := strings.TrimPrefix "../" $dest -}}
+    {{- if eq $repoPath "README.md" -}}
+      {{- /* docs/adr/README.md is this page's own source; point at the page. */ -}}
+      {{- $url = "/adr/" | relURL -}}
+    {{- else -}}
+      {{- if not (hasPrefix $repoPath "docs/") -}}
+        {{- $repoPath = printf "docs/%s" $repoPath -}}
+      {{- end -}}
+      {{- $url = printf "%s/blob/%s/%s" site.Params.repo site.Params.repoBranch $repoPath -}}
+    {{- end -}}
+    {{- warnf "link %q in %s is not a page here; resolving to %s" $dest $.Page.File.Path $url -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $url }}"{{ with .Attributes.rel }} rel="{{ . }}"{{ end }}{{ with .Attributes.target }} target="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Pager capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Pager" data-package="widgets/data">
+<h1 class="tm-name">Pager</h1>
+<p class="tm-meta"><code>data.NewPager(r buffer.Rect) *data.Pager</code> &mdash; <code>widgets/data</code></p>
+<p class="tm-meta">A scrollable long text with search, match highlighting and a position readout.</p>
+<p class="tm-meta">MinSize() = 10 &times; 4 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> docs/ARCHITECTURE.md </span><span style="color:#9aa4b8;font-weight:700">────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">Ln 9/46 &gt;diff                         </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">cannot                                </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    read the terminal, cannot sleep,  </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">cannot write a byte. A widget that    </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">needs                                 </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    input from the environment is a   </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">widget that cannot be rendered        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">headlessly,                           </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    and this framework refuses to     </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> docs/ARCHITECTURE.md </span><span style="color:#9aa4b8;font-weight:700">────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">Ln 15/46 &gt;diff                                                                </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    Frame pacing, the dirty-rect computation and the two-tier </span><span style="">diff all live in</span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    render. A widget never decides when it repaints; it declares what changed </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    and the renderer works out the smallest rectangle that covers it.         </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">                                                                              </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style=""> 3. The diff owns bytes                                                       </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    A frame is turned into SGR sequences and cursor moves by a two-tier diff: </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    a cell-level diff that finds the changed rectangle, and a byte-level diff </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    within it. The encoder emits what changed and nothing else.               </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">╰──────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> docs/ARCHITECTURE.md </span><span style="color:#9aa4b8;font-weight:700">────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">Ln 15/46 &gt;diff                                                                                                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    Frame pacing, the dirty-rect computation and the two-tier </span><span style="">diff all live in                                        </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    render. A widget never decides when it repaints; it declares what changed                                         </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    and the renderer works out the smallest rectangle that covers it.                                                 </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">                                                                                                                      </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style=""> 3. The diff owns bytes                                                                                               </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    A frame is turned into SGR sequences and cursor moves by a two-tier diff:                                         </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    a cell-level diff that finds the changed rectangle, and a byte-level diff                                         </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">│</span><span style="">    within it. The encoder emits what changed and nothing else.                                                       </span><span style="background-color:#9aa4b8">│</span>
+<span style="background-color:#9aa4b8">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Pager — A scrollable long text with search, match highlighting and a position readout.
+# package: widgets/data
+# constructor: data.NewPager(r buffer.Rect) *data.Pager
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ docs/ARCHITECTURE.md ────────────────────────────────────────────────────────────────────────────────────────────────╮
+│Ln 15/46 &gt;diff                                                                                                        │
+│    Frame pacing, the dirty-rect computation and the two-tier diff all live in                                        │
+│    render. A widget never decides when it repaints; it declares what changed                                         │
+│    and the renderer works out the smallest rectangle that covers it.                                                 │
+│                                                                                                                      │
+│ 3. The diff owns bytes                                                                                               │
+│    A frame is turned into SGR sequences and cursor moves by a two-tier diff:                                         │
+│    a cell-level diff that finds the changed rectangle, and a byte-level diff                                         │
+│    within it. The encoder emits what changed and nothing else.                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</article>
+</body>
+</html>

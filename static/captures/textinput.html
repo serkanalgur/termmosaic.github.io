@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — TextInput capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="TextInput" data-package="widgets/form">
+<h1 class="tm-name">TextInput</h1>
+<p class="tm-meta"><code>form.NewTextInput(r buffer.Rect) *form.TextInput</code> &mdash; <code>widgets/form</code></p>
+<p class="tm-meta">A single-line editable field with a cursor, a selection and undo.</p>
+<p class="tm-note">This capture is taken with the field focused, so the cursor mark is live.</p>
+<p class="tm-meta">MinSize() = 1 &times; 1 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">githu</span><span style="background-color:#e8ecf4;text-decoration:underline">b.com/serkanalgur/termmosaic</span><span style="text-decoration:underline">       </span>
+<span style="text-decoration:underline">                                        </span>
+<span style="text-decoration:underline">                                        </span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">githu</span><span style="background-color:#e8ecf4;text-decoration:underline">b.com/serkanalgur/termmosaic</span><span style="text-decoration:underline">                                               </span>
+<span style="text-decoration:underline">                                                                                </span>
+<span style="text-decoration:underline">                                                                                </span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">githu</span><span style="background-color:#e8ecf4;text-decoration:underline">b.com/serkanalgur/termmosaic</span><span style="text-decoration:underline">                                                                                       </span>
+<span style="text-decoration:underline">                                                                                                                        </span>
+<span style="text-decoration:underline">                                                                                                                        </span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># TextInput — A single-line editable field with a cursor, a selection and undo.
+# package: widgets/form
+# constructor: form.NewTextInput(r buffer.Rect) *form.TextInput
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+github.com/serkanalgur/termmosaic
+
+
+</pre>
+</article>
+</body>
+</html>

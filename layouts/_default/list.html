@@ -1,0 +1,26 @@
+{{ define "main" }}
+<article class="page" data-pagefind-body>
+  <header class="page-head">
+    <p class="eyebrow">{{ with .Section }}{{ . | humanize }}{{ end }}</p>
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+  </header>
+
+  {{ if .Params.toc }}{{ partial "toc.html" . }}{{ end }}
+
+  {{ .Content }}
+
+  {{ $pages := .Pages }}
+  {{ if $pages }}
+    <h2 id="pages">Pages in this section</h2>
+    <ul class="page-list">
+      {{ range $pages.ByWeight }}
+        <li>
+          <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+          {{ with .Description }}<span class="page-list-note">{{ . }}</span>{{ end }}
+        </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+</article>
+{{ end }}

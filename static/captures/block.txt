@@ -1,0 +1,14 @@
+# Block — A bordered, titled, padded rectangle that other widgets draw inside.
+# package: widgets/block
+# constructor: block.New(r buffer.Rect) *block.Block
+# 120 columns x 9 rows, rendered through widgettest.Capture
+
+╭ Package layout ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,16 @@
+# BarChart — Categorical magnitudes as horizontal or vertical bars, with an axis and per-bar values.
+# package: widgets/viz
+# constructor: viz.NewBarChart(r buffer.Rect) *viz.BarChart
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ allocations per frame ───────────────────────────────────────────────────────────────────────────────────────────────╮
+│          412                     968                     1284                   2140                    356          │
+│                                                                        █                                             │
+│                                                                        █                                             │
+│                                                ▃                       █                                             │
+│                        ▂                       █                       █                                             │
+│                        █                       █                       █                                             │
+│▄                       █                       █                       █                      ▂                      │
+│█                       █                       █                       █                      █                      │
+│buffer------------------render------------------widgets-----------------headless---------------input------------------│
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

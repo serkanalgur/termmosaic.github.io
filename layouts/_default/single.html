@@ -1,0 +1,15 @@
+{{ define "main" }}
+<article class="page" data-pagefind-body>
+  <header class="page-head">
+    <p class="eyebrow">{{ with .Section }}{{ . | humanize }}{{ end }}{{ with .Params.widgetPackage }} <span aria-hidden="true">·</span> <code>{{ . }}</code>{{ end }}</p>
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+  </header>
+
+  {{ if .Params.toc }}
+    {{ partial "toc.html" . }}
+  {{ end }}
+
+  {{ .Content }}
+</article>
+{{ end }}

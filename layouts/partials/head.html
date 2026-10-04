@@ -1,0 +1,24 @@
+{{- $description := .Description | default .Summary | default site.Params.description -}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
+<meta name="description" content="{{ $description | plainify | truncate 300 }}">
+<link rel="canonical" href="{{ .Permalink }}">
+
+<!-- capture.css first, site.css second: capture.css sets a `body` rule that
+     would otherwise fight the site's, and load order is what settles it. The
+     capture file itself is a framework artefact and is never edited here. -->
+{{- $site := resources.Get "css/site.css" | minify | fingerprint "sha256" }}
+<link rel="stylesheet" href="{{ "captures/capture.css" | relURL }}">
+<link rel="stylesheet" href="{{ $site.RelPermalink }}" integrity="{{ $site.Data.Integrity }}">
+
+<meta property="og:title" content="{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}">
+<meta property="og:description" content="{{ $description | plainify | truncate 300 }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta name="twitter:card" content="summary">
+<link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | absURL }}" title="{{ site.Title }}">
+
+{{- with .OutputFormats.Get "RSS" }}
+  {{- printf `<link rel="alternate" type="%s" href=%q title=%q>` .MediaType.Type .Permalink site.Title | safeHTML }}
+{{- end }}

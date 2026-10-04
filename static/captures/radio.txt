@@ -1,0 +1,11 @@
+# Radio — A single-choice group of labels, navigated with the arrow keys.
+# package: widgets/form
+# constructor: form.NewRadio(r buffer.Rect, labels []string) *form.Radio
+# 120 columns x 6 rows, rendered through widgettest.Capture
+
+  ( ) horizontal
+  ( ) vertical
+> (o) both
+
+
+

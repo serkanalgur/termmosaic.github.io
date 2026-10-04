@@ -1,0 +1,12 @@
+# Paragraph — Wrapped, styled prose that reflows to the width it is given.
+# package: widgets/basic
+# constructor: basic.NewParagraph(r buffer.Rect, spans []buffer.Span) *basic.Paragraph
+# 120 columns x 7 rows, rendered through widgettest.Capture
+
+A capture is one settled frame after N frames have been rendered.
+It cannot show a keypress, a selection moving, a cell flickering or a pager scrolling. Every widget page therefore links
+a runnable program: the capture is a still, and the program is the widget.
+
+
+
+

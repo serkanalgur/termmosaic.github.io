@@ -1,0 +1,16 @@
+# Pager — A scrollable long text with search, match highlighting and a position readout.
+# package: widgets/data
+# constructor: data.NewPager(r buffer.Rect) *data.Pager
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ docs/ARCHITECTURE.md ────────────────────────────────────────────────────────────────────────────────────────────────╮
+│Ln 15/46 >diff                                                                                                        │
+│    Frame pacing, the dirty-rect computation and the two-tier diff all live in                                        │
+│    render. A widget never decides when it repaints; it declares what changed                                         │
+│    and the renderer works out the smallest rectangle that covers it.                                                 │
+│                                                                                                                      │
+│ 3. The diff owns bytes                                                                                               │
+│    A frame is turned into SGR sequences and cursor moves by a two-tier diff:                                         │
+│    a cell-level diff that finds the changed rectangle, and a byte-level diff                                         │
+│    within it. The encoder emits what changed and nothing else.                                                       │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

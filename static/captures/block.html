@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Block capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Block" data-package="widgets/block">
+<h1 class="tm-name">Block</h1>
+<p class="tm-meta"><code>block.New(r buffer.Rect) *block.Block</code> &mdash; <code>widgets/block</code></p>
+<p class="tm-meta">A bordered, titled, padded rectangle that other widgets draw inside.</p>
+<p class="tm-note">A Block draws chrome only — it has no children. What goes inside it is the application&#39;s business: wrap a widget, or use a Split to place several. The capture shows the padding and the interior band, which is the part of the widget that is actually drawn.</p>
+<p class="tm-meta">MinSize() = 5 &times; 5 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> Package layout </span><span style="color:#9aa4b8;font-weight:700">──────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> Package layout </span><span style="color:#9aa4b8;font-weight:700">──────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 9 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> Package layout </span><span style="color:#9aa4b8;font-weight:700">──────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="background-color:#1c212c;font-weight:700">                                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Block — A bordered, titled, padded rectangle that other widgets draw inside.
+# package: widgets/block
+# constructor: block.New(r buffer.Rect) *block.Block
+# 120 columns x 9 rows, rendered through widgettest.Capture
+
+╭ Package layout ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</article>
+</body>
+</html>

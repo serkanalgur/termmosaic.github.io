@@ -1,0 +1,203 @@
+{
+  "widgetCount": 22,
+  "widgets": [
+    {
+      "name": "Block",
+      "slug": "block",
+      "package": "widgets/block",
+      "constructor": "block.New(r buffer.Rect) *block.Block",
+      "summary": "A bordered, titled, padded rectangle that other widgets draw inside.",
+      "text": "block.txt",
+      "html": "block.html"
+    },
+    {
+      "name": "Text",
+      "slug": "text",
+      "package": "widgets/basic",
+      "constructor": "basic.NewText(r buffer.Rect, spans []buffer.Span) *basic.Text",
+      "summary": "A single line of styled spans, aligned within its rectangle.",
+      "text": "text.txt",
+      "html": "text.html"
+    },
+    {
+      "name": "Paragraph",
+      "slug": "paragraph",
+      "package": "widgets/basic",
+      "constructor": "basic.NewParagraph(r buffer.Rect, spans []buffer.Span) *basic.Paragraph",
+      "summary": "Wrapped, styled prose that reflows to the width it is given.",
+      "text": "paragraph.txt",
+      "html": "paragraph.html"
+    },
+    {
+      "name": "Split",
+      "slug": "split",
+      "package": "widgets/split",
+      "constructor": "split.New(d layout.Direction, panes ...termmosaic.Widget) *split.Split",
+      "summary": "A container that divides its rectangle among focusable panes.",
+      "text": "split.txt",
+      "html": "split.html"
+    },
+    {
+      "name": "TextInput",
+      "slug": "textinput",
+      "package": "widgets/form",
+      "constructor": "form.NewTextInput(r buffer.Rect) *form.TextInput",
+      "summary": "A single-line editable field with a cursor, a selection and undo.",
+      "text": "textinput.txt",
+      "html": "textinput.html"
+    },
+    {
+      "name": "TextArea",
+      "slug": "textarea",
+      "package": "widgets/form",
+      "constructor": "form.NewTextArea(r buffer.Rect) *form.TextArea",
+      "summary": "A multi-line editable field with wrapping, selection and undo.",
+      "text": "textarea.txt",
+      "html": "textarea.html"
+    },
+    {
+      "name": "Select",
+      "slug": "select",
+      "package": "widgets/form",
+      "constructor": "form.NewSelect(r buffer.Rect, labels []string) *form.Select",
+      "summary": "A single-choice control that expands into a scrollable list.",
+      "text": "select.txt",
+      "html": "select.html"
+    },
+    {
+      "name": "Checkbox",
+      "slug": "checkbox",
+      "package": "widgets/form",
+      "constructor": "form.NewCheckbox(r buffer.Rect, label string) *form.Checkbox",
+      "summary": "A tri-state box: unchecked, checked, or indeterminate.",
+      "text": "checkbox.txt",
+      "html": "checkbox.html"
+    },
+    {
+      "name": "Radio",
+      "slug": "radio",
+      "package": "widgets/form",
+      "constructor": "form.NewRadio(r buffer.Rect, labels []string) *form.Radio",
+      "summary": "A single-choice group of labels, navigated with the arrow keys.",
+      "text": "radio.txt",
+      "html": "radio.html"
+    },
+    {
+      "name": "Toggle",
+      "slug": "toggle",
+      "package": "widgets/form",
+      "constructor": "form.NewToggle(r buffer.Rect, label string) *form.Toggle",
+      "summary": "A two-state switch with an on and an off rendering.",
+      "text": "toggle.txt",
+      "html": "toggle.html"
+    },
+    {
+      "name": "Tabs",
+      "slug": "tabs",
+      "package": "widgets/form",
+      "constructor": "form.NewTabs(r buffer.Rect, labels []string) *form.Tabs",
+      "summary": "A horizontal strip of labels, one of which is the active pane.",
+      "text": "tabs.txt",
+      "html": "tabs.html"
+    },
+    {
+      "name": "Button",
+      "slug": "button",
+      "package": "widgets/form",
+      "constructor": "form.NewButton(r buffer.Rect, label string) *form.Button",
+      "summary": "A labelled, activatable control with a default and a disabled state.",
+      "text": "button.txt",
+      "html": "button.html"
+    },
+    {
+      "name": "KeyHint",
+      "slug": "keyhint",
+      "package": "widgets/form",
+      "constructor": "form.NewKeyHint(r buffer.Rect, bindings []form.Binding) *form.KeyHint",
+      "summary": "A one-line bar of key names and their meanings.",
+      "text": "keyhint.txt",
+      "html": "keyhint.html"
+    },
+    {
+      "name": "List",
+      "slug": "list",
+      "package": "widgets/data",
+      "constructor": "data.NewList(r buffer.Rect, items ...data.ListItem) *data.List",
+      "summary": "A scrollable, selectable list with a marker gutter and a scrollbar.",
+      "text": "list.txt",
+      "html": "list.html"
+    },
+    {
+      "name": "Table",
+      "slug": "table",
+      "package": "widgets/data",
+      "constructor": "data.NewTable(r buffer.Rect, cols ...data.Column) *data.Table",
+      "summary": "Rows in columns, with a header, a selection and horizontal scrolling.",
+      "text": "table.txt",
+      "html": "table.html"
+    },
+    {
+      "name": "Tree",
+      "slug": "tree",
+      "package": "widgets/data",
+      "constructor": "data.NewTree(r buffer.Rect, nodes ...data.Node) *data.Tree",
+      "summary": "A hierarchy with expandable nodes, keyboard navigation and lazy row rendering.",
+      "text": "tree.txt",
+      "html": "tree.html"
+    },
+    {
+      "name": "Pager",
+      "slug": "pager",
+      "package": "widgets/data",
+      "constructor": "data.NewPager(r buffer.Rect) *data.Pager",
+      "summary": "A scrollable long text with search, match highlighting and a position readout.",
+      "text": "pager.txt",
+      "html": "pager.html"
+    },
+    {
+      "name": "ProgressBar",
+      "slug": "progressbar",
+      "package": "widgets/viz",
+      "constructor": "viz.NewProgressBar(r buffer.Rect) *viz.ProgressBar",
+      "summary": "A ratio from 0 to 1 drawn as a filled block-element bar.",
+      "text": "progressbar.txt",
+      "html": "progressbar.html"
+    },
+    {
+      "name": "Gauge",
+      "slug": "gauge",
+      "package": "widgets/viz",
+      "constructor": "viz.NewGauge(r buffer.Rect) *viz.Gauge",
+      "summary": "A bounded reading drawn as a Braille dial or a fallback bar.",
+      "text": "gauge.txt",
+      "html": "gauge.html"
+    },
+    {
+      "name": "Meter",
+      "slug": "meter",
+      "package": "widgets/viz",
+      "constructor": "viz.NewMeter(r buffer.Rect) *viz.Meter",
+      "summary": "A budget with named zones, a threshold marker and the active zone's name in words.",
+      "text": "meter.txt",
+      "html": "meter.html"
+    },
+    {
+      "name": "Sparkline",
+      "slug": "sparkline",
+      "package": "widgets/viz",
+      "constructor": "viz.NewSparkline(r buffer.Rect) *viz.Sparkline",
+      "summary": "A series of numbers drawn as Braille or block elements, scaled to its own range.",
+      "text": "sparkline.txt",
+      "html": "sparkline.html"
+    },
+    {
+      "name": "BarChart",
+      "slug": "barchart",
+      "package": "widgets/viz",
+      "constructor": "viz.NewBarChart(r buffer.Rect) *viz.BarChart",
+      "summary": "Categorical magnitudes as horizontal or vertical bars, with an axis and per-bar values.",
+      "text": "barchart.txt",
+      "html": "barchart.html"
+    }
+  ]
+}

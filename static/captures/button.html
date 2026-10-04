@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Button capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Button" data-package="widgets/form">
+<h1 class="tm-name">Button</h1>
+<p class="tm-meta"><code>form.NewButton(r buffer.Rect, label string) *form.Button</code> &mdash; <code>widgets/form</code></p>
+<p class="tm-meta">A labelled, activatable control with a default and a disabled state.</p>
+<p class="tm-meta">MinSize() = 3 &times; 1 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="">              </span><span style="background-color:#1c212c"> </span><span style="">          </span><span style="background-color:#1c212c">               </span>
+<span style="">   </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[Render]</span><span style="font-weight:700">   </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">  </span><span style="color:#9aa4b8;font-weight:700"> Save </span><span style="font-weight:700">  </span><span style="background-color:#1c212c;font-weight:700">               </span>
+<span style="font-weight:700">              </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">          </span><span style="background-color:#1c212c;font-weight:700">               </span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="">              </span><span style="background-color:#1c212c"> </span><span style="">          </span><span style="background-color:#1c212c">                                                       </span>
+<span style="">   </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[Render]</span><span style="font-weight:700">   </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">  </span><span style="color:#9aa4b8;font-weight:700"> Save </span><span style="font-weight:700">  </span><span style="background-color:#1c212c;font-weight:700">                                                       </span>
+<span style="font-weight:700">              </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">          </span><span style="background-color:#1c212c;font-weight:700">                                                       </span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 3 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="">              </span><span style="background-color:#1c212c"> </span><span style="">          </span><span style="background-color:#1c212c">                                                                                               </span>
+<span style="">   </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[Render]</span><span style="font-weight:700">   </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">  </span><span style="color:#9aa4b8;font-weight:700"> Save </span><span style="font-weight:700">  </span><span style="background-color:#1c212c;font-weight:700">                                                                                               </span>
+<span style="font-weight:700">              </span><span style="background-color:#1c212c;font-weight:700"> </span><span style="font-weight:700">          </span><span style="background-color:#1c212c;font-weight:700">                                                                                               </span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Button — A labelled, activatable control with a default and a disabled state.
+# package: widgets/form
+# constructor: form.NewButton(r buffer.Rect, label string) *form.Button
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+
+   [Render]       Save
+
+</pre>
+</article>
+</body>
+</html>

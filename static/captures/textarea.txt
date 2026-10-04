@@ -1,0 +1,12 @@
+# TextArea — A multi-line editable field with wrapping, selection and undo.
+# package: widgets/form
+# constructor: form.NewTextArea(r buffer.Rect) *form.TextArea
+# 120 columns x 7 rows, rendered through widgettest.Capture
+
+# capture notes
+
+The gauge dial is Braille: eight levels of
+vertical resolution per cell.
+The meter track is Block Elements.
+If a web font mis-advances either,
+the plain-text capture is the

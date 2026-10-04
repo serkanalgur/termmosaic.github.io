@@ -1,0 +1,8 @@
+# Sparkline — A series of numbers drawn as Braille or block elements, scaled to its own range.
+# package: widgets/viz
+# constructor: viz.NewSparkline(r buffer.Rect) *viz.Sparkline
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+╭ frame time (ms) ─────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│⠁⠁⠑⠙⠙⠙⠙⠙⠙⠙⠁⠁⠁⠁⠁⠁⠁⠑⠙⠙⠙⠙⠉⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠙⠛⠛⠛⠛⠛⠙⠉⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠑⠙⠙⠙⠙⠙⠉⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠁⠑⠙⠙⠉⠁⠁⠁⠁⠁⠁⠁⠁⠁│
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

@@ -1,0 +1,35 @@
+{{- $page := . -}}
+<nav class="sidebar" aria-label="Documentation">
+  {{ range site.Menus.main }}
+    {{ $active := or ($page.IsMenuCurrent "main" .) ($page.HasMenuCurrent "main" .) }}
+    <div class="nav-group{{ if $active }} is-active{{ end }}">
+      {{ if .HasChildren }}
+        <p class="nav-group-name" id="nav-{{ .Identifier | urlize }}">{{ .Name }}</p>
+        <ul aria-labelledby="nav-{{ .Identifier | urlize }}">
+          {{ range .Children }}
+            <li>
+              <a href="{{ .URL }}"
+                 {{ if $page.IsMenuCurrent "main" . }}aria-current="page"{{ end }}
+                 >{{ .Name }}</a>
+            </li>
+          {{ end }}
+        </ul>
+      {{ else }}
+        <ul>
+          <li>
+            <a href="{{ .URL }}"{{ if $page.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
+          </li>
+        </ul>
+      {{ end }}
+    </div>
+  {{ end }}
+
+  <div class="nav-group">
+    <p class="nav-group-name">Source</p>
+    <ul>
+      <li><a href="{{ site.Params.repo }}" rel="noopener">Repository</a></li>
+      <li><a href="{{ site.Params.godoc }}" rel="noopener">pkg.go.dev</a></li>
+      <li><a href="{{ site.Params.repo }}/blob/main/CHANGELOG.md" rel="noopener">Changelog</a></li>
+    </ul>
+  </div>
+</nav>

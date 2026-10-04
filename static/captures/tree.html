@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Tree capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Tree" data-package="widgets/data">
+<h1 class="tm-name">Tree</h1>
+<p class="tm-meta"><code>data.NewTree(r buffer.Rect, nodes ...data.Node) *data.Tree</code> &mdash; <code>widgets/data</code></p>
+<p class="tm-meta">A hierarchy with expandable nodes, keyboard navigation and lazy row rendering.</p>
+<p class="tm-note">Expansion is state, and a still frame shows it only by the twisties and the indent. The example program is where a reader sees a node open.</p>
+<p class="tm-meta">MinSize() = 14 &times; 4 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 13 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> repository </span><span style="color:#9aa4b8;font-weight:700">──────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - termmosaic                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - buffer                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        cell.go                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">›       style.go                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        wrap.go                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - render                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        renderer.go                   </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        diff.go                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      widgets                         </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      headless                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - examples                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 13 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> repository </span><span style="color:#9aa4b8;font-weight:700">──────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - termmosaic                                                                </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - buffer                                                                  </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        cell.go                                                               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">›       style.go                                                              </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        wrap.go                                                               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - render                                                                  </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        renderer.go                                                           </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        diff.go                                                               </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      widgets                                                                 </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      headless                                                                </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - examples                                                                  </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 13 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="color:#9aa4b8">╭</span><span style="color:#7fb0ff;font-weight:700"> repository </span><span style="color:#9aa4b8;font-weight:700">──────────────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - termmosaic                                                                                                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - buffer                                                                                                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        cell.go                                                                                                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">›       style.go                                                                                                      </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        wrap.go                                                                                                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">    - render                                                                                                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        renderer.go                                                                                                   </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">        diff.go                                                                                                       </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      widgets                                                                                                         </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">      headless                                                                                                        </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">│</span><span style="font-weight:700">  - examples                                                                                                          </span><span style="color:#9aa4b8;font-weight:700">│</span>
+<span style="color:#9aa4b8;font-weight:700">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Tree — A hierarchy with expandable nodes, keyboard navigation and lazy row rendering.
+# package: widgets/data
+# constructor: data.NewTree(r buffer.Rect, nodes ...data.Node) *data.Tree
+# 120 columns x 13 rows, rendered through widgettest.Capture
+
+╭ repository ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  - termmosaic                                                                                                        │
+│    - buffer                                                                                                          │
+│        cell.go                                                                                                       │
+│›       style.go                                                                                                      │
+│        wrap.go                                                                                                       │
+│    - render                                                                                                          │
+│        renderer.go                                                                                                   │
+│        diff.go                                                                                                       │
+│      widgets                                                                                                         │
+│      headless                                                                                                        │
+│  - examples                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</article>
+</body>
+</html>

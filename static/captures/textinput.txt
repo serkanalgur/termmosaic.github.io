@@ -1,0 +1,8 @@
+# TextInput — A single-line editable field with a cursor, a selection and undo.
+# package: widgets/form
+# constructor: form.NewTextInput(r buffer.Rect) *form.TextInput
+# 120 columns x 3 rows, rendered through widgettest.Capture
+
+github.com/serkanalgur/termmosaic
+
+

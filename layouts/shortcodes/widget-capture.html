@@ -1,0 +1,101 @@
+{{- /*
+  widget-capture — embed one widget's captured frames.
+
+  Usage:  {{< widget-capture "gauge" >}}
+
+  Everything this renders comes from two generated files in static/captures/,
+  which are build artefacts of the framework repo (cmd/capture) and are never
+  edited here:
+
+    manifest.json  widths, heights, MinSize, summary, note
+    <slug>.html    the cell-grid frames at each width, plus the plain-text form
+    <slug>.txt     the exact plain-text cell grid
+
+  The shortcode deliberately does NOT re-derive any of that. It slices the
+  widget's own HTML fragment out of the generated page and hands it through, so
+  the picture on this site is the picture the framework's own tests assert on.
+
+  What it will not claim, and says so on the page:
+    - a capture is one settled frame. It cannot show a keypress, a resize, a
+      selection moving or anything animated.
+    - it is the cell grid the renderer produced, not a screenshot of anyone's
+      terminal: not their font, their colour scheme, their background, or their
+      terminal's wide-glyph behaviour.
+    - Braille and Block Elements can take a different advance width in a web
+      font than in a terminal, which destroys the alignment those five widgets
+      depend on. The plain-text capture is the honest form and it is always
+      shown.
+*/ -}}
+
+{{- $slug := .Get 0 -}}
+{{- if not $slug -}}
+  {{- errorf "widget-capture: missing slug argument" -}}
+{{- end -}}
+
+{{- $captureDir := "static/captures" -}}
+{{- $manifest := readFile (printf "%s/manifest.json" $captureDir) | transform.Unmarshal -}}
+
+{{- $entry := "" -}}
+{{- range $manifest.widgets -}}
+  {{- if eq .slug $slug -}}{{- $entry = . -}}{{- end -}}
+{{- end -}}
+{{- if not $entry -}}
+  {{- errorf "widget-capture: %q is not in static/captures/manifest.json" $slug -}}
+{{- end -}}
+
+{{- $htmlPath := printf "%s/%s" $captureDir $entry.html -}}
+{{- $raw := readFile $htmlPath -}}
+
+{{- /*
+  Slice out the fragment: everything from <div class="tm-widths"> to </article>.
+  The generated page's own <head>, title block and note are deliberately left
+  behind — the page here already says what the widget is, and duplicating the
+  generated <h1> would give every widget page two h1 elements.
+*/ -}}
+{{- $parts := split $raw `<div class="tm-widths">` -}}
+{{- if lt (len $parts) 2 -}}
+  {{- errorf "widget-capture: %s has no tm-widths block; the generator's markup changed" $htmlPath -}}
+{{- end -}}
+{{- $fragment := printf `<div class="tm-widths">%s` (index $parts (sub (len $parts) 1)) -}}
+{{- $fragment = index (split $fragment "</article>") 0 -}}
+{{- $fragment = trim $fragment " \n\r\t" -}}
+
+<figure class="capture" data-widget="{{ $entry.name }}" data-slug="{{ $slug }}">
+  <figcaption class="capture-cap">
+    <strong>{{ $entry.name }}</strong> rendered by <code>cmd/capture</code> through
+    <code>widgettest.Capture</code>: colour at {{ len $entry.widths }} widths
+    ({{ delimit $entry.widths ", " }} columns), and the exact plain-text cell grid at
+    the widest of them.
+  </figcaption>
+
+  {{ with $entry.minSize }}
+    <p class="minsize">
+      <code>MinSize()</code> returns <strong>{{ .w }}&nbsp;&times;&nbsp;{{ .h }}</strong> cells.
+      That is the whole widget <em>including</em> its own chrome, and it is the
+      widget's assertion about itself — below it, <code>Draw</code> clips rather
+      than blanks, and what to do about that is the application's decision.
+    </p>
+  {{ else }}
+    <p class="minsize">
+      <code>MinSize()</code> is not in the manifest for this widget, so this page does not
+      claim a minimum. If you need one, call it.
+    </p>
+  {{ end }}
+
+  {{/* The three widths side by side, then the exact plain-text grid. Both
+       structures — .tm-widths and the data-form="text" pre — come from the
+       generator; this site adds no markup inside them. */}}
+  {{ $fragment | safeHTML }}
+
+  <div class="capture-truth">
+    <p><strong>What you are looking at.</strong> This is the cell grid the renderer
+    produced, in a web page. It is not a screenshot of a terminal, and it cannot show
+    interaction, resize or animation — a capture is one settled frame after N frames of
+    settling. Braille and Block Elements can take a different advance width in your
+    browser's font than in a terminal, so if a gauge or a sparkline above looks wrong,
+    the plain-text form below it is the exact output and the colour one is the decoration.
+    The colour frames are at {{ delimit $entry.widths ", " }} columns; the plain-text
+    frame is at {{ index $entry.widths (sub (len $entry.widths) 1) }}.
+    <a href="{{ "/limitations/#captures-are-cell-grids-not-terminal-screenshots" | relURL }}">More on this</a>.</p>
+  </div>
+</figure>
