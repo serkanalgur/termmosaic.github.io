@@ -1,7 +1,7 @@
 ---
 title: "Widgets"
 weight: 40
-description: "All 22 widgets, with a captured frame at three widths for each."
+description: "All 24 widgets, with a captured frame at three widths for each."
 ---
 
 TermMosaic ships **24 widgets**. That number is the whole claim and it is counted, not estimated: it is every exported type with a `New…` constructor that satisfies `termmosaic.Widget`, and `buffer.Buffer` is deliberately not on the list because it is what widgets draw *into*, not a widget.

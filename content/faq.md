@@ -27,7 +27,7 @@ change what you plan.
 
 No. See above. The honest statement of what *is* finished: the renderer, the input
 layer, the layout solver and the full 24-widget catalog are built and tested —
-23 packages, 954 test functions, a zero-allocation frame path.
+25 packages, 969 top-level test functions, a zero-allocation frame path.
 
 ## Does it work on Windows?
 
@@ -87,8 +87,8 @@ capture sits beside every colour capture. See
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.3.0     # focus ring + ? help overlay
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
@@ -169,7 +169,7 @@ addition.
 
 ## Is `TextArea`'s selection visible?
 
-**No.** In v0.2.0 `TextArea` tracks and moves a caret and supports editing, but
+**No.** In v0.3.0 `TextArea` tracks and moves a caret and supports editing, but
 **the selected range is not drawn**. `TextInput` does render its selection. This
 is a recorded gap, and it is one reason `TextArea` is the wrong widget for a
 value the user needs to see part of.
@@ -242,7 +242,7 @@ the only reason to trust either.
 [ADR 0009](/adr/0009-command-and-keymap/) specifies a command and keymap layer —
 a named action reachable by more than one key — and it is accepted. **No `keymap`
 package exists yet and there is no command palette.** `keymap` is slated for
-v0.3.0.
+v0.4.0; it was targeted at v0.3.0, which shipped without it.
 
 Until it lands, **widgets dispatch their own keys.** The practical consequence is
 that an application writes its own key routing, which is what both examples do.

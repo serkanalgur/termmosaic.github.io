@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.2.0. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.3.0. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -101,7 +101,8 @@ is the failure mode this page exists to prevent.
 
 **[ADR 0009](/adr/0009-command-and-keymap/) is Accepted, and nothing implements
 it.** There is no `keymap` package in the framework, and **no command palette
-exists.** `keymap` is slated for v0.3.0.
+exists.** `keymap` is slated for v0.4.0; it was targeted at v0.3.0, which
+shipped without it.
 
 **What you have today: widgets dispatch their own keys.** A `Table` consumes the
 arrows, a `Menu` consumes its navigation, and the application writes the routing
@@ -138,6 +139,51 @@ allows for a minor release and forbids for a patch.
 **If you are moving from v0.1.0 and your screen was not updating**, this is why,
 and upgrading fixes it. The symptom was a live-looking program that simply never
 changed again — not a hang, a crash or a visible error.
+
+## `List` and `Table` styling took effect in v0.3.0 — this changes what you see
+
+**This is the most visible change in v0.3.0, and it is a behaviour change rather
+than a new feature: styling you set on a `List` or a `Table` used to be
+silently discarded, and it is now honoured.** Nothing has to change to compile or
+to run. But if your widgets look different after upgrading, that is this release
+working, not a regression.
+
+**Two independent bugs, one visible consequence each.**
+
+On `List`, the style computed for each row was never actually passed to the paint
+call — it was computed and thrown away. So a `List` drew each item using whatever
+styles the item's own text spans happened to carry, and `SelectedStyle`, the field
+documented as the selected row's rendition, reached only the background fill and
+never the glyphs. `ItemStyle` on an unselected row and `SelectedStyle` on the
+selected row now both apply, and on the selected row the selected style wins —
+which is the precedence those two fields have always documented.
+
+On `Table`, the sentinel passed to mean "write these spans verbatim" was
+`buffer.DefaultStyle`, which is a wrong choice for that job: the unset check
+compares against the zero `Style{}`, and `DefaultStyle` is a *resolved* style, not
+an unset one. The guard therefore never fired, and every cell's own `Style` was
+overwritten with the terminal's default colours — along with every column's
+`CellStyle`. Cell spans and column styles now render as given. `HeadingStyle` was
+never affected, because it is passed as a real override rather than as the
+sentinel, and it still works.
+
+**Why this is a minor bump and not a patch.** Both fields were already documented
+as taking effect. The code contradicted its own documentation, so this is a fix to
+behaviour that was already promised — but a patch release that changes what
+renders would itself be a bug in the release, so the project policy makes it a
+minor. The framework's [`CHANGELOG.md`](/adr/changelog/) records both under
+Breaking.
+
+**If you worked around the old behaviour, undo the workaround.** A program that
+compensated in its own styles because the widget's were ignored is now
+double-counting, and should remove the compensation.
+
+**One thing that did not change: a multi-span row keeps its per-span styles.**
+The override only applies when a row is a single span. Flattening a multi-span row
+would mean building a string on the frame path, which the package's
+zero-allocation claim rules out. A row that deliberately carries several styles
+still renders with them. This limit was equally true before — it was just
+invisible, because nothing else about row styling worked either.
 
 ## Platform
 

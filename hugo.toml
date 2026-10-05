@@ -18,7 +18,7 @@ disableKinds = ["taxonomy", "term"]
   pagerSize = 200
 
 [params]
-  description = "Documentation for TermMosaic: a terminal UI framework for Go. A cell-buffer renderer and 22 widgets, pre-alpha."
+  description = "Documentation for TermMosaic: a terminal UI framework for Go. A cell-buffer renderer and 24 widgets, pre-alpha."
   repo = "https://github.com/serkanalgur/termmosaic"
   repoBranch = "main"
   godoc = "https://pkg.go.dev/github.com/serkanalgur/termmosaic"
