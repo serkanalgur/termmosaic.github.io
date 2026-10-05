@@ -157,7 +157,10 @@ def render(manifest: dict) -> str:
         "",
         "## Related",
         "",
-        "- [The catalog](/widgets/) — the same 22, one page each, with captures.",
+        # From the manifest, not a literal: this line said 22 while the page it
+        # links to listed 24, and a hand-written count on a generated page is
+        # exactly the thing the next release makes wrong again.
+        f"- [The catalog](/widgets/) — the same {manifest['widgetCount']}, one page each, with captures.",
         "- [Architecture decisions](/adr/) — the reasoning behind every row above.",
         "- [Limitations](/limitations/) — what the framework does not do.",
     ]

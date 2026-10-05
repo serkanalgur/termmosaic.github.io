@@ -13,18 +13,121 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.4.1**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.5.2**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.4.1
+go get github.com/serkanalgur/termmosaic@v0.5.2
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2
 ```
+
+## What's new in v0.5.2
+
+A minor bump, and the reason is a decision with a number attached:
+**[ADR 0010](/adr/0010-mouse-routing.md) settles who receives a mouse event** —
+and the answer exposed three widgets that were getting it wrong.
+
+- **`form.Tabs`, `form.Select` and `form.Radio` consumed a wheel notch regardless
+  of where the pointer was.** `Tabs.Handle` tested the wheel before the
+  `switch ev.Kind`, so a notch never reached the bounds check its click path
+  already used; `Select` and `Radio` reached the same place through the shared
+  `optionlist` helper. A tab row, a select or a radio group took the wheel from
+  whatever sat beneath it. **Per ADR 0010, a widget handles a pointer event only
+  when the pointer is inside its `Bounds()`** — with two stated exemptions: a
+  *release* ends a drag wherever the pointer is, and a *drag* continues outside
+  `Bounds` once a press has claimed it.
+- **`examples/markets` behaviour changes.** Its tab row is first in the focus
+  ring, so it swallowed **every** notch in the app. A notch over a KPI tile, which
+  no widget in the ring owns, is now consumed by nobody rather than scrolling the
+  tab row by three.
+
+The ADR also states which widgets decline a wheel outright: `Button`, `Checkbox`,
+`Toggle` and `Split` have nothing to scroll, and `TextInput`/`TextArea` decline
+**by decision** — `TextArea` wheel-to-scroll is plausible, but adding it under a
+routing ADR would answer a different question.
+
+## What's new in v0.5.1
+
+A minor bump, and the reason is seven defects: **the style a widget computes for
+one cell was stopping where two code paths diverged, and never reaching the text
+beside it.** Three of the five releases before this existed because of this one
+class.
+
+- **`Dialog`: `ChoiceFocusStyle` never reached the choice label** — the row was
+  filled and marked in the focus style while its *text* was written in the
+  unfocused style. With default styles the focused choice rendered `attr=none` on
+  an `attr=reverse` row: unreadable dark-on-dark, on exactly the row the reader
+  is meant to look at.
+- **`Button`: `FocusStyle` and `DisabledStyle` reached the ring and the fill but
+  not the label**, so a disabled button rendered blue brackets around
+  default-coloured text. The field's own documentation already promised otherwise.
+- **`Table`: `SelectedStyle` and `ItemStyle` filled the row but never reached the
+  cell text**, and `HeaderStyle` was documented as "patched with `ItemStyle`" and
+  never was. Both now do what their docs said. **The trade, stated plainly:** on
+  the selected row a cell's own `Style` and its column's `CellStyle` no longer
+  show, because the row style now overrides a single-span cell — a multi-span
+  cell keeps its own. And the header now carries `ItemStyle`'s **foreground** as
+  well as its background, because `Patch` takes both.
+- **`Menu`: the check glyph and the submenu arrow were drawn in `ItemStyle` on
+  the selected row**, where the row is reversed — the one unreadable thing on it.
+- **`Radio`: the focus gutter was styled as a focus mark on every row**, so an
+  unfocused group painted a reverse-video stripe down its left edge. The column
+  still exists on every row so labels align; only the rendition was wrong.
+- **`BarChart`: axis labels overran their column** — a computed centring offset
+  was discarded with `_ = lx`, so a label wider than its column overwrote the next
+  category's.
+
+Every one of these renders differently from v0.4.x **because it now renders
+correctly**. If your app looks different after upgrading, that is this release
+working. The full detail is on the [Limitations](/limitations/) page.
+
+## What's new in v0.5.0
+
+A minor bump, and the reason is the first item: **five exported fields are now
+private, so a program that assigns them will not compile.** Start here if you are
+arriving at v0.5.x from v0.4.x.
+
+**Breaking — `Pager.Status`, `Split.Spacing`, `Meter.ShowValue`,
+`ProgressBar.Label` and `ProgressBar.Percentage` are no longer exported fields.**
+Each already had a working setter, so migration is mechanical:
+
+| Before | After |
+|---|---|
+| `p.Status = on` | `p.SetStatus(on)` |
+| `s.Spacing = n` | `s.SetSpacing(n)` |
+| `m.ShowValue = on` | `m.SetShowValue(on)` |
+| `p.Label = s` | `p.SetLabel(s, st)` |
+| `p.Percentage = on` | `p.SetPercentage(on)` |
+
+Read-only accessors exist too: `Status()`, `Spacing()`, `ShowValue()`,
+`Percentage()`, `Label()`. The reason is in
+[ADR 0007 §3](/adr/0007-responsive-screens/): a widget caches its derived layout
+keyed on `Bounds()`, so a field that changes without an `Invalidate()` produces a
+stale layout that **nothing ever repairs**. A doc comment saying "call `Invalidate`
+after assigning" is a rule with no enforcement, no compile error and no reminder.
+
+- **Eight widgets kept a stale layout cache after a documented setter** — found by
+  the new cache-audit mode, not by review: `Pager.SetStatus`, `Select.SetMarker`,
+  `BarChart.SetData`, `Meter.SetShowValue`,
+  `ProgressBar.SetLabel`/`SetLabelSpans`/`SetPercentage`, `Sparkline.SetValues`,
+  and `Split.Spacing` via direct assignment. Each now drops the cached derivation.
+- **A cache-audit mode**, specified as ADR 0007 §3's deferred "expensive half": it
+  corrupts a widget's cached derivation after a `Draw` and asserts the next frame
+  is byte-identical, so this defect class is caught mechanically. Opt-in via
+  `render.Config.CacheAudit`, and **zero-allocation when disabled**.
+- **`widgets/cacheaudit` now fails the build** when a widget in the catalog is
+  flagged, on all three platforms via the existing `go test ./... -race` job.
+
+The gate covers the transitions it names, so the exported raw fields that remain —
+`Select.Marker`, `Gauge.ShowValue`, `BarChart.ShowValue`/`Vertical`/`Data`,
+`Sparkline.Values`/`Braille`, `TextInput.Placeholder`, `Checkbox.TriState` — are
+the same shape but produce no finding today. See
+[Limitations](/limitations/#the-v050-field-to-setter-migration-breaks-compilation--read-this-before-upgrading).
 
 ## What's new in v0.4.1
 
@@ -183,7 +286,7 @@ tool from the cells the renderer produced.
 
 Every capture on this site is a **cell grid**, not a screenshot of anyone's
 terminal. It is produced by `cmd/capture` in the framework repo, which runs each
-widget through `widgettest.Capture` — the same path the 969 top-level test functions assert
+widget through `widgettest.Capture` — the same path the 1,041 top-level test functions assert
 on — and converts `MemorySink.Cells()` to HTML. That is what makes it trustworthy: the
 docs cannot show something no test pins.
 
@@ -242,7 +345,7 @@ the `layout` package already do. See [Forms](/guides/forms/).
   Start with [Renderer and diff](/concepts/renderer/) and [Widgets and
   focus](/concepts/widgets-and-focus/).
 - **[Widgets](/widgets/)** — the catalog, one page per widget, with captures.
-- **[Architecture decisions](/adr/)** — the nine ADRs, verbatim, with the
+- **[Architecture decisions](/adr/)** — the ten ADRs, verbatim, with the
   rejected alternatives and the risks.
 
 ## Why it exists
@@ -262,7 +365,7 @@ build a real dashboard on is a toy, however elegant its renderer.
 ## Honest status, in one paragraph
 
 The renderer, the input layer, the layout solver and the full 24-widget catalog
-are built and tested: 25 packages, 969 top-level test functions, a zero-allocation frame
+are built and tested: 26 packages, 1,041 top-level test functions, a zero-allocation frame
 path. Alongside that: **Windows is a stub that returns a loud error from every
 console operation**, **the `keymap` layer is specified but not built — there is no
 command palette**, there is **no IME or preedit**, **tmux DCS passthrough is
@@ -276,7 +379,7 @@ is on [Limitations](/limitations/) with the reason.
 - Source: [github.com/serkanalgur/termmosaic](https://github.com/serkanalgur/termmosaic)
 - API reference: [pkg.go.dev/github.com/serkanalgur/termmosaic](https://pkg.go.dev/github.com/serkanalgur/termmosaic) —
   which is never out of date, because it is generated from the source
-- The nine [architecture decision records](/adr/), verbatim
+- The ten [architecture decision records](/adr/), verbatim
 - [`CHANGELOG.md`](https://github.com/serkanalgur/termmosaic/blob/main/CHANGELOG.md),
   hand-maintained, with a Known Limitations section
 

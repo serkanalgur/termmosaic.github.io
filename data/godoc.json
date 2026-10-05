@@ -238,13 +238,13 @@
           ],
           [
             "wheel",
-            "MouseWheelUp / MouseWheelDown scroll without choosing"
+            "MouseWheelUp / MouseWheelDown scroll without choosing, and only over the pointer being inside Bounds (ADR 0010)"
           ]
         ]
       },
       "sections": {
         "Accessibility": "Two independent non-colour signals, which is what a radio group needs and one\ncheckbox is not enough of:\n  - the chosen option's marker is \"(o)\" and every other option's is \"( )\", so\n    the choice is a SHAPE difference;\n  - the focused option carries a \">\" in its own focus column, so focus is not\n    signalled by the same thing that signals selection.",
-        "Key contract": "Keys are consumed only while focused. Moving with an arrow CHOOSES, which is\nhow every radio group behaves: there is no separate \"commit\" step, because a\nradio group has no unselected state to commit from.\n\n\tup / down      KeyUp / KeyDown choose the previous / next option and fire\n\tleft / right   KeyLeft / KeyRight, so the group works in a horizontal form\n\thome / end     KeyHome / KeyEnd choose the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown choose one screenful away\n\tactivate       KeyEnter or KeySpace re-fires OnSelect for the chosen option,\n\t               which is what a user pressing it to confirm expects\n\twheel          MouseWheelUp / MouseWheelDown scroll without choosing"
+        "Key contract": "Keys are consumed only while focused. Moving with an arrow CHOOSES, which is\nhow every radio group behaves: there is no separate \"commit\" step, because a\nradio group has no unselected state to commit from.\n\n\tup / down      KeyUp / KeyDown choose the previous / next option and fire\n\tleft / right   KeyLeft / KeyRight, so the group works in a horizontal form\n\thome / end     KeyHome / KeyEnd choose the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown choose one screenful away\n\tactivate       KeyEnter or KeySpace re-fires OnSelect for the chosen option,\n\t               which is what a user pressing it to confirm expects\n\twheel          MouseWheelUp / MouseWheelDown scroll without choosing, and\n\t               only over the pointer being inside Bounds (ADR 0010)"
       }
     },
     "select": {
@@ -275,13 +275,13 @@
           ],
           [
             "wheel",
-            "MouseWheelUp / MouseWheelDown scroll without moving the highlight"
+            "MouseWheelUp / MouseWheelDown scroll without moving the highlight, and only over the pointer being inside Bounds (ADR 0010)"
           ]
         ]
       },
       "sections": {
         "Accessibility": "The highlighted option is marked by SelectDefaultMarker in its own marker\ncolumn; every other option carries a space in that column. That is the\nnon-colour signal, and it is deliberately a separate column rather than part\nof the label: a marker that moved with the text would shift every row's label\none cell, which is exactly the misalignment a column exists to prevent.",
-        "Key contract": "Keys are consumed only while focused. The wheel is consumed whether or not the\nwidget is focused, because pointing at a list and scrolling it does not require\ntaking focus away from whatever is being typed in.\n\n\tup / down      KeyUp / KeyDown highlight one option\n\tleft / right   KeyLeft / KeyRight highlight one option, so the widget works\n\t               in a horizontal form layout too\n\thome / end     KeyHome / KeyEnd highlight the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown highlight one screenful\n\tactivate       KeyEnter or KeySpace accepts the highlighted option, which\n\t               fires OnSelect without changing the highlight\n\twheel          MouseWheelUp / MouseWheelDown scroll without moving the\n\t               highlight\n\nA closed list never changes what it contains, so there is no type-ahead and no\nRemove: a Select whose options change is a different widget."
+        "Key contract": "Keys are consumed only while focused. The wheel is consumed whether or not the\nwidget is focused, because pointing at a list and scrolling it does not require\ntaking focus away from whatever is being typed in.\n\n\tup / down      KeyUp / KeyDown highlight one option\n\tleft / right   KeyLeft / KeyRight highlight one option, so the widget works\n\t               in a horizontal form layout too\n\thome / end     KeyHome / KeyEnd highlight the first / last option\n\tpage up/down   KeyPageUp / KeyPageDown highlight one screenful\n\tactivate       KeyEnter or KeySpace accepts the highlighted option, which\n\t               fires OnSelect without changing the highlight\n\twheel          MouseWheelUp / MouseWheelDown scroll without moving the\n\t               highlight, and only over the pointer being inside Bounds\n\t               (ADR 0010)\n\nA closed list never changes what it contains, so there is no type-ahead and no\nRemove: a Select whose options change is a different widget."
       }
     },
     "sparkline": {
@@ -374,13 +374,13 @@
           ],
           [
             "wheel",
-            "MouseWheelUp / MouseWheelDown scroll without selecting"
+            "MouseWheelUp / MouseWheelDown scroll without selecting, and only over the pointer being inside Bounds (ADR 0010)"
           ]
         ]
       },
       "sections": {
         "Accessibility": "The selected tab is BRACKETED — \"[Name]\" — and every other tab is space-padded\n— \" Name \". The bracket is a shape, so the selection is readable in a\nmonochrome terminal, under NO_COLOR, and by a reader who sees no difference\nbetween two colours an application chose. This is the requirement from ADR\n0008's accessibility rule: a selected tab must be distinguishable without\ncolour.\n\nKeeping the unselected mark a space rather than nothing is deliberate. It means\nevery tab is exactly its label plus two cells, so selecting a different tab\ncannot reflow the row, and the brackets are unambiguously the selection\nindicator rather than decoration.",
-        "Key contract": "Keys are consumed only while focused. Moving with an arrow SELECTS, as in every\ntab bar: there is no separate commit step, because a tab bar has no unselected\nstate to commit from.\n\n\tleft / right   KeyLeft / KeyRight select the previous / next tab\n\tup / down      KeyUp / KeyDown do the same, so a tab bar works in a vertical\n\t               form layout too\n\thome / end     KeyHome / KeyEnd select the first / last tab\n\tpage up/down   KeyPageUp / KeyPageDown select as many tabs as fit\n\tactivate       KeyEnter or KeySpace fires OnSelect for the selected tab\n\twheel          MouseWheelUp / MouseWheelDown scroll without selecting",
+        "Key contract": "Keys are consumed only while focused. Moving with an arrow SELECTS, as in every\ntab bar: there is no separate commit step, because a tab bar has no unselected\nstate to commit from.\n\n\tleft / right   KeyLeft / KeyRight select the previous / next tab\n\tup / down      KeyUp / KeyDown do the same, so a tab bar works in a vertical\n\t               form layout too\n\thome / end     KeyHome / KeyEnd select the first / last tab\n\tpage up/down   KeyPageUp / KeyPageDown select as many tabs as fit\n\tactivate       KeyEnter or KeySpace fires OnSelect for the selected tab\n\twheel          MouseWheelUp / MouseWheelDown scroll without selecting, and\n\t               only over the pointer being inside Bounds (ADR 0010)",
         "Scrolling": "A tab bar is a HORIZONTAL strip, so it does not use virtual.Model: that engine\ncounts rows in a viewport of a given HEIGHT, and one row of tabs would mean a\ncapacity of one tab no matter how wide the pane is. The offset here is clamped\n— never re-derived — in the same spirit as ADR 0007 §6: moving the selection\npast the right edge scrolls the minimum amount that shows it."
       }
     },

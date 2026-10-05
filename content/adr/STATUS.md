@@ -39,6 +39,7 @@ break without notice until v1.0.0.**
 | Theme and styling system | **DECIDED** — **no theme in v1**; widgets carry `Style` fields, framework defaults are the terminal's own colours plus named attribute styles | One `buffer.Style` value (fg/bg/attr, by value, 12 bytes, 0 allocs) replaces the loose-argument write API; `ansi.Style` becomes an alias of it. Trigger for a theme: the first role two widgets must share. [ADR 0008](adr/0008-style-and-text.md) |
 | Text and span rendering | **DECIDED** — `Span` + `Buffer.SetSpans`, parsed once, wrapped outside `Draw` | A wide glyph's continuation cell takes its **owning span's** style or the row flickers forever. `Wrap`/`Truncate` allocate and are banned from `Draw`. Borders and titles have one vocabulary (`BorderPlain`/`Rounded`/`Double`/`Thick`/`ASCII`, one `Block`). [ADR 0008](adr/0008-style-and-text.md) |
 | Commands and keymap (where the command layer sits, and whether `Widget.Handle` changes) | **DECIDED** — a new `keymap` package sitting **above** `Widget.Handle`; the `Widget` interface is **unchanged** | A named action and a key that reaches it are different things. One normalised `Chord` (`KeySpace` and `Rune ' '` are one chord) is a comparable 16-byte struct, so resolution is a map lookup at **0 allocs**, a property ADR 0009 specifies and a test must pin, **not one that any test pins today: there is no `keymap/` directory, and `TestDispatchIsZeroAllocation` and `TestChordIsSixteenBytes` do not exist.** `keymap` was targeted at v0.4.0 — **not** v0.3.0 or v0.4.0, both of which shipped on 2026-10-05 without it — so `Event.Chord` normalisation, the scope chain and `Describe` are all specified-only. Resolution is **focus > screen > global with no numeric priority**, and a user override wins only within its own scope — so a dialog's `Esc` cannot be stolen. Widgets join through **optional** `Commandable`/`Clickable` interfaces (the `Focusable` pattern) and **v0.2 requires them of zero catalog widgets**. `EventResize` and `EventPaste` never enter a command layer. Help is `Describe`, computed from the same tables `Dispatch` walks, so it cannot drift. A click is a command because the **widget under the pointer says so** — the registry holds no rectangles. The `Ctrl+K` palette is in scope, built on `Menu`+`Dialog`+`TextInput`, and not by this ADR. Deferred with triggers: multi-stroke/leader sequences, command-line args, config persistence, release bindings, drag-as-command. [ADR 0009](adr/0009-command-and-keymap.md) |
+| Mouse routing (who gets a mouse event) | **DECIDED** — **widgets hit-test themselves**; no framework routing layer | **A widget handles a pointer event only if the pointer is inside its `Bounds()`**, and declining returns `false` so the event reaches what is beneath. Covers every `Mouse` action, wheel included. **`Widget` is unchanged and no exported routing API is added** — the alternative, a `RouteMouse`-style helper or an optional `Hittable` interface, needs new API against a frozen interface, needs a tree walk `Widget` cannot express (there is no `Children()`), and can only answer "which rect" where a widget answers "which cell means what". Fix: `optionList.wheelDelta` gained a `buffer.Rect` and a `Contains`, so `Tabs`, `Select` and `Radio` — which all got the wheel-before-bounds mistake identically — are correct by construction. Two exemptions stated explicitly: a **release** ends a drag wherever the pointer is, and a **drag** continues outside `Bounds` once a press claimed it. `TextInput`/`TextArea` decline the wheel **by decision**, not oversight. This is what gives [ADR 0009](adr/0009-command-and-keymap.md) §6's "hit-testing is the one thing widgets are genuinely better at" its teeth in the shipped catalog. [ADR 0010](adr/0010-mouse-routing.md) |
 | `docs/ARCHITECTURE.md` | **DECIDED** — a short orientation document, not a summary | Reduced to 105 lines at the v0.1.0 release gate. It had grown to 251 lines duplicating ADR reasoning, its decision numbering (5=colour, 6=theme, 7=input) did not match the ADR set, and it still called the colour model OPEN after this table moved it to PROPOSED. It now states what the pieces are, how they fit, and links each ADR — no duplicated reasoning — and preserves the **Non-goals** section verbatim, which is not duplicated anywhere else. |
 | Documentation site | **PROPOSED** — Hugo + Pagefind on GitHub Pages; captures generated in Go from `MemorySink` cells, not screenshots | No browser TTY exists, so the only truthful picture of a widget is the cell grid the renderer produced — which is what `widgets/widgettest` already builds and what the golden tests assert on, so the docs cannot drift from behaviour. **The capture half is built** — `internal/docsgen` (~2,242 lines) and `cmd/capture` (~228 lines), 2,470 lines together, with a one-entry-per-widget registry whose `Entries()` returns
 exactly 24 — `Menu` and `Dialog` are in it — plus plain-text *and* HTML output, a sorted `manifest.json`, `index.json`, and a `-check` mode that fails on a byte difference. **The Hugo/Pagefind site itself is not built.** A live WASM playground is rejected: `docs/ARCHITECTURE.md` lists "no WASM build" as a written non-goal and `term/terminal_windows.go` is a stub, so there is no seam to port. Plan, page tree, per-widget template and effort: [docs/SITE-PLAN.md](SITE-PLAN.md). |
@@ -47,7 +48,8 @@ exactly 24 — `Menu` and `Dialog` are in it — plus plain-text *and* HTML outp
 
 The core architecture rows above that carry **DECIDED** — backend strategy, cell
 representation, renderer mode, layout engine, input decoding, sub-buffer cell
-access, responsive composition, style/theme/text, and commands and the keymap —
+access, responsive composition, style/theme/text, commands and the keymap, and
+mouse routing —
 were decided on 2026-10-03 (the first four), 2026-10-04 (input decoding,
 sub-buffer cell access, responsive composition, style/theme/text) and 2026-10-05
 (commands and keymap), and are recorded in full, with rejected alternatives, in
@@ -176,9 +178,30 @@ framework's defaults are the terminal's own colours plus named attribute styles.
 `NO_COLOR` and the 16-colour rung stay encode-time only, so no widget path
 consults them.
 
-## Release gate for v0.4.0 — what closed, and what did not
+## Release gate for v0.5.0 — what closed, and what did not
 
-The current release is **v0.4.0, 2026-10-05** — a minor over v0.3.0, and the
+The current release is **v0.5.2, 2026-10-05** — [ADR 0010](adr/0010-mouse-routing.md)
+settles who receives a mouse event, and the answer fixed three widgets that
+were getting it wrong. **v0.5.0**, a minor, had the reason a
+**breaking API change**: five exported widget fields became private, because each
+had a working setter already and the field let a program invalidate nothing. The
+reasoning is [ADR 0007](adr/0007-responsive-screens.md) §3's: a widget caches its
+derived layout keyed on `Bounds()`, so a field changed without `Invalidate()`
+yields a stale layout nothing ever repairs.
+
+Eight widgets kept a stale cache after a documented setter. They were found by
+the cache-audit mode ADR 0007 §3 specified as its deferred "expensive half",
+which is now built and **gates the build** — this defect class is now caught
+mechanically rather than by review. See [CHANGELOG.md](../CHANGELOG.md).
+
+**v0.5.1** was released 2026-10-05 — the seven style-application defects this
+gate's audit found, including two (`Dialog`'s choice label and `Button`'s
+focus/disabled label) that made a focused row unreadable under default styles.
+The audit found **no remaining instance** of the class across all 24 widgets.
+
+## The v0.4.0 gate, retained as history
+
+**v0.4.0** was released 2026-10-05 — a minor over v0.3.0, and the
 reason is one `widgets/data` fix: `Tree.drawRow` computed a per-node content
 style and applied it only to the expander glyph, writing the label through a
 direct `SetSpansCappedIn`, so a node's `Style` and the selected row's
@@ -309,6 +332,20 @@ left for someone to rediscover.
 - **The capture generator is built**: `internal/docsgen` and `cmd/capture`, the
   cell-grid-to-HTML path and a `-check` determinism gate. The Hugo/Pagefind site
   still is not.
+- **Mouse routing is decided and the three wheel defects are fixed.**
+  [ADR 0010](adr/0010-mouse-routing.md) settles *who gets a mouse event*:
+  **a widget handles a pointer event only if the pointer is inside its
+  `Bounds()`**. `form.Tabs`, `form.Select` and `form.Radio` all tested the wheel
+  before their own `Contains` check and so consumed a notch anywhere on the
+  screen — which meant a tab row first in `examples/markets`' focus ring ate
+  every notch in the application and the table under the pointer never scrolled.
+  All three are fixed in the shared `optionList.wheelDelta` helper, which gained
+  a `buffer.Rect`, and pinned by `widgets/form/hittest_test.go` with
+  non-vacuity proven by reverting the check and watching the tests fail.
+  `termmosaic.Widget` is unchanged and no routing API was added. **This changes
+  `examples/markets` behaviour**: its application-level wheel-routing workaround
+  was only ever routing around the defect, and a notch over a KPI tile is now
+  consumed by nobody rather than by the tab row.
 
 **Not done, and deliberately so.**
 
@@ -317,10 +354,7 @@ left for someone to rediscover.
   and there is no command palette. This was targeted at v0.4.0 — and v0.3.0 and
   v0.4.0 both shipped on 2026-10-05 without it — and it is the one DECIDED row
   in the table above whose implementation is entirely ahead of it.
-- **`form.Tabs` consumes every wheel notch** regardless of where the pointer is,
-  so it steals the wheel from whatever is beneath it. The examples work around it
-  with application-level routing; the widget is unchanged. This wants an ADR
-  decision and has none.
+
 - **The documentation site is still not built** — only the capture half is.
   Separate work, separate repository.
 - **The colour quantiser is still unvalidated.** PROPOSED, not DECIDED.
@@ -566,3 +600,253 @@ The bar this project is measured against:
   **MET** — [CHANGELOG.md](../CHANGELOG.md)'s Known Limitations section, plus
   the "Known Limitations" in [docs/adr/](adr/README.md) and the gaps named in
   this document.
+---
+
+# The road to v1.0.0
+
+Written before the work, so the order and the reasoning are on record rather
+than reconstructed afterwards. It states what must close, what deliberately
+will not, and what is deliberately later.
+
+## The verdict
+
+**v1.0.0 is not honest today.** Three things make it so, and they are
+independent — closing any one leaves the other two:
+
+1. **The project's own bar is not met, by the project's own words.** The
+   "Every widget has a runnable example" criterion above reads **NOT MET, and
+   not close**, and calls itself the largest unmet item. Shipping v1.0.0
+   against a bar this document declares unmet is a contradiction in the
+   release, not a judgement call.
+2. **The most consequential architectural decision has never been
+   implemented**, and has already slipped its stated version twice. `keymap` is
+   DECIDED and Accepted, the package does not exist, and both named tests do
+   not exist. A v1.0.0 that freezes the architecture while the one decision
+   about *how an application binds a key* is a spec on disk is freezing the
+   wrong layer first.
+3. **CI green is unevidenced on all three platforms** — the last green badge
+   attests to the previous workflow configuration.
+
+What is genuinely ready: the *signatures*. This codebase has done the hard part
+of stability design already, and done it deliberately.
+
+| Already frozen by decision **and** by a mechanical check | Where |
+|---|---|
+| `Widget` is four methods and stays four — no method added, changed or deprecated | ADR 0007, ADR 0009 |
+| `Event` is append-only; `Key`'s iota block is extended only at the end | [ADR 0005](adr/0005-input-decoding.md) §10 |
+| Padding-free 16-byte `Cell`, 12-byte `Style`, 16-byte `Chord`, `unsafe.Sizeof(Event{})` | test-pinned sizes |
+| `Cells()` is gone; `RowBytes` panics on a view; `diff.Frame` carries `*buffer.Buffer` so old call sites cannot compile | [ADR 0006](adr/0006-subbuffer-cell-access.md) |
+
+That last row is the best stability work in the repo and it is already done:
+a rule enforced by a *type* rather than a comment.
+
+**So the v1.0 promise is really a promise about pixel output, not signatures.**
+The signatures are in good shape. What is not frozen is what a widget *draws*.
+
+## Decision: v1.0.0 supports Linux and macOS
+
+**Decided 2026-10-05.** The Windows backend stays a loud-error stub, and the
+supported matrix is narrowed to say so.
+
+The reasoning, since it amends a criterion above rather than satisfying it:
+[ADR 0001](adr/0001-backend-strategy.md) decides Windows is **late** and calls
+it the "highest-probability source of v1 slippage". The stub is not an
+incomplete feature but the correct posture — "Rather than ship a half-working
+Windows console that passes its own tests on a developer's machine, this stub
+fails every operation loudly so the gap stays visible." A rushed Windows
+backend written to hit a release date is the exact failure the stub exists to
+prevent.
+
+The alternative — amending the *release statement* rather than the code — is
+available at zero engineering cost, and is the honest one. Nothing in the v1.0
+promise requires a platform that has not been built.
+
+**Consequences, all of them required:**
+
+- The "CI green on Linux, macOS, and Windows" criterion is amended to Linux and
+  macOS, with this reason.
+- The Windows CI job either goes or is relabelled **cross-compile-only**,
+  asserting exactly that ADR 0001 commits to and nothing more.
+- "Linux and macOS" appears in the **first screen** of the README, not in
+  Known Limitations. A user who builds for Windows, gets `ErrWindowsStub`, and
+  reads it in a footnote has been misled by the release.
+- `Terminal` and `Sink` stay unchanged, so a Windows backend — ours, or a
+  build-tagged one — is additive later and touches no frozen signature.
+
+## What must close before v1.0.0
+
+| # | Work | Why it gates |
+|---|---|---|
+| 1 | **Green CI evidence** on the current configuration | Minutes. Every other claim rests on it. |
+| 2 | **Behaviour audit of all 24 widgets** | Three of five releases so far exist because of this defect class. Every find after v1.0.0 is a v1.1.0. |
+| 3 | **Cache-poisoning debug mode** (ADR 0007's expensive half) | What makes #2 mechanical rather than a matter of review. Highest leverage per hour here. |
+| 4 | **`keymap`** (ADR 0009), with the two named tests | Slipped twice. `KeyHint`'s help surface would otherwise freeze **empty**, and `Describe` is the answer to the first question an adopter asks. |
+| 5 | ~~**Mouse routing decision + the three wheel defects**~~ **CLOSED** | Decided by [ADR 0010](adr/0010-mouse-routing.md) — widgets hit-test themselves, `Widget` unchanged — and the three wheel defects are fixed and pinned. See below. |
+| 6 | **Colour model: decide it** | A PROPOSED row cannot survive the freeze: if the quantiser is later replaced, every program's 256/16-colour output changes, and that is a v1.1.0 in the first release. |
+| 7 | **`func Example` per widget** | The largest unmet criterion in the project's own bar. Purely additive; zero stability risk. |
+| 8 | **Documentation accuracy pass** | README says "Thirty-plus widgets" against a catalogue of 24, "the eight architecture decisions" against nine, and "Not yet released as a module version" beside a `go get` line. For a project whose product *is* documented honesty, stale headline numbers are a release blocker. |
+| 9 | **Prose freeze** | Status block, platform matrix, stale gate sections, and the `keymap` apology paragraph, which becomes a shipped-feature statement. |
+
+### 5 is bigger than the defect it is filed under — **and it is closed**
+
+`docs/STATUS.md` recorded "`form.Tabs` consumes every wheel notch" as a widget
+defect wanting an ADR. It was a **framework contract gap**, and it affected three
+widgets:
+
+| Widget | Bounds-checks the pointer? | Where, as audited |
+|---|---|---|
+| `Button` | **yes** | `form/button.go:255` |
+| `Toggle` | **yes** | `form/toggle.go:196` |
+| `Select` | **no** — consumed the wheel unconditionally | `form/select.go:269` |
+| `Radio` | **no** — consumed the wheel unconditionally | `form/radio.go:264` |
+| `Tabs` | **no** — consumed the wheel unconditionally | `form/tabs.go:331` |
+
+The cause was that the framework had no consistent answer to *who gets a mouse
+event*. Applications route every mouse event to the root and let widgets
+disagree, which is still the right contract; three widgets just guessed wrong,
+and they guessed wrong **identically**, all three testing the wheel before their
+own `Contains` check. That is why the fix went into the shared
+`optionList.wheelDelta` helper rather than into three call sites.
+
+This was not a small thing to defer, which is the argument that was made at the
+time. [ADR 0009](adr/0009-command-and-keymap.md) §6 names mouse hit-testing as
+**"the one thing widgets are genuinely better at than a global registry"** — and
+it is a deciding reason for its Option A. Freezing v1.0 with three widgets
+mishandling exactly that would have contradicted the project's own decision
+record.
+
+**What was decided.** [ADR 0010](adr/0010-mouse-routing.md) chose the first of
+the two options on the table — **widgets hit-test themselves, as `Button` and
+`Toggle` already did** — and recorded the rule as a sentence: *a widget handles
+a pointer event only if the pointer is inside its `Bounds()`*. The second
+option, a framework hit-test/routing helper, is costed and rejected in the ADR:
+it is new exported API against an interface ADR 0007 and ADR 0009 both freeze,
+it needs a tree walk `Widget` cannot express because there is no `Children()`,
+and it can only answer "which rect" where a widget answers "which cell means
+what". **The `Widget` interface is unchanged and no routing API was added.**
+
+Two things the ADR settled that the defect filing did not ask about, and that are
+worth knowing before the next widget is written:
+
+- **Two exemptions are stated rather than left implicit.** A **release** ends a
+  drag wherever the pointer is — a gesture that can only be finished over the
+  widget strands the user — and a **drag** continues outside `Bounds` once a
+  press has claimed it. *The press is the claim, the drag is the continuation.*
+- **`TextInput` and `TextArea` decline the wheel by decision, not oversight.**
+  Wheel-to-scroll in a `TextArea` is a plausible feature; adding one under a
+  routing ADR would be a feature nobody reviewed as a feature.
+
+`split.Split` was audited for the same defect and **needed no change** — it
+bounds-checks through `PaneAt` and `dividerAt`, arms a drag only on `MouseLeft`,
+and ends a drag on a release anywhere, which is exemption one already in place.
+
+## What is deliberately not built before v1.0.0
+
+Named here so their absence at v1.0.0 is a decision on record rather than an
+oversight:
+
+- **A Windows console backend** — v1.1+, additive, interfaces unchanged.
+- **A `Form` container** — ADR 0004's solver plus `layout` already covers
+  composition; a `Form` type would be a second way to do the same thing.
+- **IME / preedit** — ADR 0005's deliberate deferral, with three named seams
+  left open (`EventCompose`, the `*Compose` field, the parser entry point). The
+  cost is documented. CJK users get *wrong* behaviour rather than degraded
+  behaviour; that honesty is the deliverable.
+- **Kitty graphics** — currently an OPEN row, which at v1.0.0 would be a standing
+  invitation to argue about scope after the freeze. **Formally decide "no for
+  v1"**, one sentence in an ADR.
+- **Grapheme-cluster composition** — performance is measured and good; only the
+  decision is open, and the failure is cosmetic.
+- **A `Ctrl+K` palette** — ADR 0009 §9 puts it in scope but explicitly not in
+  that ADR. New behaviour in `Menu`/`Dialog`, so a v1.1.0 minor.
+- **TextArea rendered selection, table column selection, pager selection, a
+  redo stack** — additive widget API, all four fine as v1.1.0.
+- **A theme system** — ADR 0008 decides "no theme in v1", with a trigger: the
+  first role two widgets must share.
+- **A wider lint checklist** — real, self-declared, and not a release gate.
+
+The budget freed by not building these is what pays for items 2 through 7.
+
+## Risks to a clean v1.0.0
+
+The release policy promises **no behavioural change in a patch release**, so
+the practical consequence is: **any behavioural defect found after v1.0.0 is a
+v1.1.0.** The risk register is therefore a list of things likely to be found
+late.
+
+1. **Latent instances of the style-application class.** Highest probability by a
+   wide margin — three of five releases were exactly this. The mechanism is
+   per-widget divergence between the style a painter computes and the writer
+   that carries the text, and it applies to every widget with a row painter, not
+   only the three already fixed. Mitigated by items 2 and 3.
+2. **`keymap`'s two mechanisms overlapping in a real application** — a global
+   binding shadowing a widget's own `switch`. Survivable via `Warnings()`, but
+   it is a behaviour change, so v1.1.0, and it is the kind of thing that erodes
+   trust in a stable 1.0. Mitigated by building a mixed-mechanism example
+   *before* the tag.
+3. **`Chord` normalisation disagreeing with a real terminal.** Nothing in its
+   folding rules has met a real tty, and the ADR asks for a byte-stream matrix
+   that has not been run. A normalisation fix is a behaviour change.
+4. **The colour quantiser being wrong in a way nobody looked for** — the direct
+   cost of freezing a PROPOSED row.
+5. **Windows being discovered by a user after v1.0.0.** Mitigated entirely by
+   saying "Linux and macOS" in the first screen.
+6. **Process risk: `keymap` slips a third time.** It has slipped v0.3.0 and
+   v0.4.0. A third slip turns this document's apology into the README of a
+   stable release, which no later patch can repair.
+
+## Two things `keymap` gets right, worth knowing before building it
+
+Recorded because they change the cost, and because `docs/STATUS.md` line 41
+currently reads as if the frozen `Event` union would change. It would not.
+
+- **`Event` is untouched.** ADR 0009's own delta table: a command is resolved
+  *from* an event and never carried inside one, so **no payload is added and the
+  `unsafe.Sizeof(Event{})` guard is unaffected.** `Chord` is a new type in a new
+  package, reachable only through `keymap.Ctx`. STATUS.md's phrase "`Event.Chord`
+  normalisation" is loose shorthand and should be corrected before the freeze —
+  it reads as though a frozen signature moves, which is the one thing that would
+  make this a breaking change.
+- **Everything is additive.** Two new *optional* interfaces (`Commandable`,
+  `Clickable`) and one new method (`KeyHint.SetEntries`). Adding an optional
+  interface is not a breaking change; adding a method to a struct is not either.
+  So shipping `keymap` after v1.0.0 is SemVer-legal — the reasons to build it
+  first are repetition and freezing an untested surface, not SemVer.
+
+## Two stability hazards found while writing this
+
+Neither is in an ADR, and both would freeze by accident.
+
+1. **`widgets/widgettest` is public and therefore frozen by accident.** It
+   appears in no ADR's stability discussion. User test suites will depend on it
+   whether or not that was intended. Decide it: promote it to a decided surface
+   with its own rules, or move it under `internal/` **before** v1.0.0 — before,
+   because afterwards it is frozen and cannot move.
+2. **The variadic constructors are an open-ended signature.** Three of the 25
+   widget constructors take `...` — `NewList(items ...ListItem)`,
+   `NewTable(cols ...Column)`, `NewTree(nodes ...Node)`. That is the friendliest
+   shape for growth and the subtlest stability hazard: behaviour can be added
+   indefinitely without a compile break, so **the API is stable while the
+   product is not.** The v1.0 policy needs one sentence to cover it: *an option
+   may only be additive; no option may alter the behaviour of a program that
+   does not set it.*
+
+## The sequence
+
+```
+1  green CI evidence          ─┐
+3  cache-poisoning mode       ─┤
+2  behaviour audit of 24      ─┴─► mechanical, then human review of what it finds
+
+6  colour model decided       ─┐
+5  mouse routing + 3 wheels   ─┤
+4  keymap (after 2 and 5)     ─┴─► don't add Commandable to a moving widget
+
+7  func Example sweep         ──► 24, parallelisable
+8  documentation accuracy     ─┐
+9  prose freeze               ─┴─► then the tag
+```
+
+Items 1–3 depend on nothing and can start immediately. Items 2 and 3 are the
+long pole in effort; item 4 is the long pole in sequencing, because everything
+downstream of the documentation freeze waits on it.

@@ -145,7 +145,7 @@ version may require changes. What *is* promised: **no behavioural change in a
 patch release.**
 
 The one thing deliberately held fixed is `Widget` — four methods, unchanged
-across all eight architecture decisions. If you write a widget against it today,
+across all ten architecture decisions. If you write a widget against it today,
 it is the part most likely to still compile after the API settles.
 
 ## Reading next

@@ -42,7 +42,7 @@ menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu
 
 ## More on accessibility
 
-The selected row carries a `>` in the marker gutter, which is a **character** rather than colour — so it survives `NO_COLOR` and appears in the plain-text capture. Level headers are bracketed when active and not when inactive, so depth is legible without colour. Disabled rows have no marker at all rather than a dimmed one, because a dimmed row is easy to miss entirely.
+The selected row carries a `>` in the marker gutter, which is a **character** rather than colour — so it survives `NO_COLOR` and appears in the plain-text capture. Level headers are bracketed when active and not when inactive, so depth is legible without colour. Disabled rows have no marker at all rather than a dimmed one, because a dimmed row is easy to miss entirely. The check glyph and the submenu arrow are drawn in `CheckStyle`, so on a selected row they are not left in `ItemStyle` against a reversed background — which would be the one unreadable thing on that row. Fixed in v0.5.1.
 
 ## When not to use it
 

@@ -40,10 +40,11 @@ viz.NewMeter(r buffer.Rect) *viz.Meter
 - `Threshold` — `float64` — the marker, drawn as `|`. A separate value from the zones: a zone boundary is a range edge, a threshold is a limit.
 - `ThresholdVisible` — `bool` — show the threshold marker at all.
 - `ShowName` — `bool` — draw the active zone's **name in words**. This is the signal that makes the meter readable without colour.
+- `ShowValue` — `bool`, via `SetShowValue(on)` — print the reading beside the bar. It was an exported field until v0.5.0, and assigning it left the cached layout budget stale: the number painted over the zone name. The setter drops the cache, so the bar re-solves where it starts. Read it back with `ShowValue()`.
 
 ## More on accessibility
 
-Three non-colour signals, which is more than any other viz widget: zone boundaries are `+`, the threshold is `|`, and the active band is named in text. `ShowValue` adds the number. A meter is designed to be read correctly on a monochrome terminal, and this is why it is the one widget here whose meaning does not depend on the colour capture at all.
+Three non-colour signals, which is more than any other viz widget: zone boundaries are `+`, the threshold is `|`, and the active band is named in text. `SetShowValue(true)` adds the number. A meter is designed to be read correctly on a monochrome terminal, and this is why it is the one widget here whose meaning does not depend on the colour capture at all.
 
 ## When not to use it
 

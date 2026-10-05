@@ -68,6 +68,7 @@ for {
 | **Kitty keyboard** | **In**, as progressive enhancement. Requests only `disambiguate`, with a 100 ms bounded probe. |
 | **Bracketed paste** | **In**, and always **one `EventPaste` carrying the whole payload** — never a stream. |
 | **Mouse decoding** | **In** — SGR 1006, urxvt 1015, X10. **Capture is off by default.** |
+| **Mouse routing** | **Decided** — [ADR 0010](/adr/0010-mouse-routing/): a widget handles a pointer event only when the pointer is inside its `Bounds()`. Release and drag are the two stated exemptions. |
 | **Focus decoding** | **In**, **reporting off by default.** |
 | **IME / composition** | **Deferred and scoped out.** `EventCompose` and a `Compose` payload field are reserved. |
 

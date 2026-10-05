@@ -27,7 +27,7 @@ change what you plan.
 
 No. See above. The honest statement of what *is* finished: the renderer, the input
 layer, the layout solver and the full 24-widget catalog are built and tested —
-25 packages, 969 top-level test functions, a zero-allocation frame path.
+26 packages, 1,041 top-level test functions, a zero-allocation frame path.
 
 ## Does it work on Windows?
 
@@ -87,8 +87,8 @@ capture sits beside every colour capture. See
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.1     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # focus ring + ? help overlay
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
@@ -254,6 +254,14 @@ See [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 **Yes, opt-in, and off by default.** Mouse capture is deliberately disabled by
 default because enabling it takes text selection and scrollback copying away from
 the user's shell. [ADR 0005](/adr/0005-input-decoding/)'s default stands.
+
+**Who gets the event is a widget's own business.**
+[ADR 0010](/adr/0010-mouse-routing/) settles it: a widget handles a pointer event
+only when the pointer is inside its `Bounds()`, with two stated exemptions — a
+release ends a drag wherever the pointer is, and a drag continues outside `Bounds`
+once a press has claimed it. That is why a tab row no longer takes the wheel from
+the panel under it, and it is also why **your application still writes the wheel
+loop**: no widget can implement "the wheel never takes focus" on its own.
 
 `examples/markets` is the one program that opts in, and it restores the previous
 mode on exit. It supports wheel and click, with per-panel key routing. `hello` is

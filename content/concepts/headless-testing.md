@@ -145,10 +145,19 @@ testability pillar depends on it. The remaining open sub-question is its
 **assertion surface**: it must expose the cell buffer, not just recorded bytes —
 which it now does — but whether that surface is *complete* is still being scoped.
 
-**The cache-poisoning debug mode is not built.** A rect-keyed cache is only half
-the contract: a mode that corrupts a widget's cache after `Draw` and asserts the
-next frame is identical would catch that whole class of bug by machine. It is
-recorded as an open item in [ADR 0007](/adr/0007-responsive-screens/).
+**The cache-poisoning debug mode shipped in v0.5.0**, and it is the strongest
+argument on this page for why mechanical checks beat review. A rect-keyed cache is
+only half the contract; the audit mode corrupts a widget's cached derivation after
+a `Draw` and asserts the next frame is **byte-identical**, and
+`widgets/cacheaudit` fails the build on a finding. On its first run it found
+**eight** widgets keeping a stale cache after a setter their own documentation
+promised would invalidate. Two mechanisms are needed because one provably does not
+catch the class: the poison check in `render`, and a cold-twin comparison in
+`widgettest`. It is opt-in via `render.Config.CacheAudit` and **zero-allocation
+when disabled**, so the frame-path claim survives it.
+
+**What it does not cover** is every exported raw field — the gate audits the
+transitions it names, and several same-shaped fields are named by none.
 
 ## Reading next
 

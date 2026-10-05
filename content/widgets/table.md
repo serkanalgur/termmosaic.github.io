@@ -38,7 +38,8 @@ data.NewTable(r buffer.Rect, cols ...data.Column) *data.Table
 
 `NewTable` takes a variadic of `data.Column`. A column is a header, a width and an accessor; the column definitions are where most of the thinking goes.
 
-- `Header` — `bool` — draw the header row. Toggling this invalidates, and ADR 0007's amendment is about exactly this class of bug: a widget that caches column widths on `Bounds()` and is handed a new flag renders the old layout permanently.
+- `Header` — `bool` — draw the header row. Toggling this invalidates, and ADR 0007's amendment is about exactly this class of bug: a widget that caches column widths on `Bounds()` and is handed a new flag renders the old layout permanently. `HeaderStyle` is now really *patched* with `ItemStyle` as its documentation says, so the header text also carries `ItemStyle`'s **foreground** — `Patch` takes FG as well as BG, and that will show if you gave `ItemStyle` a distinct FG.
+- `ItemStyle / SelectedStyle` — `buffer.Style` — the unselected row's background, and the base the header is patched with; `SelectedStyle` is the selected row's. Since v0.5.1 the row style reaches the **cell text** as well as the fill, so **on the selected row a single-span cell's own `Style` and its column's `CellStyle` no longer show** — the row style overrides them, matching `List` and `Tree`. A cell carrying several spans keeps its own. If your selected row lost its cell colours after upgrading, that is this.
 - `Marker` — `string` — the gutter glyph beside the selected row.
 - `Scrollbar` — `bool` — draw the vertical scrollbar.
 

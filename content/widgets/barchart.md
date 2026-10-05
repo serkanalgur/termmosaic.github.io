@@ -46,7 +46,7 @@ viz.NewBarChart(r buffer.Rect) *viz.BarChart
 
 ## More on accessibility
 
-Each bar carries its **value as text** beside it, and the label is drawn regardless of colour. A reader who cannot distinguish two bar colours can still read every number.
+Each bar carries its **value as text** beside it, and the label is drawn regardless of colour. A reader who cannot distinguish two bar colours can still read every number. A horizontal category label is clipped to **its own column**. A label wider than its column is cut rather than allowed to overwrite the next category's, so keep the labels short — or read the values, which are always printed beside the bars. Fixed in v0.5.1.
 
 ## When not to use it
 

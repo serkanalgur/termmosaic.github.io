@@ -38,7 +38,7 @@ data.NewPager(r buffer.Rect) *data.Pager
 
 `NewPager` takes only a rect; the text arrives through `SetText`. It is read-only by construction.
 
-- `Status` — `bool` — draw the status line: position readout and match count.
+- `Status` — `bool`, via `SetStatus(on)` — draw the status line: position readout and match count. It was an exported field until v0.5.0; the setter drops the layout cache, which is what makes toggling it safe at an unchanged rect. Read it back with `Status()`.
 - `MatchStyle` — `buffer.Style` — a search match. The match is also counted and reported in the status line, so it is not colour-only.
 
 ## Key contract

@@ -28,8 +28,8 @@ working out how to build something.
 There are three runnable programs today. The two to start with:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.1     # bordered panel, focus ring
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # bordered panel, focus ring
 ```
 
 `markets` needs no API key and takes `--offline` for bundled sample data. Both are

@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.4.1. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.5.2. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -79,7 +79,7 @@ is the failure mode this page exists to prevent.
   changes. What *is* promised: **no behavioural change in a patch release.** If
   v0.1.1 changes behaviour, that is a bug in the release, not policy.
 - **`Widget` is the one thing held fixed.** Four methods — `Bounds`, `Draw`,
-  `Invalidate`, `Handle` — unchanged across all eight architecture decisions.
+  `Invalidate`, `Handle` — unchanged across all ten architecture decisions.
 - **Anything marked PROPOSED may change or be reversed.** See the decision table
   in [`docs/STATUS.md`](https://github.com/serkanalgur/termmosaic/blob/main/docs/STATUS.md).
 - **There is no version selector on this site.** The plan records this as a
@@ -120,6 +120,154 @@ One consequence already visible in the framework: `examples/markets` hand-rolls
 its key routing and needs a `bindings()` function plus a help overlay that lists
 the keys by hand. A command layer would make that declarative. Until then, it is
 boilerplate you write yourself.
+
+## The v0.5.0 field-to-setter migration breaks compilation — read this before upgrading
+
+**This is the only change in the v0.5.x line that stops a program compiling.**
+`Pager.Status`, `Split.Spacing`, `Meter.ShowValue`, `ProgressBar.Label` and
+`ProgressBar.Percentage` are no longer exported fields. A program that assigns
+them gets a compile error, not a silent behaviour change — which is the good way
+for it to arrive, because the compiler points at every site.
+
+**What to change:**
+
+| Before | After |
+|---|---|
+| `p.Status = on` | `p.SetStatus(on)` |
+| `s.Spacing = n` | `s.SetSpacing(n)` |
+| `m.ShowValue = on` | `m.SetShowValue(on)` |
+| `p.Label = s` | `p.SetLabel(s, st)` |
+| `p.Percentage = on` | `p.SetPercentage(on)` |
+
+Read-only accessors exist for all five: `Status()`, `Spacing()`, `ShowValue()`,
+`Percentage()`, `Label()` — so a read does not need a rewrite.
+
+**Why the fields went private.** A widget caches its derived layout keyed on
+`Bounds()`, so a field that changes without an `Invalidate()` produces a stale
+layout that **nothing ever repairs** — the rect did not change, so the cache keeps
+hitting. A doc comment saying "call `Invalidate` after assigning" is a rule with
+no enforcement, no compile error and no reminder. `ProgressBar` is the proof:
+`SetLabel` already reset the cache correctly *and* the field was still assignable,
+so the API taught the wrong lesson by having both. The setters are
+behaviour-preserving on a widget that has not yet drawn, and strictly better on
+one that has.
+
+**If you were already calling the setters, nothing to do** — and if you were
+compensating for the stale-cache bug by calling `Invalidate()` by hand after
+assigning, remove that: the setter does it.
+
+**What the cache-audit gate does not cover.** It covers the transitions it names,
+and it now fails the build. The exported raw fields that remain —
+`Select.Marker`, `Gauge.ShowValue`, `BarChart.ShowValue`/`Vertical`/`Data`,
+`Sparkline.Values`/`Braille`, `TextInput.Placeholder`, `Checkbox.TriState`, and
+the `Scrollbar`/`Header` fields on `List`/`Table`/`Tree` — **are the same shape.**
+None produced a finding, so none is a confirmed defect, and they are not covered
+because no transition names them. Treat that list as the next place a stale-cache
+bug would surface, not as a set of bugs.
+
+## v0.5.1 style fixes — focused and disabled widgets now render correctly, and look different from v0.4.x
+
+**Seven style-application defects, one class: the style a widget computed for one
+cell stopped where two code paths diverged and never reached the text beside it.**
+Nothing has to change to compile or to run. But if your widgets look different
+after upgrading, that is this release working.
+
+- **A focused `Dialog` choice label now renders.** `ChoiceFocusStyle` reached the
+  row fill and the focus marker but not the *text* — the label cache is built
+  before focus is known. With default styles the focused choice rendered
+  `attr=none` on an `attr=reverse` row, which is unreadable dark-on-dark on
+  exactly the row the reader is meant to look at. `drawActions` already had this
+  right via a second cached rendition; `drawChoices` now does the same. **A
+  focused choice looks different from v0.4.x because in v0.4.x it was
+  unreadable.**
+- **A focused or disabled `Button` label now renders in the right style.**
+  `FocusStyle` and `DisabledStyle` reached the ring and the fill but not the label,
+  so a disabled button rendered blue brackets around default-coloured text. The
+  field's own documentation already said the style was "the style of the whole
+  button — background, label and brackets". **Both states look different from
+  v0.4.x because v0.4.x contradicted the field's own documentation.**
+
+**On `Table`, the row style now overrides the cell — read this before you upgrade
+a table with styled cells.**
+
+- **A selected row no longer shows a cell's own `Style`, and no longer shows its
+  column's `CellStyle`.** `SelectedStyle` and `ItemStyle` filled the row but never
+  reached the cell text, so a selected row showed terminal-default text on the
+  terminal-default background in the middle of a highlighted row. The row style
+  now overrides a **single-span** cell, matching `List` and `Tree`. **A cell
+  carrying several spans keeps its own styles**, as `drawCell` documents — so a
+  cell you built from several styled runs is unaffected, and a plain
+  single-style cell is. That is the trade: row legibility, in exchange for the
+  cell's own rendition not showing on that one row.
+- **The header now carries `ItemStyle`'s foreground as well as its background.**
+  `HeaderStyle` is documented as "patched with `ItemStyle`" and never was, so —
+  because `HeadingStyle` is attribute-only — the header text resolved to the
+  terminal background inside a row just filled with `ItemStyle`. It is patched
+  now, and **`Patch` takes FG as well as BG**, so the header text also picks up
+  `ItemStyle`'s foreground. That is `Patch`'s documented semantics and matches the
+  header's stated intent of sitting on the row background, but **it will be
+  visible to a caller who set `ItemStyle` with a distinct foreground.** If your
+  header changed colour and you did not change your styles, this is why.
+- **`Menu`'s check glyph and submenu arrow are no longer drawn in `ItemStyle` on
+  the selected row**, where the row is reversed. The marker gutter already had
+  the right fallback — the source comment names this exact hazard — and the check
+  and arrow did not.
+- **`Radio`'s focus gutter is no longer styled as a focus mark on every row.** A
+  blank cell carried `styles.focus`, which inherits `SelectedStyle`'s
+  `AttrReverse`, so an unfocused group painted a reverse-video stripe down its
+  left edge. **The column still exists on every row**, because that is what keeps
+  the labels aligned; only the rendition was wrong.
+- **`BarChart`'s horizontal axis labels no longer overrun their column.** The
+  centring offset was computed and discarded with `_ = lx`, and the label was
+  capped to the whole axis row rather than its own column, so a label wider than
+  its column overwrote the next category's. The horizontal path already did this
+  correctly elsewhere; this is the visible consequence.
+
+**Why this is a minor bump and not a patch.** Changing what a library widget
+draws is the definition of a behaviour change, and the project's release policy
+puts those in a minor — a patch that changed behaviour would itself be a bug in
+the release.
+
+**If you worked around the old behaviour, undo the workaround.** A program that
+compensated in its own styles because the widget's were ignored is now
+double-counting, and should remove the compensation.
+
+## v0.5.2 mouse routing — `Tabs`, `Select` and `Radio` are hit-tested now, and `examples/markets` changed behaviour
+
+**Until v0.5.1, `form.Tabs`, `form.Select` and `form.Radio` consumed a wheel notch
+regardless of where the pointer was.** `Tabs.Handle` tested the wheel before the
+`switch ev.Kind`, so a notch never reached the bounds check its click path already
+used; `Select` and `Radio` reached the same place through the shared `optionlist`
+helper. A tab row, a select or a radio group took the wheel from whatever sat
+beneath it.
+
+**[ADR 0010](/adr/0010-mouse-routing/) settles the rule: a widget handles a
+pointer event only when the pointer is inside its `Bounds()`.** Two exemptions are
+stated rather than left implicit — a *release* ends a drag wherever the pointer
+is, and a *drag* continues outside `Bounds` once a press has claimed it, because
+the press is the claim and the drag is the continuation. The fix is in the shared
+helper, so a future fourth widget on it is correct by construction.
+
+**`examples/markets` behaviour changes, and this is worth knowing if you read the
+dashboard guide or run the example.** Its tab row (`d.pair`) is a `form.Tabs` and
+is first in the focus ring, so it swallowed **every** wheel notch in the
+application. It carried an application-level workaround loop, and **the loop
+stays** — what it actually buys is a rule no widget can implement alone: the wheel
+never takes focus. The visible difference is that **a wheel notch over a KPI tile,
+which no widget in the ring owns, is now consumed by nobody** rather than scrolling
+the tab row by three.
+
+`docs/STATUS.md` recorded this only for `Tabs`. It is three widgets, and the fix
+belongs in the shared helper, which is why it was found by applying a written
+rule rather than by chasing three symptoms.
+
+**Two related things the ADR states rather than leaves to be discovered.**
+`split.Split` consumes a wheel notch over a pane and moves focus to the pane under
+the pointer — that is in-bounds behaviour consistent with a click, and a `Split`
+has no content of its own to scroll, so it is unchanged. And `TextArea`
+wheel-to-scroll is **declined by decision**, not overlooked: it is a plausible
+feature, but adding one under a routing ADR would answer a different question. It
+will be bounds-correct when it lands, because the rule is now written down.
 
 ## `Renderer.Post` changed behaviour in v0.2.0 — apps on v0.1.0 should read this
 
@@ -286,14 +434,27 @@ invisible, because nothing else about row styling worked either.
   `examples/markets` opts in and restores the previous mode on exit. Nothing in
   the catalog enables it for you.
 - **Focus reporting is off by default**, for the same reason.
-- **`form.Tabs` consumes every wheel notch**, whether or not the pointer is over
-  it. That is defensible for a form — scrolling a list there does not require
-  focus — but in an application it means a tab row early in the focus ring
-  swallows every notch, and the panel underneath never sees one.
-  `examples/markets` routes the wheel to the widget whose rectangle contains the
-  pointer as an **application-level** workaround; **the widget itself is
-  unchanged**, and this is still open. It wants an ADR decision, because the fix
-  is a policy question — hit-tested or focus-scoped — and not a bug.
+- **Wheel routing is hit-tested, and it was not until v0.5.2.**
+  `form.Tabs`, `form.Select` and `form.Radio` used to consume every wheel notch
+  whether or not the pointer was over them, so a tab row early in the focus ring
+  swallowed every notch in the application. That is **fixed**: [ADR 0010](/adr/0010-mouse-routing/)
+  decides that a widget handles a pointer event only when the pointer is inside
+  its `Bounds()`, and the fix is in the shared `optionlist` helper so a future
+  widget on it is correct by construction. See
+  [v0.5.2 mouse routing](#v052-mouse-routing--tabs-select-and-radio-are-hit-tested-now-and-examplesmarkets-changed-behaviour).
+- **What is still open about the mouse is not the wheel and not hit-testing.**
+  Hit-testing is settled. What no widget can do alone is the rule that **the wheel
+  never takes focus**: a reader scrolling is reading, not committing to a panel,
+  and moving focus under the pointer would rewrite the key hint while they are
+  still looking at the numbers. A click is the gesture that commits. That is why
+  `examples/markets` keeps an application-level routing loop rather than relying
+  on the widgets, and why an application still needs one: **if you route the wheel
+  by focus ring order, you will re-create the v0.5.1 defect**, because a wheel
+  notch must not reach a widget whose rectangle the pointer is not inside.
+- **`TextArea` has no wheel-to-scroll**, **by decision** and not by oversight. ADR
+  0010 declines it explicitly: it is a plausible feature, but adding one under a
+  routing ADR would answer a different question. It will be bounds-correct when it
+  lands.
 
 ## Text and internationalization
 
@@ -369,10 +530,14 @@ invisible, because nothing else about row styling worked either.
   0002/0003's measurements. Four of ADR 0007 §3's tests were written for v0.1.0
   and they **found a real defect** — `Render` flushed the sink even when it wrote
   nothing — but a scripted resize sweep is not a human dragging a window.
-- **The cache-poisoning debug mode is still not built.** ADR 0007's expensive half
-  remains a convention rather than a check: a debug mode that corrupts a widget's
-  cache after `Draw` and asserts the next frame is identical would catch that
-  whole class of bug instead of leaving it to review.
+- **The cache-audit mode is built and gates the build, but it only covers the
+  transitions it names.** ADR 0007's expensive half shipped in v0.5.0: it corrupts
+  a widget's cached derivation after a `Draw` and asserts the next frame is
+  byte-identical, and `widgets/cacheaudit` fails the build on a finding. It found
+  **eight** real stale caches on its first run, so the class is real. What it does
+  not do is audit the exported raw fields no transition names — see
+  [the v0.5.0 section](#the-v050-field-to-setter-migration-breaks-compilation--read-this-before-upgrading)
+  for which those are.
 - **`MinSize()` is an assertion, not enforcement.** The framework does nothing
   with it. What to do when the available space is below it is the application's
   decision, because only the application knows whether losing a table is
@@ -399,8 +564,13 @@ invisible, because nothing else about row styling worked either.
 - **The width table is hand-written.** Derived from East Asian Width ranges rather
   than generated from Unicode data, so newly assigned wide blocks are wrong until
   it is updated. A benchmark cannot make a table correct.
-- **`form.Tabs`' wheel behaviour is undecided.** See
-  [Input](#input) above. It wants an ADR.
+- **Whether the wheel should ever take focus.** Hit-testing *is* settled — [ADR 0010](/adr/0010-mouse-routing/)
+  says a widget handles a pointer event only when the pointer is inside its
+  `Bounds()`, and the three widgets that broke that rule are fixed. The question
+  that is still open is the one no single widget can answer: in an application
+  with several focusable widgets, **which widget should receive a notch that
+  lands on none of them**, and should any of them move focus as a side effect.
+  See [Input](#input) above.
 - **`examples/dashboard` overlaps `examples/markets` and the decision is open.**
   See [Project stage](#project-stage) above.
 

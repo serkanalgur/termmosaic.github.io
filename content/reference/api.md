@@ -154,6 +154,6 @@ interface is this small.
 
 ## Related
 
-- [The catalog](/widgets/) — the same 22, one page each, with captures.
+- [The catalog](/widgets/) — the same 24, one page each, with captures.
 - [Architecture decisions](/adr/) — the reasoning behind every row above.
 - [Limitations](/limitations/) — what the framework does not do.
