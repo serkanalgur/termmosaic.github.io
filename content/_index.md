@@ -13,18 +13,57 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.3.0**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.4.0**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.3.0
+go get github.com/serkanalgur/termmosaic@v0.4.0
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0
 ```
+
+## What's new in v0.4.0
+
+A minor bump, and the reason is one fix: **styling you set on a
+[`Tree`](/widgets/tree/) used to be silently discarded, and is now honoured.**
+That *is* a behavioural change, so it is a minor bump and not a patch.
+
+**If your tree looks different after upgrading, this is why** — and if you had
+worked around the old behaviour by compensating in your own styles, remove that
+compensation now, because it is double-counting.
+
+- **`Tree` ignored per-node and selected-row styling on the label.** The row
+  painter computed the right style for each node — the node's `Style`, falling
+  back to `ItemStyle`, and `SelectedStyle` outright when the row was selected —
+  and then applied it only to the expander glyph, writing the label through a
+  call that took no style at all. So the label was drawn with whatever the
+  terminal default happened to be, and only the little marker beside it was
+  styled. All three now apply to the label, and the selected style wins on the
+  selected row. A deliberately multi-span label keeps its per-span styles, and
+  the fill covers the label region only — it cannot reach the marker or the
+  indent.
+
+This closes the defect class rather than opening one. v0.3.0 fixed `List` and
+`Table`; `Tree` was missed because its row painter computed the style for one
+cell and then took a different call for the text beside it, so the computed
+style stopped exactly where the two code paths diverged.
+
+The rest of this release is CI and tooling, not the library: **every GitHub
+Actions action moved to a Node 24 major** (`checkout` v4→v7, `setup-go` v5→v7,
+`golangci-lint-action` v7→v9, `github-script` v7→v9) and **every runner image is
+pinned by name** instead of tracking `-latest` (`ubuntu-24.04`, `macos-15`,
+`windows-2025`). **None of the CI change has been executed by a GitHub Actions
+run** — the versions were verified statically, so a green badge in the
+repository currently attests to the *previous* configuration. That is recorded
+on the [Limitations](/limitations/) page rather than glossed.
+
+No capture on this site moved, and that is expected: the generator's tree entry
+sets no styles, so the fix is inert there. The full rationale is on the
+[Limitations](/limitations/) page.
 
 ## What's new in v0.3.0
 
