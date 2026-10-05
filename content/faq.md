@@ -87,8 +87,8 @@ capture sits beside every colour capture. See
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.0     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.1     # focus ring + ? help overlay
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto

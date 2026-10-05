@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.4.0. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.4.1. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -183,16 +183,23 @@ Breaking.
   entry sets no styles, so it never exercised the broken path and the fix is
   inert for the captures. A widget page can be correct while its picture is
   merely uninformative.
-- **The CI posture change has never been run.** Every action moved to a Node 24
-  major and every runner image is pinned by name (`ubuntu-24.04`, `macos-15`,
-  `windows-2025`) rather than tracking `-latest`. That was verified statically —
-  each action's `action.yml` declares `using: node24` — and not by a single
-  GitHub Actions run. Nothing has been pushed since. A major bump to any of those
-  four actions can change inputs, defaults or behaviour, and `macos-15` and
-  `windows-2025` are new images for this project. **The last green badge attests
-  to the previous CI configuration**, so treat CI as unevidenced on all three
-  platforms until the first push lands. This is also why the v0.4.0 release
-  notes do not claim a green build.
+- **The CI posture change has since been run, and it was green.** Every action
+  moved to a Node 24 major and every runner image is pinned by name
+  (`ubuntu-24.04`, `macos-15`, `windows-2025`) rather than tracking `-latest`.
+  This was originally verified statically — each action's `action.yml` declares
+  `using: node24` — and not by a run. **It has now been executed by a real GitHub
+  Actions run: all twelve checks on the v0.4.0 pull request passed**, namely
+  `test (ubuntu-24.04)`, `test (macos-15)`, `test (windows-2025)`, `gofmt`,
+  `golangci-lint`, `zero-allocation diff`, and the six `cross-compile` legs for
+  `linux/amd64`, `linux/arm64`, `darwin/amd64`, `darwin/arm64`,
+  `windows/amd64` and `windows/arm64`. The post-merge run on `main` was green
+  too, as was the v0.4.1 dependency-bump run.
+
+  So the concern the previous release raised is closed: none of the four action
+  major bumps changed an input, a default or a behaviour the project relies on,
+  and `macos-15` and `windows-2025` are now images this project has actually run
+  on rather than new ones it has only read about. **What that green run does not
+  cover is the item below**, which no CI configuration has ever covered.
 
 **And one long-standing item that this release did not fix.** The Windows backend
 still runs **zero tests at runtime**. `term/terminal_windows_test.go` is

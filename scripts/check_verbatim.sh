@@ -22,14 +22,52 @@ SYNC=0
 [ -d "$ROOT" ] || { echo "framework repo not found at $ROOT (set FRAMEWORK=...)" >&2; exit 1; }
 
 # source-in-framework:destination-in-site
+#
+# Every ADR is listed, not just docs/adr/README.md. They were unguarded once and
+# two of them drifted: 0001 still published the superseded golang.org/x/term pin,
+# and 0008 still said a wide-glyph defect was "NOT fixed in this release" months
+# after it was fixed in v0.2.0. A reader landing on either page would have been
+# told something false, and nothing in CI would have said so.
+#
+# These copies carry Hugo front matter and drop the framework's leading H1, since
+# Hugo uses the file name as the page title. So a plain byte comparison would
+# always report drift. The comparison below strips front matter and a leading H1
+# from both sides before diffing, and --sync re-copies then re-applies the site's
+# front matter.
 PAIRS=(
   "docs/STATUS.md:content/adr/STATUS.md"
   "docs/adr/README.md:content/adr/README.md"
   "CHANGELOG.md:content/adr/CHANGELOG.md"
   "docs/SITE-PLAN.md:content/adr/SITE-PLAN.md"
+  "docs/adr/0001-backend-strategy.md:content/adr/0001-backend-strategy.md"
+  "docs/adr/0002-buffer-representation.md:content/adr/0002-buffer-representation.md"
+  "docs/adr/0003-renderer-mode.md:content/adr/0003-renderer-mode.md"
+  "docs/adr/0004-layout-engine.md:content/adr/0004-layout-engine.md"
+  "docs/adr/0005-input-decoding.md:content/adr/0005-input-decoding.md"
+  "docs/adr/0006-subbuffer-cell-access.md:content/adr/0006-subbuffer-cell-access.md"
+  "docs/adr/0007-responsive-screens.md:content/adr/0007-responsive-screens.md"
+  "docs/adr/0008-style-and-text.md:content/adr/0008-style-and-text.md"
+  "docs/adr/0009-command-and-keymap.md:content/adr/0009-command-and-keymap.md"
 )
 
 drift=0
+# Compare two markdown files ignoring Hugo front matter and a leading H1, which
+# is what the site copies add. Written as a normalising filter rather than a
+# diff option so --sync and the check agree by construction.
+normalise() {
+  awk '
+    NR==1 && $0=="---" { fm=1; next }
+    fm==1 && $0=="---" { fm=0; next }
+    fm==1 { next }
+    # Skip a leading ATX H1 and every blank line before the body proper. The
+    # framework files start with the H1 and a blank line; the Hugo copies start
+    # straight at the body. Applied to both sides so what remains is substance.
+    !seen && /^#[[:space:]]/ { next }
+    !seen && $0 ~ /^[[:space:]]*$/ { next }
+    { seen=1; print }
+  ' "$1"
+}
+
 for pair in "${PAIRS[@]}"; do
   src="$ROOT/${pair%%:*}"
   dst="${pair##*:}"
@@ -41,17 +79,29 @@ for pair in "${PAIRS[@]}"; do
     continue
   fi
 
-  if diff -q "$src" "$dst" >/dev/null 2>&1; then
+  changed="$(diff <(normalise "$src") <(normalise "$dst") | grep -c '^[<>]' || true)"
+
+  if [ "$changed" -eq 0 ]; then
     echo "  in sync: $name"
     continue
   fi
 
   if [ "$SYNC" = "1" ]; then
-    changed="$(diff "$src" "$dst" | grep -c '^[<>]' || true)"
-    cp "$src" "$dst"
+    # Re-copy the body, but keep the site's front matter: it carries the Hugo
+    # title, weight and aliases that the framework file has no reason to know.
+    # normalise() is the single definition of "same content", so the written file
+    # is produced by exactly the transform it is compared with -- otherwise the
+    # two can disagree and --sync would oscillate.
+    if [ -f "$dst" ] && head -1 "$dst" | grep -q '^---$'; then
+      awk 'NR==1 && $0=="---" {f=1} f {print} f && NR>1 && $0=="---" {exit}' "$dst" > "$dst.tmp"
+      printf '\n' >> "$dst.tmp"
+      normalise "$src" >> "$dst.tmp"
+      mv "$dst.tmp" "$dst"
+    else
+      cp "$src" "$dst"
+    fi
     echo "SYNCED:    $name ($changed lines differ)"
   else
-    changed="$(diff "$src" "$dst" | grep -c '^[<>]' || true)"
     echo "DRIFTED:   $name ($changed lines) - $src differs from $dst" >&2
     drift=$((drift + 1))
   fi

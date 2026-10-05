@@ -34,8 +34,8 @@ and lists what does not work.
 ## The examples
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0   # live finance dashboard, no API key
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.0     # bordered panel, focus ring, ? help
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1   # live finance dashboard, no API key
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.1     # bordered panel, focus ring, ? help
 ```
 
 `markets` is the more useful of the two to read: it is a real screen built out of

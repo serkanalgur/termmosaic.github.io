@@ -13,8 +13,8 @@ which is a real screen — a live finance dashboard — composed entirely from t
 catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses
@@ -172,8 +172,9 @@ what stops `?` reaching the table as a stray rune.
 > **This is the thing ADR 0009 exists to replace, and it does not exist yet.**
 > The command and keymap layer is **specified and not implemented** — there is no
 > `keymap` package and no command palette, and widgets still dispatch their own
-> keys. So the routing above is what you write today, by hand. `keymap` is slated
-> for v0.4.0. See
+> keys. So the routing above is what you write today, by hand. `keymap` was
+> targeted at v0.4.0 — and **both v0.3.0 and v0.4.0 shipped on 2026-10-05
+> without it**, so there is no version it is currently scheduled for. See
 > [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
 ## The mouse, and one routing decision worth stealing
