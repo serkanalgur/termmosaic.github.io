@@ -76,10 +76,16 @@ a deploy:
 
 ```bash
 pip install PyYAML
-python3 scripts/check_frontmatter.py    # 62 pages, TOML/YAML/JSON
-python3 scripts/check_links.py          # every internal link resolves
-bash    scripts/check_captures.sh       # 22 widgets, 3 widths, no failure markers
+python3 scripts/check_frontmatter.py    # 69 pages, TOML/YAML/JSON
+bash    scripts/check_captures.sh       # 24 widgets, 3 widths, no failure markers
+bash    scripts/check_verbatim.sh       # ADR/STATUS/CHANGELOG match the framework
+python3 scripts/check_links.py          # every internal link resolves (after hugo)
 ```
+
+`check_verbatim.sh` guards the verbatim copies. `content/adr/` holds byte-identical
+copies of the framework's ADRs, `STATUS.md`, `CHANGELOG.md` and `SITE-PLAN.md` —
+summarising them would create a second source of truth that drifts. Run it with
+`--sync` to re-copy; CI fails the deploy if they have drifted.
 
 `check_frontmatter.py` accepts TOML, YAML and JSON because Hugo does, and the
 site is written in YAML — a TOML-only parser reports every page as broken.

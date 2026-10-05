@@ -44,6 +44,28 @@ jobs:
       - name: Verify captures are untouched
         run: bash scripts/check_captures.sh
 
+      # The ADR files, STATUS, CHANGELOG and SITE-PLAN under content/adr/ are
+      # verbatim copies of the framework's. A verbatim copy with no check is just
+      # a second source of truth nobody updates - STATUS.md drifted from 22 to
+      # 24 widgets once already, on a page readers land on.
+      #
+      # Checked with --framework rather than relying on a sibling checkout, since
+      # the workflow only sees this repo. Not run with --sync: a deploy should
+      # not silently rewrite content, it should fail and be fixed deliberately.
+      - name: Check verbatim framework copies have not drifted
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/serkanalgur/termmosaic/main/CHANGELOG.md -o /tmp/fw_CHANGELOG.md
+          curl -fsSL https://raw.githubusercontent.com/serkanalgur/termmosaic/main/docs/STATUS.md -o /tmp/fw_STATUS.md
+          curl -fsSL https://raw.githubusercontent.com/serkanalgur/termmosaic/main/docs/adr/README.md -o /tmp/fw_ADRREADME.md
+          curl -fsSL https://raw.githubusercontent.com/serkanalgur/termmosaic/main/docs/SITE-PLAN.md -o /tmp/fw_SITEPLAN.md
+          mkdir -p /tmp/fw/docs/adr /tmp/fw/docs
+          mv /tmp/fw_STATUS.md /tmp/fw/docs/STATUS.md
+          mv /tmp/fw_ADRREADME.md /tmp/fw/docs/adr/README.md
+          mv /tmp/fw_SITEPLAN.md /tmp/fw/docs/SITE-PLAN.md
+          mv /tmp/fw_CHANGELOG.md /tmp/fw/CHANGELOG.md
+          FRAMEWORK=/tmp/fw bash scripts/check_verbatim.sh
+
       # Hugo is installed and invoked explicitly rather than through an action
       # wrapper. The wrapper accepts no `minify` input and hid the build's own
       # output, so a failing build reported nothing but a later missing
