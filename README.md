@@ -13,7 +13,7 @@ push to `main` and the workflow publishes.
 | Path | What it is |
 |---|---|
 | `content/` | All pages. 62 Markdown files. |
-| `content/widgets/` | **22 widget pages, one per widget.** Generated — see below. |
+| `content/widgets/` | **24 widget pages, one per widget.** Generated — see below. |
 | `content/adr/` | The 8 Architecture Decision Records, **copied verbatim**. |
 | `content/concepts/`, `content/guides/`, `content/getting-started/` | Hand-written. |
 | `layouts/shortcodes/widget-capture.html` | Embeds a widget's captures at three widths. |

@@ -13,8 +13,8 @@ which is a real screen — a live finance dashboard — composed entirely from t
 catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses
@@ -173,7 +173,7 @@ what stops `?` reaching the table as a stray rune.
 > The command and keymap layer is **specified and not implemented** — there is no
 > `keymap` package and no command palette, and widgets still dispatch their own
 > keys. So the routing above is what you write today, by hand. `keymap` is slated
-> for v0.3.0. See
+> for v0.4.0. See
 > [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
 ## The mouse, and one routing decision worth stealing

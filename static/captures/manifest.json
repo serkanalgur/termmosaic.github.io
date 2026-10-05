@@ -1,5 +1,6 @@
 {
   "tool": "cmd/capture",
+  "version": "0.3.0",
   "widths": [
     40,
     80,
@@ -99,7 +100,7 @@
       "text": "split.txt",
       "textBytes": 2100,
       "html": "split.html",
-      "htmlBytes": 28889
+      "htmlBytes": 27612
     },
     {
       "name": "TextInput",
@@ -354,7 +355,7 @@
       "text": "list.txt",
       "textBytes": 2080,
       "html": "list.html",
-      "htmlBytes": 13869
+      "htmlBytes": 13488
     },
     {
       "name": "Table",
@@ -379,7 +380,7 @@
       "text": "table.txt",
       "textBytes": 1951,
       "html": "table.html",
-      "htmlBytes": 19742
+      "htmlBytes": 18656
     },
     {
       "name": "Tree",

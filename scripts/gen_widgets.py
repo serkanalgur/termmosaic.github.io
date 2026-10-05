@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the 22 widget pages from data the framework already produced.
+"""Generate the widget pages from data the framework already produced.
 
 Three inputs, three different provenances, and the script refuses to invent any
 of them:
@@ -441,7 +441,7 @@ def render_index(manifest: dict, prose: dict) -> str:
         "---",
         'title: "Widgets"',
         "weight: 40",
-        'description: "All 22 widgets, with a captured frame at three widths for each."',
+        f'description: "All {manifest["widgetCount"]} widgets, with a captured frame at three widths for each."',
         "---",
         "",
         f"TermMosaic ships **{manifest['widgetCount']} widgets**. That number is the whole claim and it is "

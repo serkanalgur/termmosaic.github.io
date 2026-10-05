@@ -63,11 +63,11 @@ O(visible cells) per frame: the wrap of the visible lines is recomputed each fra
 
 ## When not to use it
 
-**Do not use it for text the user must edit.** It cannot be edited, deliberately — a pager that accepted keystrokes would need a caret, a selection and an undo history to be worth having. Editing long text is [`TextArea`](/widgets/textarea/), with the caveat that it has no rendered selection in v0.2.0.
+**Do not use it for text the user must edit.** It cannot be edited, deliberately — a pager that accepted keystrokes would need a caret, a selection and an undo history to be worth having. Editing long text is [`TextArea`](/widgets/textarea/), with the caveat that it has no rendered selection in v0.3.0.
 
 **Do not use it for short text.** A paragraph that fits does not need a scrollbar, a search field and a status line.
 
-**Do not use it as the only view of something the user needs to select from.** There is no pager selection in v0.2.0. It shows and searches; it does not hand back a line.
+**Do not use it as the only view of something the user needs to select from.** There is no pager selection in v0.3.0. It shows and searches; it does not hand back a line.
 
 **Do not expect search to be interactive as you type.** Search is a key contract, not a live filter: you set the query, the pager highlights matches and reports the count, and moving between them is a key. Designing around a search-as-you-type expectation means building it yourself.
 

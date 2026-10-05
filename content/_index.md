@@ -13,18 +13,47 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.2.0**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.3.0**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.2.0
+go get github.com/serkanalgur/termmosaic@v0.3.0
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0
 ```
+
+## What's new in v0.3.0
+
+A minor bump, and the reason is the two fixes below: **styling you set on a
+[`List`](/widgets/list/) or a [`Table`](/widgets/table/) used to be silently
+discarded, and is now honoured.** That *is* a behavioural change, so it is a minor
+bump and not a patch.
+
+**If your widgets look different after upgrading, this is why** — and if you had
+worked around the old behaviour by compensating in your own styles, remove that
+compensation now, because it is double-counting.
+
+- **`List` ignored per-item and selected-row styling.** The style computed for
+  each row was never passed to the paint call, so it was computed and thrown
+  away. `SelectedStyle`, documented as the selected row's rendition, reached only
+  the background fill and never the glyphs. `ItemStyle` and `SelectedStyle` now
+  both apply, with the selected style winning on the selected row. A deliberately
+  multi-span row keeps its per-span styles — flattening one would mean allocating
+  on the frame path.
+- **`Table` discarded every cell style.** The sentinel meaning "write these spans
+  verbatim" was a *resolved* style rather than an unset one, so the guard never
+  fired and each cell's own `Style` was overwritten with the terminal default,
+  along with every column's `CellStyle`. Both now render as given.
+  `HeadingStyle` was never affected and still works.
+
+Both were documented as taking effect already, so these are fixes to behaviour
+that contradicted the documentation. The full rationale is on the
+[Limitations](/limitations/) page, and the captures on this site have been
+regenerated to show the corrected rendering.
 
 ## What's new in v0.2.0
 
@@ -108,7 +137,7 @@ tool from the cells the renderer produced.
 
 Every capture on this site is a **cell grid**, not a screenshot of anyone's
 terminal. It is produced by `cmd/capture` in the framework repo, which runs each
-widget through `widgettest.Capture` — the same path the 954 test functions assert
+widget through `widgettest.Capture` — the same path the 969 top-level test functions assert
 on — and converts `MemorySink.Cells()` to HTML. That is what makes it trustworthy: the
 docs cannot show something no test pins.
 
@@ -187,7 +216,7 @@ build a real dashboard on is a toy, however elegant its renderer.
 ## Honest status, in one paragraph
 
 The renderer, the input layer, the layout solver and the full 24-widget catalog
-are built and tested: 23 packages, 954 test functions, a zero-allocation frame
+are built and tested: 25 packages, 969 top-level test functions, a zero-allocation frame
 path. Alongside that: **Windows is a stub that returns a loud error from every
 console operation**, **the `keymap` layer is specified but not built — there is no
 command palette**, there is **no IME or preedit**, **tmux DCS passthrough is

@@ -65,7 +65,7 @@ KeyTab is NOT consumed: in a form, tab moves between fields, and swallowing it h
 
 ## When not to use it
 
-**Do not use it where the selected range must be visible.** In v0.2.0 `TextArea` **tracks and moves a caret and supports editing, but does not draw its selection**. `TextInput` renders its selection; `TextArea` does not. This is a recorded gap rather than a design choice, and it is one of the reasons `TextArea` is not the right widget for a value the user needs to see part of.
+**Do not use it where the selected range must be visible.** In v0.3.0 `TextArea` **tracks and moves a caret and supports editing, but does not draw its selection**. `TextInput` renders its selection; `TextArea` does not. This is a recorded gap rather than a design choice, and it is one of the reasons `TextArea` is not the right widget for a value the user needs to see part of.
 
 **Do not use it to show long text the user only reads.** It is editable and has no read-only mode. A scrolling read-only view is [`Pager`](/widgets/pager/), and a pager with search in it is usually what someone wants when they say "show me this file".
 

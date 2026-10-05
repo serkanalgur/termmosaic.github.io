@@ -68,7 +68,7 @@ implementation. Three things make it work:
 - **A disabled widget consumes nothing** — not a click, not a key. `Button` does
   this deliberately so an action can be disabled without removing the widget.
 
-Two honest gaps: **`TextArea` has no rendered selection** in v0.2.0 (it tracks
+Two honest gaps: **`TextArea` has no rendered selection** in v0.3.0 (it tracks
 and moves a caret and supports editing, but the selected range is not drawn), and
 there is **no redo stack** in either text field.
 
