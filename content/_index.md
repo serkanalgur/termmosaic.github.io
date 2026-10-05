@@ -1,12 +1,12 @@
 ---
 title: "TermMosaic"
-description: "A terminal UI framework for Go: a cell-buffer renderer with two-tier diffing and 22 ready-to-use widgets. Pre-alpha."
+description: "A terminal UI framework for Go: a cell-buffer renderer with two-tier diffing and 24 ready-to-use widgets. Pre-alpha."
 toc: true
 ---
 
 # A terminal UI framework for Go
 
-**TermMosaic is a cell-buffer renderer plus a catalog of 22 widgets.** The
+**TermMosaic is a cell-buffer renderer plus a catalog of 24 widgets.** The
 renderer double-buffers cells, diffs at two tiers, and tracks dirty rectangles;
 the catalog is the part that is the point — including the five measurement
 widgets that comparable Go TUIs do not ship.
@@ -85,7 +85,7 @@ It is also what it is, and the limits are not closable:
 Full statement: [Captures are cell grids, not terminal
 screenshots](/limitations/#captures-are-cell-grids-not-terminal-screenshots).
 
-## The 22 widgets
+## The 24 widgets
 
 | Group | Widgets |
 |---|---|
@@ -93,8 +93,9 @@ screenshots](/limitations/#captures-are-cell-grids-not-terminal-screenshots).
 | **Forms** | [`TextInput`](/widgets/textinput/) [`TextArea`](/widgets/textarea/) [`Select`](/widgets/select/) [`Checkbox`](/widgets/checkbox/) [`Radio`](/widgets/radio/) [`Toggle`](/widgets/toggle/) [`Tabs`](/widgets/tabs/) [`Button`](/widgets/button/) [`KeyHint`](/widgets/keyhint/) |
 | **Data** | [`List`](/widgets/list/) [`Table`](/widgets/table/) [`Tree`](/widgets/tree/) [`Pager`](/widgets/pager/) |
 | **Visualization** | [`ProgressBar`](/widgets/progressbar/) [`Gauge`](/widgets/gauge/) [`Meter`](/widgets/meter/) [`Sparkline`](/widgets/sparkline/) [`BarChart`](/widgets/barchart/) |
+| **Navigation & modality** | [`Menu`](/widgets/menu/) [`Dialog`](/widgets/dialog/) |
 
-That is **22**, counted: every exported type with a `New…` constructor that
+That is **24**, counted: every exported type with a `New…` constructor that
 satisfies `termmosaic.Widget`. `buffer.Buffer` is deliberately not on the list —
 it has `Invalidate()` but no `Bounds`, `Draw` or `Handle`, so it is not a widget,
 it is what widgets draw *into*. `widgets/form/optionlist.go` is an unexported
@@ -134,7 +135,7 @@ build a real dashboard on is a toy, however elegant its renderer.
 
 ## Honest status, in one paragraph
 
-The renderer, the input layer, the layout solver and the full 22-widget catalog
+The renderer, the input layer, the layout solver and the full 24-widget catalog
 are built and tested: 19 packages, 650+ tests, a zero-allocation frame path.
 Alongside that: **Windows is a stub that returns a loud error from every console
 operation**, there is **no IME or preedit**, **tmux DCS passthrough is missing**,
