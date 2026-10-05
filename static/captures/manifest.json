@@ -5,7 +5,7 @@
     80,
     120
   ],
-  "widgetCount": 22,
+  "widgetCount": 24,
   "widgets": [
     {
       "name": "Block",
@@ -561,6 +561,58 @@
       "textBytes": 2089,
       "html": "barchart.html",
       "htmlBytes": 19457
+    },
+    {
+      "name": "Menu",
+      "slug": "menu",
+      "package": "widgets/menu",
+      "constructor": "menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu",
+      "summary": "A navigable menu with nested submenus to arbitrary depth.",
+      "note": "The selected item and any open branch are marked with a character and a rule, not colour alone. Depth beyond one submenu is available but not shown here.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        14,
+        14,
+        14
+      ],
+      "minSize": {
+        "w": 16,
+        "h": 4
+      },
+      "text": "menu.txt",
+      "textBytes": 2439,
+      "html": "menu.html",
+      "htmlBytes": 16842
+    },
+    {
+      "name": "Dialog",
+      "slug": "dialog",
+      "package": "widgets/dialog",
+      "constructor": "dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog",
+      "summary": "A modal box with a title, a body and a row of actions.",
+      "note": "Modal: keys do not reach the tree beneath. The focused action is ringed rather than coloured - a bracket pair of the same width as the idle pair, so moving focus never reflows the row - and reinforced with reverse video, which survives NO_COLOR because colour is suppressed only at encode time. Escape is Cancel, never a no-op.",
+      "widths": [
+        40,
+        80,
+        120
+      ],
+      "heights": [
+        11,
+        11,
+        11
+      ],
+      "minSize": {
+        "w": 28,
+        "h": 4
+      },
+      "text": "dialog.txt",
+      "textBytes": 2025,
+      "html": "dialog.html",
+      "htmlBytes": 9839
     }
   ]
 }

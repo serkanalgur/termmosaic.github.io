@@ -81,7 +81,9 @@ def check(path: Path) -> tuple[dict | None, list[str]]:
     if not raw.startswith("---\n"):
         posix = path.as_posix()
         if "/adr/" in posix and posix.endswith(
-                ("STATUS.md", "CHANGELOG.md", "SITE-PLAN.md", "README.md")):
+                ("STATUS.md", "CHANGELOG.md", "SITE-PLAN.md", "README.md")) or (
+                "/adr/" in posix and posix.rsplit("/", 1)[-1].startswith("0")
+                and posix.endswith(".md")):
             return {"path": posix.split("/content/", 1)[-1],
                     "url": slug_for(path),
                     "meta": {"title": posix.rsplit("/", 1)[-1],

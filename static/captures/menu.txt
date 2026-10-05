@@ -1,0 +1,19 @@
+# Menu — A navigable menu with nested submenus to arbitrary depth.
+# package: widgets/menu
+# constructor: menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu
+# 120 columns x 14 rows, rendered through widgettest.Capture
+
+╭ File ────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│[1                                                                                                                   ]│
+│›Open                                                                                                            ^O  ▸│
+│ Reload data                                                                                                     ^R   │
+│ Toggle wrap                                                                                                     ^W   │
+│ Archive (unavailable)                                                                                                │
+│ Quit                                                                                                            ^Q   │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

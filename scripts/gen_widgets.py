@@ -59,6 +59,8 @@ WIDGET_SOURCE = {
     "meter": ("widgets/viz/meter.go", "Meter"),
     "sparkline": ("widgets/viz/sparkline.go", "Sparkline"),
     "barchart": ("widgets/viz/barchart.go", "BarChart"),
+    "menu": ("widgets/menu/menu.go", "Menu"),
+    "dialog": ("widgets/dialog/dialog.go", "Dialog"),
 }
 
 # Package doc -> the file whose leading comment is the package narrative, and the
@@ -72,6 +74,8 @@ PKG_SOURCE = {
     "widgets/form": ("form", "What the whole package shares"),
     "widgets/data": ("data", "The rules every widget here obeys"),
     "widgets/viz": ("viz", "The three rules every widget here obeys"),
+    "widgets/menu": ("menu", None),
+    "widgets/dialog": ("dialog", None),
 }
 
 # Go doc headings that become their own widget-page section. Everything else in a

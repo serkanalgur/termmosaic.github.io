@@ -12,9 +12,17 @@
       "extra": "- Its space is Bounds(), never buf.Size() (ADR 0007 §1 rule 1). The only\n    place a screen dimension is read is inside a test.\n  - It repaints its whole Bounds() before drawing content (rule 3). Every\n    widget here does that by composing widgets/block.Block, whose Draw fills\n    the rect in Background before it draws anything else — the sanctioned way\n    to express it (ADR 0008 §2). No widget in this package draws a border, a\n    corner or a title itself.\n  - Its Draw is allocation-free (ADR 0008 §4). Anything derived from a widget's\n    own size — which columns are visible, which chrome survives the budget,\n    which rows map to which items — is computed in the size-change check,\n    cached against the rect it was computed for, and only read in Draw.\n  - Draw is total. Every rect including 0x0 and 1x1 is defined, and a widget\n    below its own MinSize draws its minimum layout clipped rather than\n    blanking itself (ADR 0007 §4).\n  - Colour is never the only signal. Selection is carried by a marker column\n    as well as by SelectedStyle, the tree's expansion state by a glyph, and\n    the pager's matches by a rendition attribute rather than a hue.",
       "intro": "Package data provides the catalog's scrolling data widgets: List, Table,\nTree and Pager."
     },
+    "widgets/dialog": {
+      "extra": null,
+      "intro": "Package dialog provides Dialog: the catalog's modal — a box with a title, a\nbody, and either a row of buttons or a list of choices."
+    },
     "widgets/form": {
       "extra": "Four rules, each of which is a consequence of something decided elsewhere, and\neach of which is enforced by this package's tests rather than by convention:\n\n 1. A widget's space is Bounds(), never buf.Size() (ADR 0007 §1 rule 1).\n 2. Every widget repaints its entire Bounds() before drawing content, because\n    the renderer diffs and never clears (ADR 0007 §1 rule 3).\n 3. Draw is total for every rect, including 0×0, 1×1 and anything below\n    MinSize, and it clips rather than blanking (ADR 0007 §4).\n 4. Nothing derived from the size or from the text is built inside Draw.\n    Wrap, Truncate and span construction allocate, so each widget caches the\n    result against the rect it was computed for and rebuilds when the rect,\n    the text or the styles change (ADR 0007 §3, ADR 0008 §4).",
       "intro": "Package form provides the input widgets: TextInput, TextArea, Select,\nCheckbox, Radio, Toggle, Tabs, Button and KeyHint."
+    },
+    "widgets/menu": {
+      "extra": null,
+      "intro": "Package menu provides Menu, a keyboard-driven menu with nested submenus to\narbitrary depth."
     },
     "widgets/split": {
       "extra": "A widget receives its rectangle through Bounds, and nothing in the framework\nhands it one: there is no Resize method to push down the tree (ADR 0007 rejects\nit), so a container must be able to SET bounds. Hence Bounded, which a pane\nimplements by having a SetBounds method — block.Block, basic.Text and\nbasic.Paragraph all do. A pane that does not implement it is still drawn, with\nwhatever rectangle the application gave it; Split never invents one.",
@@ -80,6 +88,10 @@
         "Key contract": "Keys are consumed only while focused.\n\n\ttoggle      KeySpace or KeyEnter\n\tcycle left  KeyLeft, but only when TriState is set\n\tcycle right KeyRight, but only when TriState is set\n\nToggling moves Unchecked → Checked → Unchecked, and Indeterminate → Checked,\nbecause a user pressing space on a mixed box is asserting \"yes, all of it\".\nReaching Indeterminate is done by SetState, from the application's own\nknowledge of its children. TriState additionally lets Left and Right walk all\nthree states, which is what an application whose children can be partially\nselected needs in order to clear the mixed state from the keyboard."
       }
     },
+    "dialog": {
+      "intro": "Dialog is a modal: a bordered box with a title, a body, and a row of actions\nor a list of choices.\n\nIt is Focusable, and its keys are consumed only while it has focus. It is\nMinimizable, and MinSize is the whole widget including the border and padding\nthe block contributes (ADR 0007 §2).\n\nA Dialog is a plain value in every respect that matters: it is not safe for\nconcurrent use, because SetBounds and Draw race by design — the renderer owns\nBounds between frames (ADR 0003).",
+      "sections": {}
+    },
     "gauge": {
       "intro": "Gauge is a single bounded value on a dial, with a bar fallback.",
       "sections": {
@@ -130,6 +142,12 @@
       "sections": {
         "Cost": "O(visible rows) per frame, whatever the item count. The scroll arithmetic is\nvirtual.Model's and the row count is derived from the interior height with\ngeometry.ClampCount; nothing in Draw or Handle touches the items slice beyond\nthe rows it is painting. BenchmarkList100K and TestListHundredThousandItems\nare the evidence.",
         "Key contract": "Consumed only while focused. Every key also scrolls the selection into view,\nwhich is virtual's ScrollIntoView rather than a per-widget re-centring rule\n(ADR 0007 §6 rule 2: clamp, do not recentre).\n\n\tup / down       move the selection by one row\n\tpage up/down    move it by a screen, less one row of overlap\n\thome / end      first / last row\n\tenter, space    activate the selection, calling OnActivate\n\twheel up/down   scroll WITHOUT moving the selection\n\tpress           select the pressed row and take focus\n\nKeyTab is NOT consumed, so a form can move focus out of a list with the\nkeyboard exactly as it moves out of a text input."
+      }
+    },
+    "menu": {
+      "intro": "Menu is a tree of items with a cursor path, nested submenus and a keyboard\ncontract.\n\nIt is Focusable: keys are consumed only while focused, and a press inside the\nwidget both selects and takes focus, so a click is a complete interaction\nwithout the application writing a click handler.",
+      "sections": {
+        "Construction": "A new Menu is CLOSED. A menu drawn open the moment a terminal appears is a\nmenu the user cannot dismiss with the key they expect, and Open is one call\naway. The zero Menu is not usable: SetItems and SetBounds are required first."
       }
     },
     "meter": {

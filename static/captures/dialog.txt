@@ -1,0 +1,16 @@
+# Dialog — A modal box with a title, a body and a row of actions.
+# package: widgets/dialog
+# constructor: dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ Discard unsaved changes? ────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│3 buffers have edits that are not on disk.                                                                            │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│ Cancel   [Discard]                                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

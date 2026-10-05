@@ -1,5 +1,5 @@
 {
-  "widgetCount": 22,
+  "widgetCount": 24,
   "widgets": [
     {
       "name": "Block",
@@ -198,6 +198,24 @@
       "summary": "Categorical magnitudes as horizontal or vertical bars, with an axis and per-bar values.",
       "text": "barchart.txt",
       "html": "barchart.html"
+    },
+    {
+      "name": "Menu",
+      "slug": "menu",
+      "package": "widgets/menu",
+      "constructor": "menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu",
+      "summary": "A navigable menu with nested submenus to arbitrary depth.",
+      "text": "menu.txt",
+      "html": "menu.html"
+    },
+    {
+      "name": "Dialog",
+      "slug": "dialog",
+      "package": "widgets/dialog",
+      "constructor": "dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog",
+      "summary": "A modal box with a title, a body and a row of actions.",
+      "text": "dialog.txt",
+      "html": "dialog.html"
     }
   ]
 }

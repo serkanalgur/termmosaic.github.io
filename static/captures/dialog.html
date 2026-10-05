@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TermMosaic — Dialog capture</title>
+<link rel="stylesheet" href="capture.css">
+</head>
+<body>
+<article class="tm-widget" data-widget="Dialog" data-package="widgets/dialog">
+<h1 class="tm-name">Dialog</h1>
+<p class="tm-meta"><code>dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog</code> &mdash; <code>widgets/dialog</code></p>
+<p class="tm-meta">A modal box with a title, a body and a row of actions.</p>
+<p class="tm-note">Modal: keys do not reach the tree beneath. The focused action is ringed rather than coloured - a bracket pair of the same width as the idle pair, so moving focus never reflows the row - and reinforced with reverse video, which survives NO_COLOR because colour is suppressed only at encode time. Escape is Cancel, never a no-op.</p>
+<p class="tm-meta">MinSize() = 28 &times; 4 cells</p>
+<div class="tm-widths">
+<div class="tm-width" data-cols="40">
+<p class="tm-cap">40 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="40"><span style="">╭</span><span style="color:#7fb0ff;font-weight:700"> Discard unsaved changes? </span><span style="font-weight:700">────────────╮</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│3 buffers have edits that are not on  │</span>
+<span style="font-weight:700">│disk.                                 │</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│                                      │</span>
+<span style="font-weight:700">│</span><span style="color:#e8ecf4;font-weight:700"> Cancel </span><span style="font-weight:700">  </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[</span><span style="color:#f08787;font-weight:700">Discard</span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">]</span><span style="font-weight:700">                   │</span>
+<span style="font-weight:700">╰──────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="80">
+<p class="tm-cap">80 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="80"><span style="">╭</span><span style="color:#7fb0ff;font-weight:700"> Discard unsaved changes? </span><span style="font-weight:700">────────────────────────────────────────────────────╮</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│3 buffers have edits that are not on disk.                                    │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│                                                                              │</span>
+<span style="font-weight:700">│</span><span style="color:#e8ecf4;font-weight:700"> Cancel </span><span style="font-weight:700">  </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[</span><span style="color:#f08787;font-weight:700">Discard</span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">]</span><span style="font-weight:700">                                                           │</span>
+<span style="font-weight:700">╰──────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+<div class="tm-width" data-cols="120">
+<p class="tm-cap">120 columns &times; 11 rows</p>
+<pre class="tm-capture" data-form="cells" data-cols="120"><span style="">╭</span><span style="color:#7fb0ff;font-weight:700"> Discard unsaved changes? </span><span style="font-weight:700">────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│3 buffers have edits that are not on disk.                                                                            │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│                                                                                                                      │</span>
+<span style="font-weight:700">│</span><span style="color:#e8ecf4;font-weight:700"> Cancel </span><span style="font-weight:700">  </span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">[</span><span style="color:#f08787;font-weight:700">Discard</span><span style="color:#0e1118;background-color:#7fb0ff;font-weight:700">]</span><span style="font-weight:700">                                                                                                   │</span>
+<span style="font-weight:700">╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span></pre>
+</div>
+</div>
+<p class="tm-plain-head">Plain text &mdash; the exact cell grid, trimmed per line. This is the honest form: Braille and block-element glyphs can take a different advance width in a web font than a terminal gives them, which breaks the alignment they depend on.</p>
+<pre class="tm-capture" data-form="text"># Dialog — A modal box with a title, a body and a row of actions.
+# package: widgets/dialog
+# constructor: dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog
+# 120 columns x 11 rows, rendered through widgettest.Capture
+
+╭ Discard unsaved changes? ────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│3 buffers have edits that are not on disk.                                                                            │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│ Cancel   [Discard]                                                                                                   │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+</pre>
+</article>
+</body>
+</html>

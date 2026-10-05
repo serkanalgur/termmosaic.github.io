@@ -4,7 +4,7 @@ weight: 40
 description: "All 22 widgets, with a captured frame at three widths for each."
 ---
 
-TermMosaic ships **22 widgets**. That number is the whole claim and it is counted, not estimated: it is every exported type with a `New…` constructor that satisfies `termmosaic.Widget`, and `buffer.Buffer` is deliberately not on the list because it is what widgets draw *into*, not a widget.
+TermMosaic ships **24 widgets**. That number is the whole claim and it is counted, not estimated: it is every exported type with a `New…` constructor that satisfies `termmosaic.Widget`, and `buffer.Buffer` is deliberately not on the list because it is what widgets draw *into*, not a widget.
 
 `widgets/form/optionlist.go` is an unexported shared helper behind `Select`, `Tabs` and `KeyHint`; it is not a twenty-third widget.
 
@@ -63,3 +63,15 @@ Every page below carries the widget's captured frame at 40, 80 and 120 columns. 
 | [`Meter`](/widgets/meter/) | A budget with named zones, a threshold marker and the active zone's name in words. | 18×3 |
 | [`Sparkline`](/widgets/sparkline/) | A series of numbers drawn as Braille or block elements, scaled to its own range. | 5×3 |
 | [`BarChart`](/widgets/barchart/) | Categorical magnitudes as horizontal or vertical bars, with an axis and per-bar values. | 8×6 |
+
+## widgets/menu — `widgets/menu`
+
+| Widget | Summary | MinSize |
+| --- | --- | --- |
+| [`Menu`](/widgets/menu/) | A navigable menu with nested submenus to arbitrary depth. | 16×4 |
+
+## widgets/dialog — `widgets/dialog`
+
+| Widget | Summary | MinSize |
+| --- | --- | --- |
+| [`Dialog`](/widgets/dialog/) | A modal box with a title, a body and a row of actions. | 28×4 |
