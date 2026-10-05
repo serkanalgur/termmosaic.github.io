@@ -13,18 +13,26 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.4.0**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.4.1**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.4.0
+go get github.com/serkanalgur/termmosaic@v0.4.1
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1
 ```
+
+## What's new in v0.4.1
+
+A **patch**, and a dependency-only one: `golang.org/x/term` v0.27.0 → v0.29.0 and
+`golang.org/x/sys` v0.28.0 → v0.30.0. **No library code changed**, so there is
+nothing to adapt to, and the **Go 1.23 floor is preserved** — the pin still keeps
+`x/term` off the releases that would raise it. That is the whole release; it
+answers [framework issue #4](https://github.com/serkanalgur/termmosaic/issues/4).
 
 ## What's new in v0.4.0
 
@@ -56,10 +64,9 @@ The rest of this release is CI and tooling, not the library: **every GitHub
 Actions action moved to a Node 24 major** (`checkout` v4→v7, `setup-go` v5→v7,
 `golangci-lint-action` v7→v9, `github-script` v7→v9) and **every runner image is
 pinned by name** instead of tracking `-latest` (`ubuntu-24.04`, `macos-15`,
-`windows-2025`). **None of the CI change has been executed by a GitHub Actions
-run** — the versions were verified statically, so a green badge in the
-repository currently attests to the *previous* configuration. That is recorded
-on the [Limitations](/limitations/) page rather than glossed.
+`windows-2025`). **All twelve checks then ran green on the v0.4.0 pull request**,
+and the post-merge run on `main` was green as well. What that run still does not
+cover is recorded on the [Limitations](/limitations/) page rather than glossed.
 
 No capture on this site moved, and that is expected: the generator's tree entry
 sets no styles, so the fix is inert there. The full rationale is on the
