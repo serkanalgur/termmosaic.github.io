@@ -13,8 +13,8 @@ which is a real screen — a live finance dashboard — composed entirely from t
 catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses

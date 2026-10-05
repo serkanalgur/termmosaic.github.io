@@ -87,8 +87,8 @@ capture sits beside every colour capture. See
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.3.0   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.3.0     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.0     # focus ring + ? help overlay
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
@@ -241,8 +241,9 @@ the only reason to trust either.
 **No, and the thing that would provide one is specified but not built.**
 [ADR 0009](/adr/0009-command-and-keymap/) specifies a command and keymap layer —
 a named action reachable by more than one key — and it is accepted. **No `keymap`
-package exists yet and there is no command palette.** `keymap` is slated for
-v0.4.0; it was targeted at v0.3.0, which shipped without it.
+package exists yet and there is no command palette.** `keymap` was targeted at
+v0.4.0, and **both v0.3.0 and v0.4.0 shipped on 2026-10-05 without it**, so
+there is no version it is currently scheduled for.
 
 Until it lands, **widgets dispatch their own keys.** The practical consequence is
 that an application writes its own key routing, which is what both examples do.

@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.3.0. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.4.0. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -101,8 +101,9 @@ is the failure mode this page exists to prevent.
 
 **[ADR 0009](/adr/0009-command-and-keymap/) is Accepted, and nothing implements
 it.** There is no `keymap` package in the framework, and **no command palette
-exists.** `keymap` is slated for v0.4.0; it was targeted at v0.3.0, which
-shipped without it.
+exists.** `keymap` was targeted at v0.4.0, and **both v0.3.0 and v0.4.0
+shipped on 2026-10-05 without it**, so there is no version it is currently
+scheduled for.
 
 **What you have today: widgets dispatch their own keys.** A `Table` consumes the
 arrows, a `Menu` consumes its navigation, and the application writes the routing
@@ -139,6 +140,67 @@ allows for a minor release and forbids for a patch.
 **If you are moving from v0.1.0 and your screen was not updating**, this is why,
 and upgrading fixes it. The symptom was a live-looking program that simply never
 changed again — not a hang, a crash or a visible error.
+
+## `Tree` label styling took effect in v0.4.0 — this changes what you see
+
+**This is the change in v0.4.0, and it is a behaviour change rather than a new
+feature: styling you set on a [`Tree`](/widgets/tree/) used to be silently
+discarded on the label, and it is now honoured.** Nothing has to change to
+compile or to run. But if your tree renders differently after upgrading, that is
+this release working, not a regression.
+
+**Plainly: a program whose `Tree` relied on its labels ignoring `Style`,
+`ItemStyle` and `SelectedStyle` will now render differently.** Before this
+release, a node's `Style`, the `ItemStyle` fallback and the selected row's
+`SelectedStyle` reached the expander glyph and nothing else — the label was
+written through a call that took no style, so it came out in whatever the
+terminal's own default happened to be. Those three fields are documented as
+applying to the node, and now they do.
+
+`drawRow` computed the content style — node `Style`, falling back to
+`ItemStyle`, and `SelectedStyle` outright when the row was selected — and applied
+it to a single cell, then wrote the label beside it through a different call. The
+computed style stopped exactly where the two code paths diverged. The label now
+goes through the same `paintRow` path `List` and `Table` use, over a rectangle
+covering the label region alone, so the fill cannot bleed into the expander
+marker or the indent. Four tests pin it: node style reaching the label, the
+`ItemStyle` fallback, a multi-span label keeping its own styles, and the ASCII
+path.
+
+**If you worked around the old behaviour, undo the workaround.** A program that
+compensated in its own styles because the widget's were ignored is now
+double-counting, and should remove the compensation.
+
+**Why this is a minor bump and not a patch.** Changing what a library widget
+draws is the definition of a behaviour change, and the project's release policy
+puts those in a minor — a patch that changed behaviour would itself be a bug in
+the release. The framework's [`CHANGELOG.md`](/adr/changelog/) records it under
+Breaking.
+
+**Two things in this release did not close.**
+
+- **No capture on this site moved, and that is expected.** The generator's tree
+  entry sets no styles, so it never exercised the broken path and the fix is
+  inert for the captures. A widget page can be correct while its picture is
+  merely uninformative.
+- **The CI posture change has never been run.** Every action moved to a Node 24
+  major and every runner image is pinned by name (`ubuntu-24.04`, `macos-15`,
+  `windows-2025`) rather than tracking `-latest`. That was verified statically —
+  each action's `action.yml` declares `using: node24` — and not by a single
+  GitHub Actions run. Nothing has been pushed since. A major bump to any of those
+  four actions can change inputs, defaults or behaviour, and `macos-15` and
+  `windows-2025` are new images for this project. **The last green badge attests
+  to the previous CI configuration**, so treat CI as unevidenced on all three
+  platforms until the first push lands. This is also why the v0.4.0 release
+  notes do not claim a green build.
+
+**And one long-standing item that this release did not fix.** The Windows backend
+still runs **zero tests at runtime**. `term/terminal_windows_test.go` is
+compile-only verified — `GOOS=windows go vet ./...` is the only check that has
+ever covered it — and **those tests have never been executed anywhere.** It is
+restated here because it is the item most easily mistaken for coverage: the file
+exists and is substantial, which reads like Windows is tested, and it is not. See
+[Platform](#platform) for why the Windows backend is a stub in the first place.
 
 ## `List` and `Table` styling took effect in v0.3.0 — this changes what you see
 
