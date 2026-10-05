@@ -66,7 +66,7 @@ frame is a different cost from drawing.
    tested. A resize that changes `contentW` or `totalW` re-clamps onto the same
    ceiling, **so the partial column can appear with no scrolling key pressed at
    all.**
-3. **There is no column selection in v0.1.0.** Selection is one row.
+3. **There is no column selection in v0.2.0.** Selection is one row.
 
 **One amendment trap:** `Header` is a plain field, and toggling it invalidates.
 That matters because a widget that caches column widths on `Bounds()` and is
@@ -97,13 +97,13 @@ node looks like. That is why the plain-text capture sits beside every colour one
 **It is read-only by construction.** It cannot be edited, deliberately: a pager
 that accepted keystrokes would need a caret, a selection and an undo history to
 be worth having. Editing long text is [`TextArea`](/widgets/textarea/), with the
-caveat that it has no rendered selection in v0.1.0.
+caveat that it has no rendered selection in v0.2.0.
 
 **Search is a key contract, not a live filter.** You set the query, the pager
 highlights matches and reports the count in its status line, and moving between
 them is a key. Search-as-you-type means building it yourself.
 
-**There is no pager selection in v0.1.0.** It shows and searches; it hands nothing
+**There is no pager selection in v0.2.0.** It shows and searches; it hands nothing
 back. If you need the user to pick a line, that is a different design and you
 should expect to build it.
 

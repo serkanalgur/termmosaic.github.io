@@ -17,7 +17,7 @@ working out how to build something.
 - **[Data display](/guides/data-display/)** — choosing between `List`, `Table`,
   `Tree` and `Pager`.
 - **[Dashboards](/guides/dashboards/)** — building a real screen, walking through
-  `examples/dashboard`.
+  `examples/markets`.
 - **[Performance](/guides/performance/)** — every measured number on this site,
   and an explicit list of what is *not* measured.
 - **[Migrating from another TUI](/guides/migration/)** — what carries over from
@@ -25,16 +25,22 @@ working out how to build something.
 
 ## A note on examples
 
-There are two runnable programs today: `examples/hello` (a bordered,
-resize-aware panel) and `examples/dashboard` (list, table, log, meters).
+There are three runnable programs today. The two to start with:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.1.0
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0     # bordered panel, focus ring
 ```
+
+`markets` needs no API key and takes `--offline` for bundled sample data. Both are
+keyboard- and mouse-driven; press `?` in either for its key list.
+
+> `examples/dashboard` also still exists and **overlaps `markets`**. Whether to
+> keep it or retire it is **undecided**, so the guides point at `markets` and do
+> not present the two as equally recommended. It has not been removed.
 
 **The project's `CONTRIBUTING.md` requires a runnable example per widget, and that
-requirement is not yet met for all 22.** Where a widget page has no program to
+requirement is not yet met for all 24.** Where a widget page has no program to
 point at, that is the gap — and it is recorded on
 [Limitations](/limitations/#project-stage) rather than papered over. Widget pages
 carry captured frames instead, and a capture cannot show interaction: see

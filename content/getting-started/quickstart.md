@@ -14,7 +14,7 @@ It is also, near enough, `examples/hello` — so if a line here does not match w
 you see in the repository, the repository is the source of truth:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0
 ```
 
 ## The program
@@ -391,5 +391,5 @@ Two properties `Solve` guarantees that the old arithmetic could not:
   `Focusable` and `Minimizable`.
 - **[Renderer and diff](/concepts/renderer/)** — what actually happens on
   `Render`.
-- **[The catalog](/widgets/)** — 22 widgets, each with a captured frame.
+- **[The catalog](/widgets/)** — 24 widgets, each with a captured frame.
 - **[Input](/concepts/input/)** — the event model, and why paste is one event.

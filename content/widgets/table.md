@@ -74,7 +74,7 @@ O(visible rows × visible columns) per frame, and the same on a resize. It is th
 
 **Do not use it for one field per row.** [`List`](/widgets/list/) is the smaller widget and does not compute column widths.
 
-**Do not expect column selection.** There is none in v0.1.0. Selection is one row.
+**Do not expect column selection.** There is none as of v0.2.0. Selection is one row.
 
 **Instead:** [`List`](/widgets/list/) for one field, [`Tree`](/widgets/tree/) for nesting, [`Split`](/widgets/split/) plus a `List` for a master/detail pane.
 

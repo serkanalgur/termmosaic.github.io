@@ -131,23 +131,35 @@ Each of these is a gap, not an omission:
   nothing here measures a 100,000-row widget's footprint.
 - **The capture tool.** Nothing measures how long `cmd/capture` takes.
 
-## One known defect the benchmark found and v0.1.0 does not fix
+## One defect the benchmark found — fixed in v0.2.0
 
-**The diff's cursor-run suppression assumes one cell per rune**, so every wide
-glyph is preceded by a cursor-position escape:
+**This section said the defect was unfixed. It is fixed.** Leaving the text would
+have been a page asserting a known regression in its own hot path that no longer
+exists, which is worse than a performance page that quietly omits it.
 
-| Scene | Bytes |
-|---|---|
-| 6,000 ASCII runes | 6,233 |
-| The same 6,000 runes, dense and wide | 68,832 |
+**What the defect was.** The diff's cursor-run suppression assumed one cell per
+rune, so **every wide glyph** was preceded by a cursor-position escape — a wide
+glyph advances the terminal's cursor by two cells, while the run tracker recorded
+only the glyph's own column:
 
-**Correct output, about 11× the bytes.** The fix is one line and is specified in
-[ADR 0008](/adr/0008-style-and-text/)'s 2026-10-04 amendment. It is not in v0.1.0
-because `internal/diff` is the most load-bearing code in the project and ADR
-0002's headline numbers are quoted from it.
+| Scene, 6,000 glyphs | Cursor moves | Bytes |
+|---|---|---|
+| ASCII | 30 | 6,233 |
+| Wide, **before the fix** | 6,000 | 68,832 |
+| Wide, **as of v0.2.0** | **60** | **19,443** |
 
-It is recorded here because a performance page that omits the known regression in
-its own hot path is not telling you the truth.
+Correct output either way, but **about 11× the bytes** for identical bytes on
+screen.
+
+**What the fix is.** The tracker now advances by the glyph's **cell width** rather
+than assuming one cell per rune — **60 moves and 19,443 bytes, 3.12×**, down from
+6,000 moves and 68,832 bytes. **The ASCII path is unchanged at ~7,200 ns/op with 0
+allocs**, which is the part worth noting: the defect cost nothing on narrow text,
+so no ASCII benchmark would ever have surfaced it.
+
+**The benchmark that had pinned the defective behaviour now asserts the corrected
+one.** That is the more useful half of this entry — a benchmark written against
+wrong output is a benchmark that would have failed the fix.
 
 ## How to reproduce
 
@@ -165,8 +177,9 @@ Raw benchmark output is quoted inline in
 not produce a clean result** — which is the more useful half of a benchmark
 record.
 
-Your numbers on your scene will differ. These are the framework's, on an M1, at
-v0.1.0.
+Your numbers on your scene will differ. These are the framework's, on an M1. The
+wide-glyph figures are from v0.2.0; the rest were first measured at v0.1.0 and
+have not changed since.
 
 ## Reading next
 

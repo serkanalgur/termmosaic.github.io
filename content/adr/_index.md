@@ -1,6 +1,6 @@
 ---
 title: "Architecture decisions"
-description: "The eight ADRs, verbatim — what was decided, what was rejected, and why."
+description: "The nine ADRs, verbatim — what was decided, what was rejected, and why."
 weight: 70
 ---
 
@@ -16,7 +16,7 @@ including the parts that did not work out.
 
 ## These are verbatim
 
-**The eight pages below are the framework's own files, copied byte for byte.**
+**The nine pages below are the framework's own files, copied byte for byte.**
 They are not summaries, because a summary is a second source of truth that drifts
 — and a decision record that disagrees with itself is worse than none. The only
 edit is the removal of each file's own `# Title` heading, since the site renders
@@ -41,6 +41,7 @@ If you want the originals:
 | [0006](/adr/0006-subbuffer-cell-access/) | [Sub-buffer cell access](/adr/0006-subbuffer-cell-access/) | Accepted | 2026-10-04 |
 | [0007](/adr/0007-responsive-screens/) | [Responsive screens](/adr/0007-responsive-screens/) | Accepted | 2026-10-04 |
 | [0008](/adr/0008-style-and-text/) | [Style, theme and text](/adr/0008-style-and-text/) | Accepted | 2026-10-04 |
+| [0009](/adr/0009-command-and-keymap/) | [Commands and keymap](/adr/0009-command-and-keymap/) | Accepted | 2026-10-05 |
 
 ## Decisions at a glance
 
@@ -141,6 +142,15 @@ If you want the originals:
   role two widgets must share. Borders are one set of names —
   `BorderPlain`/`Rounded`/`Double`/`Thick`/`ASCII` — with the glyph tables in
   `buffer` and one `Block` as the only thing in the catalog that draws one.
+
+- **0009 — Commands and keymap: a named action, and a key as one way to reach
+  it. Specified, not implemented.** Read [ADR 0009](/adr/0009-command-and-keymap/)
+  for the reasoning; the operative fact for anyone reading this site is that **no
+  `keymap` package exists and there is no command palette.** Widgets still
+  dispatch their own keys and applications still write their own routing — which is
+  exactly the boilerplate the ADR exists to remove, and exactly what both examples
+  do by hand today. `keymap` is slated for v0.3.0. See
+  [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
 ## Still open
 

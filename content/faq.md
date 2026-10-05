@@ -15,7 +15,7 @@ a minor version may contain behavioural changes. What *is* promised: **no
 behavioural change in a patch release.**
 
 What you get for the risk: a renderer whose diff writes 141 bytes where a full
-repaint writes 19,979, at 7,133 ns/op and 0 allocs/op; a 22-widget catalog whose
+repaint writes 19,979, at 7,133 ns/op and 0 allocs/op; a 24-widget catalog whose
 data widgets render 100,000 items in 14,242 ns; and a headless backend that lets
 you test a widget without a terminal.
 
@@ -26,8 +26,8 @@ change what you plan.
 ## Is this production-ready?
 
 No. See above. The honest statement of what *is* finished: the renderer, the input
-layer, the layout solver and the full 22-widget catalog are built and tested —
-19 packages, 650+ tests, a zero-allocation frame path.
+layer, the layout solver and the full 24-widget catalog are built and tested —
+23 packages, 954 test functions, a zero-allocation frame path.
 
 ## Does it work on Windows?
 
@@ -38,8 +38,10 @@ the runtime does not. Linux and macOS are the supported platforms.
 
 ## How many widgets are there?
 
-**22**, and the number is counted rather than estimated: every exported type with
-a `New…` constructor that satisfies `termmosaic.Widget`.
+**24**, and the number is counted rather than estimated: every exported type with
+a `New…` constructor that satisfies `termmosaic.Widget`. The two added in v0.2.0
+are [`Menu`](/widgets/menu/) and [`Dialog`](/widgets/dialog/), which bring the
+navigation-and-modality group into existence.
 
 Two things that are deliberately **not** widgets:
 
@@ -81,15 +83,24 @@ capture sits beside every colour capture. See
 
 ## So how do I see a widget work?
 
-**Run it.** Two programs exist today:
+**Run it.** Three programs exist today, and both of the flagship ones are driven
+by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.1.0
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0     # focus ring + ? help overlay
 ```
+
+`markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
+from CoinGecko) and takes `--offline` to run on bundled sample data instead. Press
+`?` in either for its key list.
+
+> **A third program, `examples/dashboard`, still exists and overlaps `markets`.**
+> Whether to keep it or retire it is **undecided**, so this site points new
+> readers at `markets` and does not recommend both. It has not been removed.
 
 **The project's `CONTRIBUTING.md` requires a runnable example per widget and that
-requirement is not yet met for all 22.** That gap is recorded rather than hidden.
+requirement is not yet met for all 24.** That gap is recorded rather than hidden.
 See [Limitations](/limitations/#project-stage).
 
 ## Do I get IME support?
@@ -131,6 +142,26 @@ different layout to repair it.
 sharpest edge in the framework, and it applies to your widgets as much as the
 catalog's. See [Responsiveness](/concepts/responsiveness/).
 
+## Why did my app freeze on v0.1.0?
+
+**`Renderer.Post` never woke the frame pacer.** `Post` queued a callback and
+returned; `NeedsFrame()` did not consider queued callbacks, while `Pacer.Run`
+gates every frame on `NeedsFrame()`, and posted callbacks only run *inside*
+`Render`. The chain deadlocked: `Post` queued work, `Render` would run it,
+`Render` was gated on `NeedsFrame`, which cannot become true until the callback
+runs.
+
+An app that updates the screen from `Post` — which
+[ADR 0003](/adr/0003-renderer-mode/) documents as the safe way to mutate widget
+state, precisely so it is safe against a concurrent `Draw` — **painted one frame
+and idled forever.** It was not a hang, a deadlock or a crash: it was a correctly
+functioning render loop with nothing left to do.
+
+**Fixed in v0.2.0**, with a regression test. Note the trap: `--offline` masked it
+completely, because an instant fetch returns before the first frame runs, so the
+callback was already queued and got drained inside that frame — and a test that
+called `Render` directly could never catch it either.
+
 ## Do I get a redo stack?
 
 **No.** Undo, yes; redo, no, in either text field. Adding one is a widget API
@@ -138,7 +169,7 @@ addition.
 
 ## Is `TextArea`'s selection visible?
 
-**No.** In v0.1.0 `TextArea` tracks and moves a caret and supports editing, but
+**No.** In v0.2.0 `TextArea` tracks and moves a caret and supports editing, but
 **the selected range is not drawn**. `TextInput` does render its selection. This
 is a recorded gap, and it is one reason `TextArea` is the wrong widget for a
 value the user needs to see part of.
@@ -169,7 +200,7 @@ Three likely causes, in order:
 
 ## Is it fast?
 
-Measured, on darwin/arm64 at v0.1.0 — see
+Measured, on darwin/arm64 — see
 [Performance](/guides/performance/) for every number **and for the list of what is
 not measured**:
 
@@ -178,6 +209,7 @@ not measured**:
 | Diff vs full repaint, 200×60, 99% static | **141 vs 19,979 bytes** (~141×) at **~7,133 ns/op**, **0 allocs/op** |
 | `List`, 10,000 → 100,000 items | **13,320 → 14,242 ns** |
 | `Table`, 10,000 → 100,000 items | **16,801 → 17,885 ns** |
+| Wide-glyph scene, 6,000 glyphs, v0.2.0 | **60 cursor moves, 19,443 bytes, 3.12×** — was 6,000 moves and 68,832 bytes (11×) before the fix |
 
 ## Can I use `tcell` under it, or Bubble Tea?
 
@@ -191,15 +223,40 @@ From Bubble Tea, what carries over is the **layout vocabulary** — `Length`, `M
 does not is the Elm loop and the message algebra. See
 [Migrating from another TUI](/guides/migration/).
 
-## Why is the widget count 22 when the README once said 24?
+## Is the widget count right? It was wrong once.
 
-**Because 24 was wrong.** `buffer.Buffer` was listed as a widget, and it is not
-one — it has no `Bounds`, `Draw` or `Handle`. The corrected count is 22, and the
-correction was made in the framework's own repository at v0.1.0.
+**It was, and that is worth stating rather than quietly fixing.** At v0.1.0 the
+count was reported as 24 when it was 22, because `buffer.Buffer` had been listed
+as a widget — and it is not one: it has no `Bounds`, `Draw` or `Handle`. The
+correction to 22 was made in the framework's repository at v0.1.0.
 
-This site states 22 because the site's entire value proposition is the catalog,
-and a reader who counts 22 on the page and finds 22 in the repository is the only
-reason to trust either.
+**The count is now 24 again, and this time it is 24.** [`Menu`](/widgets/menu/)
+and [`Dialog`](/widgets/dialog/) shipped in v0.2.0, and `buffer.Buffer` is still
+not counted. The site states 24 because the site's entire value proposition is the
+catalog, and a reader who counts 24 on the page and finds 24 in the repository is
+the only reason to trust either.
+
+## Is there a command palette?
+
+**No, and the thing that would provide one is specified but not built.**
+[ADR 0009](/adr/0009-command-and-keymap/) specifies a command and keymap layer —
+a named action reachable by more than one key — and it is accepted. **No `keymap`
+package exists yet and there is no command palette.** `keymap` is slated for
+v0.3.0.
+
+Until it lands, **widgets dispatch their own keys.** The practical consequence is
+that an application writes its own key routing, which is what both examples do.
+See [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
+
+## Does the mouse work?
+
+**Yes, opt-in, and off by default.** Mouse capture is deliberately disabled by
+default because enabling it takes text selection and scrollback copying away from
+the user's shell. [ADR 0005](/adr/0005-input-decoding/)'s default stands.
+
+`examples/markets` is the one program that opts in, and it restores the previous
+mode on exit. It supports wheel and click, with per-panel key routing. `hello` is
+keyboard-driven. See [Limitations](/limitations/#input).
 
 ## Where do I go if this site is wrong?
 

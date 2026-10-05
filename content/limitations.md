@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.1.0. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.2.0. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -86,10 +86,58 @@ is the failure mode this page exists to prevent.
   decision rather than an oversight: the widget pages are generated from the
   current source, so a version selector would have to render from a checkout, not
   from a site.
-- **Not every widget has a runnable example yet.** `CONTRIBUTING.md` requires
-  one per widget; `examples/hello` and `examples/dashboard` exist today. Where a
-  widget's page has no program to point at, that is the gap, and it is not papered
-  over on the widget page.
+- **Not every widget has a runnable example yet.** `CONTRIBUTING.md` requires one
+  per widget. Three programs exist today: `examples/markets` (the flagship — a
+  live finance dashboard, keyboard and mouse driven),
+  `examples/hello` (a responsive panel with a focus ring and a `?` help overlay),
+  and `examples/dashboard`.
+  **`examples/dashboard` overlaps `examples/markets` heavily and whether to keep
+  it or retire it is undecided.** It has not been removed; the documentation
+  points new readers at `markets` and does not present the two as equally
+  recommended. Where a widget's page has no program to point at, that is the gap,
+  and it is not papered over on the widget page.
+
+## The `keymap` layer is specified, not built
+
+**[ADR 0009](/adr/0009-command-and-keymap/) is Accepted, and nothing implements
+it.** There is no `keymap` package in the framework, and **no command palette
+exists.** `keymap` is slated for v0.3.0.
+
+**What you have today: widgets dispatch their own keys.** A `Table` consumes the
+arrows, a `Menu` consumes its navigation, and the application writes the routing
+plus the keys no widget wants — Tab, the quit keys, and anything specific to the
+app. That is the pattern both examples use, and it is what ADR 0009 exists to
+replace.
+
+**Why it is listed here rather than left implicit:** a reader who reads ADR 0009
+and finds no `keymap` package should conclude the ADR is unimplemented, not that
+they missed something. The spec is real and the code is absent, and this site does
+not blur the two.
+
+One consequence already visible in the framework: `examples/markets` hand-rolls
+its key routing and needs a `bindings()` function plus a help overlay that lists
+the keys by hand. A command layer would make that declarative. Until then, it is
+boilerplate you write yourself.
+
+## `Renderer.Post` changed behaviour in v0.2.0 — apps on v0.1.0 should read this
+
+**In v0.1.0, `Post` never woke the frame pacer, and any app driving screen updates
+from `Post` painted one frame and idled forever.** `NeedsFrame()` ignored queued
+callbacks while `Pacer.Run` gates every frame on `NeedsFrame()`, and posted
+callbacks only run inside `Render` — so the callback could not run until a frame
+happened, and a frame would not happen until the callback ran.
+
+This is documented in [ADR 0003](/adr/0003-renderer-mode/) as **the safe way to
+mutate widget state**, precisely because it is safe against a concurrent `Draw`.
+So this was not an exotic path: it was the recommended one.
+
+Fixed in v0.2.0, with a regression test. **This is why v0.2.0 is a minor bump and
+not a patch — it is a behavioural change**, which the project's release policy
+allows for a minor release and forbids for a patch.
+
+**If you are moving from v0.1.0 and your screen was not updating**, this is why,
+and upgrading fixes it. The symptom was a live-looking program that simply never
+changed again — not a hang, a crash or a visible error.
 
 ## Platform
 
@@ -118,8 +166,19 @@ is the failure mode this page exists to prevent.
   framework that has it, and do not read it as a gap being closed — it is a
   documented decision.
 - **Mouse capture is off by default.** Enabling it takes text selection and
-  scrollback copying away from the user's shell. That is the default on purpose.
+  scrollback copying away from the user's shell. That is the default on purpose,
+  and the framework has no opinion about your application changing it —
+  `examples/markets` opts in and restores the previous mode on exit. Nothing in
+  the catalog enables it for you.
 - **Focus reporting is off by default**, for the same reason.
+- **`form.Tabs` consumes every wheel notch**, whether or not the pointer is over
+  it. That is defensible for a form — scrolling a list there does not require
+  focus — but in an application it means a tab row early in the focus ring
+  swallows every notch, and the panel underneath never sees one.
+  `examples/markets` routes the wheel to the widget whose rectangle contains the
+  pointer as an **application-level** workaround; **the widget itself is
+  unchanged**, and this is still open. It wants an ADR decision, because the fix
+  is a policy question — hit-tested or focus-scoped — and not a bug.
 
 ## Text and internationalization
 
@@ -133,13 +192,18 @@ is the failure mode this page exists to prevent.
   table is updated; and **grapheme clusters are not composed**, so a flag emoji
   renders as two cells' worth of junk and a zero-width-joiner sequence renders as
   several glyphs.
-- **A defect the wide-glyph benchmark surfaced and v0.1.0 does not fix:** the
-  diff's cursor-run suppression assumes one cell per rune, so every wide glyph is
-  preceded by a cursor-position escape — 68,832 bytes against 6,233 for the same
-  6,000 runes on a dense wide scene. Correct output, about 11× the bytes. The fix
-  is one line and is specified in [ADR 0008](/adr/0008-style-and-text/)'s
-  amendment; it is out of scope because `internal/diff` is the most load-bearing
-  code in the project and ADR 0002's headline numbers are quoted from it.
+- **The diff's wide-glyph cursor-move overhead was fixed in v0.2.0**, and the fix
+  is worth stating as a correction to an earlier entry on this page. The old text
+  said the defect was unfixed and out of scope; that was true at v0.1.0 and is no
+  longer. Run suppression had assumed one cell per rune, so every wide glyph was
+  preceded by a cursor-position escape: **6,000 cursor moves and 68,832 bytes**
+  against the narrow scene's 30 moves and 6,233 bytes — about **11×** — for
+  identical output. The tracker now advances by the glyph's **cell width**, giving
+  **60 moves and 19,443 bytes, 3.12×**. The ASCII path is unchanged at
+  **~7,200 ns/op with 0 allocs**, and the benchmark that had pinned the defective
+  behaviour now asserts the corrected one.
+- **Grapheme clusters are still uncomposed**, so a flag emoji still renders as two
+  cells' worth of junk and a zero-width-joiner sequence as several glyphs.
 - **`geometry.ClampCount` and `geometry.Budget` count cells, not glyphs**, so a
   row budget computed from them can be one row optimistic once wide characters are
   in play.
@@ -165,7 +229,12 @@ is the failure mode this page exists to prevent.
   do the same thing. See [Forms](/guides/forms/).
 - **`TextArea` has no rendered selection.** It tracks and moves a caret and
   supports editing, but the selected range is not drawn. `TextInput` renders its
-  selection; `TextArea` does not.
+  selection; `TextArea` does not. Half a selection is worse than none.
+- **`BarChart`'s horizontal category labels were all drawn at absolute column 0**
+  until v0.2.0, because `adapt` never set `axisRow`. Inside `Bounds` only for a
+  chart at the origin, and a widget writing outside its own rectangle everywhere
+  else. Fixed; named here because it is a good illustration of why `Draw` must
+  stay inside `Bounds` at all.
 - **There is no redo stack**, in either text field.
 - **There is no table column selection and no pager selection.** Selection is one
   table row; a `Pager` shows and searches but hands nothing back.
@@ -212,7 +281,13 @@ is the failure mode this page exists to prevent.
   deliverable. The remaining sub-question is its assertion surface: it must
   expose the cell buffer, not just recorded bytes. It does expose the cell
   buffer; whether the surface is complete is open.
-- **The diff's cursor-move overhead on wide glyphs is not fixed.** See above.
+- **The width table is hand-written.** Derived from East Asian Width ranges rather
+  than generated from Unicode data, so newly assigned wide blocks are wrong until
+  it is updated. A benchmark cannot make a table correct.
+- **`form.Tabs`' wheel behaviour is undecided.** See
+  [Input](#input) above. It wants an ADR.
+- **`examples/dashboard` overlaps `examples/markets` and the decision is open.**
+  See [Project stage](#project-stage) above.
 
 ## This site
 

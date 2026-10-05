@@ -13,7 +13,7 @@ toc: true
 anything the framework does not do: every row below is a fact about a
 widget that was constructed and rendered.
 
-**22 widgets.** Counted, not estimated — see
+**24 widgets.** Counted, not estimated — see
 [the catalog index](/widgets/) for what is and is not included.
 
 > **pkg.go.dev is the authority on signatures.**
@@ -88,6 +88,22 @@ widget that was constructed and rendered.
 | [`Meter`](/widgets/meter/) | `viz.NewMeter(r buffer.Rect) *viz.Meter` | 18×3 | 40×3 × 80×3 × 120×3 |
 | [`Sparkline`](/widgets/sparkline/) | `viz.NewSparkline(r buffer.Rect) *viz.Sparkline` | 5×3 | 40×3 × 80×3 × 120×3 |
 | [`BarChart`](/widgets/barchart/) | `viz.NewBarChart(r buffer.Rect) *viz.BarChart` | 8×6 | 40×11 × 80×11 × 120×11 |
+
+### widgets/menu — `widgets/menu`
+
+[pkg.go.dev/widgets/menu](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/menu)
+
+| Widget | Constructor | `MinSize()` | Captures |
+| --- | --- | --- | --- |
+| [`Menu`](/widgets/menu/) | `menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu` | 16×4 | 40×14 × 80×14 × 120×14 |
+
+### widgets/dialog — `widgets/dialog`
+
+[pkg.go.dev/widgets/dialog](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/dialog)
+
+| Widget | Constructor | `MinSize()` | Captures |
+| --- | --- | --- | --- |
+| [`Dialog`](/widgets/dialog/) | `dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog` | 28×4 | 40×11 × 80×11 × 120×11 |
 
 **`MinSize()` includes the widget's own chrome**, and every value above
 was **called**, not parsed — `NewTable(rect, cols).MinSize()` returns the

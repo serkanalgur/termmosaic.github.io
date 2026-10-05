@@ -13,18 +13,69 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.1.0**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.2.0**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.1.0
+go get github.com/serkanalgur/termmosaic@v0.2.0
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0
 ```
+
+## What's new in v0.2.0
+
+A minor bump, and the reason is the framework fix below: **`Renderer.Post` now
+wakes the frame pacer**, which *is* a behavioural change. If you are on v0.1.0 and
+your app updated the screen from `Post`, it was almost certainly frozen.
+
+**Fixed**
+
+- **`Renderer.Post` never woke the pacer, so async apps froze.** `Post` queued
+  work, callbacks only ran *inside* `Render`, and `Render` was gated on
+  `NeedsFrame()` — which cannot become true until the callback runs. An app that
+  updates the screen from `Post`, which [ADR 0003](/adr/0003-renderer-mode/)
+  documents as the safe way to mutate widget state, painted one frame and idled
+  forever. `examples/markets` hit it: live runs painted one empty frame and
+  stopped. A regression test now covers it.
+- **The diff emitted a cursor move before every wide glyph.** Run suppression
+  assumed one cell per rune, but a wide glyph advances the cursor by two. On
+  6,000 wide glyphs that was 6,000 cursor moves against the narrow scene's 30, and
+  68,832 bytes against 6,233 — about **11×** — for identical output. It now
+  advances by the glyph's cell width: **60 moves, 19,443 bytes, 3.12×**. The ASCII
+  path is unchanged at **~7,200 ns/op, 0 allocs**.
+- **`BarChart` drew every horizontal category label at absolute column 0** — a
+  widget writing outside its own rectangle.
+
+**Added**
+
+- **[`Menu`](/widgets/menu/)** — a navigable tree with submenus to arbitrary
+  depth.
+- **[`Dialog`](/widgets/dialog/)** — a modal with info, confirm and choice
+  variants that traps keys and restores focus on close.
+- **[`examples/markets`](/guides/dashboards/)** —
+  a live Grafana-style finance dashboard: ECB FX from Frankfurter and crypto from
+  CoinGecko, **no API key**, and `--offline` for bundled sample data.
+- **Keyboard and mouse in both examples.** `hello` gains a focus ring and a `?`
+  help overlay; `markets` gains a two-entry focus ring, per-panel key routing,
+  wheel and click, pause, and a help overlay.
+- **[ADR 0009](/adr/0009-command-and-keymap/)** — the command and keymap layer.
+  **Specified, not implemented**: there is no `keymap` package and no command
+  palette yet, and widgets still dispatch their own keys.
+
+**Changed**
+
+- **`examples/hello` is genuinely responsive.** It used `Max(46)` inside two
+  `Fill(1)`s, so it shrank but never grew — a 200×60 terminal still drew a 46×9
+  block floating in the middle. It now spans the terminal, re-arranges across four
+  bands, and below 38×8 says so in one line rather than clipping.
+- **The catalog is 24 widgets**, up from 22.
+
+Full detail, including the Known Limitations section, is in the framework's
+[CHANGELOG.md](https://github.com/serkanalgur/termmosaic/blob/main/CHANGELOG.md).
 
 ## What is measured, and what is not
 
@@ -57,8 +108,8 @@ tool from the cells the renderer produced.
 
 Every capture on this site is a **cell grid**, not a screenshot of anyone's
 terminal. It is produced by `cmd/capture` in the framework repo, which runs each
-widget through `widgettest.Capture` — the same path the 650+ tests assert on —
-and converts `MemorySink.Cells()` to HTML. That is what makes it trustworthy: the
+widget through `widgettest.Capture` — the same path the 954 test functions assert
+on — and converts `MemorySink.Cells()` to HTML. That is what makes it trustworthy: the
 docs cannot show something no test pins.
 
 It is also what it is, and the limits are not closable:
@@ -99,7 +150,7 @@ That is **24**, counted: every exported type with a `New…` constructor that
 satisfies `termmosaic.Widget`. `buffer.Buffer` is deliberately not on the list —
 it has `Invalidate()` but no `Bounds`, `Draw` or `Handle`, so it is not a widget,
 it is what widgets draw *into*. `widgets/form/optionlist.go` is an unexported
-helper behind `Select`, `Tabs` and `KeyHint`, not a twenty-third widget.
+helper behind `Select`, `Tabs` and `KeyHint`, not a widget of its own.
 
 **There is no `Form` container widget, on purpose.** A `Form` type would be a
 second way to do what [ADR 0004](/adr/0004-layout-engine/)'s constraint solver and
@@ -116,7 +167,7 @@ the `layout` package already do. See [Forms](/guides/forms/).
   Start with [Renderer and diff](/concepts/renderer/) and [Widgets and
   focus](/concepts/widgets-and-focus/).
 - **[Widgets](/widgets/)** — the catalog, one page per widget, with captures.
-- **[Architecture decisions](/adr/)** — the eight ADRs, verbatim, with the
+- **[Architecture decisions](/adr/)** — the nine ADRs, verbatim, with the
   rejected alternatives and the risks.
 
 ## Why it exists
@@ -136,11 +187,12 @@ build a real dashboard on is a toy, however elegant its renderer.
 ## Honest status, in one paragraph
 
 The renderer, the input layer, the layout solver and the full 24-widget catalog
-are built and tested: 19 packages, 650+ tests, a zero-allocation frame path.
-Alongside that: **Windows is a stub that returns a loud error from every console
-operation**, there is **no IME or preedit**, **tmux DCS passthrough is missing**,
-**`TextArea` has no rendered selection**, the **colour quantiser is unvalidated**,
-and **there is no theme** — by decision, argued in
+are built and tested: 23 packages, 954 test functions, a zero-allocation frame
+path. Alongside that: **Windows is a stub that returns a loud error from every
+console operation**, **the `keymap` layer is specified but not built — there is no
+command palette**, there is **no IME or preedit**, **tmux DCS passthrough is
+missing**, **`TextArea` has no rendered selection**, the **colour quantiser is
+unvalidated**, and **there is no theme** — by decision, argued in
 [ADR 0008](/adr/0008-style-and-text/), not by omission. Everything in that list
 is on [Limitations](/limitations/) with the reason.
 
@@ -149,7 +201,7 @@ is on [Limitations](/limitations/) with the reason.
 - Source: [github.com/serkanalgur/termmosaic](https://github.com/serkanalgur/termmosaic)
 - API reference: [pkg.go.dev/github.com/serkanalgur/termmosaic](https://pkg.go.dev/github.com/serkanalgur/termmosaic) —
   which is never out of date, because it is generated from the source
-- The eight [architecture decision records](/adr/), verbatim
+- The nine [architecture decision records](/adr/), verbatim
 - [`CHANGELOG.md`](https://github.com/serkanalgur/termmosaic/blob/main/CHANGELOG.md),
   hand-maintained, with a Known Limitations section
 

@@ -176,7 +176,7 @@
       }
     ],
     "whenNotToUse": [
-      "**Do not use it where the selected range must be visible.** In v0.1.0 `TextArea` **tracks and moves a caret and supports editing, but does not draw its selection**. `TextInput` renders its selection; `TextArea` does not. This is a recorded gap rather than a design choice, and it is one of the reasons `TextArea` is not the right widget for a value the user needs to see part of.",
+      "**Do not use it where the selected range must be visible.** In v0.2.0 `TextArea` **tracks and moves a caret and supports editing, but does not draw its selection**. `TextInput` renders its selection; `TextArea` does not. This is a recorded gap rather than a design choice, and it is one of the reasons `TextArea` is not the right widget for a value the user needs to see part of.",
       "**Do not use it to show long text the user only reads.** It is editable and has no read-only mode. A scrolling read-only view is [`Pager`](/widgets/pager/), and a pager with search in it is usually what someone wants when they say \"show me this file\".",
       "**Do not use it for a single-line field.** [`TextInput`](/widgets/textinput/) is the smaller widget and has the rendered selection this one lacks.",
       "**Do not use it expecting a redo stack.** There is undo and there is no redo, in either field. The editor has no redo history and adding one is a widget API addition, not a patch."
@@ -451,7 +451,7 @@
       "**Do not use it when a column's content must be laid out, not measured.** Column widths are computed from content and from the space available. A column holding a widget, a multi-line cell or anything with its own alignment is a composition problem — render that cell yourself and pass a string.",
       "**Do not use it and then fight the horizontal scrollbar.** When the columns do not fit, `Table` scrolls horizontally and keeps both offsets — a column index and a cell position. Scrolling to the end clamps onto the right-hand edge of the content, which is generally not a column start, so the last column can be partly visible. That is deliberate and tested; it is not a bug to work around by shrinking your columns.",
       "**Do not use it for one field per row.** [`List`](/widgets/list/) is the smaller widget and does not compute column widths.",
-      "**Do not expect column selection.** There is none in v0.1.0. Selection is one row."
+      "**Do not expect column selection.** There is none as of v0.2.0. Selection is one row."
     ],
     "instead": "[`List`](/widgets/list/) for one field, [`Tree`](/widgets/tree/) for nesting, [`Split`](/widgets/split/) plus a `List` for a master/detail pane.",
     "related": [
@@ -506,9 +506,9 @@
       }
     ],
     "whenNotToUse": [
-      "**Do not use it for text the user must edit.** It cannot be edited, deliberately — a pager that accepted keystrokes would need a caret, a selection and an undo history to be worth having. Editing long text is [`TextArea`](/widgets/textarea/), with the caveat that it has no rendered selection in v0.1.0.",
+      "**Do not use it for text the user must edit.** It cannot be edited, deliberately — a pager that accepted keystrokes would need a caret, a selection and an undo history to be worth having. Editing long text is [`TextArea`](/widgets/textarea/), with the caveat that it has no rendered selection in v0.2.0.",
       "**Do not use it for short text.** A paragraph that fits does not need a scrollbar, a search field and a status line.",
-      "**Do not use it as the only view of something the user needs to select from.** There is no pager selection in v0.1.0. It shows and searches; it does not hand back a line.",
+      "**Do not use it as the only view of something the user needs to select from.** There is no pager selection in v0.2.0. It shows and searches; it does not hand back a line.",
       "**Do not expect search to be interactive as you type.** Search is a key contract, not a live filter: you set the query, the pager highlights matches and reports the count, and moving between them is a key. Designing around a search-as-you-type expectation means building it yourself."
     ],
     "instead": "[`Paragraph`](/widgets/paragraph/) when it fits, [`TextArea`](/widgets/textarea/) to edit it.",

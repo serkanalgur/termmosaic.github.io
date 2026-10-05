@@ -1,6 +1,6 @@
 ---
 title: "Dashboards"
-description: "Building the examples/dashboard screen — nine widgets, one constraint solve, a focus order, and a clock."
+description: "Building the examples/markets screen — three reflowing bands, real network data on a goroutine, a focus ring, and per-panel key routing."
 weight: 54
 toc: true
 ---
@@ -8,55 +8,120 @@ toc: true
 # Dashboards
 
 A widget catalog is evaluated by what an application can **build** with it, not
-by what each widget does alone. So this page walks through
-`examples/dashboard`, which is a real screen — a service dashboard — composed
-from nine widgets.
+by what each widget does alone. So this page walks through `examples/markets`,
+which is a real screen — a live finance dashboard — composed entirely from the
+catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0 --offline
 ```
 
-The full file is
-[`examples/dashboard/main.go`](https://github.com/serkanalgur/termmosaic/blob/main/examples/dashboard/main.go),
-749 lines. This page is the shape of it.
+`q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses
+the auto-refresh, and the wheel and mouse work on the panels.
+
+> **On `examples/dashboard`.** An older program by that name still exists in the
+> framework repository and it **overlaps `markets` heavily** — both are multi-panel
+> screens built from the catalog. **Whether to keep it or retire it is undecided.**
+> This page walks through `markets` because it is the one that exercises the parts
+> this release is about: a goroutine feeding the screen through `Renderer.Post`,
+> responsive bands, and keyboard-plus-mouse input. It has not been removed, and
+> the two are not presented here as equally recommended.
 
 ## What is on the screen
 
-- a **`List`** of 100,000 synthetic requests — the case a virtualized widget
-  exists for, and the reason its per-frame cost does not depend on the count
-- a **`Table`** of columns wider than the viewport — which is what makes the
-  horizontal scrolling and the per-column width modes visible
-- a **`Tree`** of services with expandable children
-- a **`Pager`** over a 4,000-line log, wrapped to width and searchable
-- and all five viz widgets: a determinate **`ProgressBar`**, a Braille
-  **`Gauge`**, a zoned **`Meter`**, a Braille **`Sparkline`** and a
-  **`BarChart`**
+Three bands, and the middle one is where the layout work is:
 
-**Nine widgets from the catalog, and the application spells no border rune and
-invents no title threshold** — the chrome belongs to `widgets/block`, per
+- a **KPI row** — four headline figures side by side: the spot rate, the
+  day-on-day change, and the window's two extremes. Together they answer "where is
+  it, which way is it going, and how far has it come" without the reader
+  cross-referencing anything.
+- a **time series** — a [`Sparkline`](/widgets/sparkline/) of the primary pair
+  over the fetched window, a [`Gauge`](/widgets/gauge/) showing where the spot
+  sits inside that window's range, and a [`Meter`](/widgets/meter/) of the day's
+  move in basis points against named bands.
+- a **detail band** — a [`Table`](/widgets/table/) of every tracked pair with its
+  rate and signed change, and a [`BarChart`](/widgets/barchart/) of the largest
+  moves.
+
+**The application spells no border rune and invents no title threshold** — the
+chrome belongs to `widgets/block`, per
 [ADR 0008 §2](/adr/0008-style-and-text/).
 
-## One constraint solve, once per resize
+## The data, and why it is on a goroutine
 
-The layout is **two `layout.Solve` calls**, not arithmetic divided by hand:
+ECB FX rates come from **Frankfurter** and crypto from **CoinGecko**. **Neither
+needs an API key**, which is a deliberate constraint: an example you cannot run in
+the first thirty seconds is an example nobody runs.
+
+The rule the example is built around is that **`Draw` never blocks**:
+
+> The network runs on its own goroutine and hands its results over through
+> `render.Renderer.Post`, so the render goroutine only ever reads state a fetch
+> has already published. A dashboard that fetched on its frame path would freeze
+> for up to the fetch timeout on every cycle.
+
+**That is exactly the path v0.1.0 got wrong.** `Renderer.Post` queued callbacks
+but never woke the frame pacer — `NeedsFrame()` ignored queued work while
+callbacks only ran inside `Render`, so an app driving updates from `Post` painted
+one frame and idled forever. `markets` is what surfaced it: live runs painted one
+empty frame and stopped, while `--offline` masked it completely because an instant
+fetch returned before the first frame ran. **Fixed in v0.2.0**, with a regression
+test. If you are upgrading from v0.1.0 and your app used `Post`, that was your
+bug. See the [FAQ](/faq/#why-did-my-app-freeze-on-v010).
+
+**`--offline` is not a mock.** It runs the same layout and rendering code as the
+live path, on a bundled capture of real responses, which is what the golden tests
+render — so CI never depends on the internet and a golden failure is never a
+network failure. It is also what you run on a plane.
+
+**It degrades visibly.** A failed fetch says which source failed and keeps
+whatever the other one returned; a fetch that has never succeeded replaces the
+bands with a panel that names the failure. A dashboard that hangs on a dead
+network, or that renders an absent number as zero, is worse than one that says
+"no data".
+
+## Three bands that reflow
+
+The breakpoints are local named constants beside the layout, which is
+[ADR 0007](/adr/0007-responsive-screens/)'s rule 5 — **they are this
+application's product decisions and the framework deliberately has no vocabulary
+for them**:
+
+| Width | Arrangement |
+|---|---|
+| **≥ 108** | every panel, side by side |
+| **≥ 86** | the series band **stacks** — gauge and meter move *beneath* the sparkline; the detail band keeps the table and gives the chart its own column |
+| **≥ 58** | one panel per band: the sparkline alone, the table alone, and the KPI row cut to two figures by `geometry.ClampCount` |
+| **< 58** | a one-line diagnostic, never a clipped dashboard |
+
+Two things are worth copying here.
+
+**The panels move; they do not merely get narrower.** The middle band is the one
+that matters, and it is the one the layout test pins. Asserting "the screen
+changed" would pass for a layout that had only reflowed its text; asserting that
+the gauge's rectangle is now *below* the sparkline's rather than beside it cannot.
+
+**`geometry.ClampCount` decides how many KPI tiles fit**, rather than the
+application counting and comparing integers. That is the arithmetic the framework
+ships precisely so applications do not re-derive it — see
+[Layout and constraints](/concepts/layout/).
+
+**This is what `examples/hello` got wrong until v0.2.0.** It used `Max(46)`
+inside two `Fill(1)`s, so it shrank on a small terminal and never grew: a 200×60
+screen still drew a 46×9 block floating in the middle. That is clamping, not
+responsiveness. It now spans the terminal across four bands, and below 38×8 says
+so in one line.
+
+## One constraint solve, off the frame path
+
+The layout is a `layout.Solve` call, not arithmetic divided by hand:
 
 ```go
-func (d *dashboard) layoutWidgets() {
-    r := d.bounds
-    if r.Empty() {
-        return
-    }
-    rows := split(layout.Vertical, rowWeights, 0, r.H)
-    head := layout.Rect(r, layout.Vertical, rows, 0, 0)
-    body := layout.Rect(r, layout.Vertical, rows, 0, 1)
-    foot := layout.Rect(r, layout.Vertical, rows, 0, 2)
-
-    cols := split(layout.Horizontal, colWeights, 1, body.W)
-    left := layout.Rect(body, layout.Horizontal, cols, 1, 0)
-    mid := layout.Rect(body, layout.Horizontal, cols, 1, 1)
-    right := layout.Rect(body, layout.Horizontal, cols, 1, 2)
-    // ... sub-rectangles of left, mid and right ...
-}
+rows := layout.Solve(layout.Vertical, bandConstraints, bandGap, r.H)
+head := layout.Rect(r, layout.Vertical, rows, 0, 0)
+body := layout.Rect(r, layout.Vertical, rows, 0, 1)
+foot := layout.Rect(r, layout.Vertical, rows, 0, 2)
 ```
 
 Two decisions worth copying:
@@ -67,115 +132,105 @@ Two decisions worth copying:
   application is how two solvers start to disagree about overflow.
 - **The remainder goes to the last cell of each axis**, so the widgets fill the
   screen exactly. That is a consequence of the largest-remainder rule, not an
-  extra pass — see [Layout and constraints](/concepts/layout/).
+  extra pass.
 
-`split` is a small helper that turns a weight list into a constraint list, which
-is the only piece of glue the example needs:
+**And it is not on the frame path.** Everything derived from the rectangle — which
+band arrangement applies, how many KPI tiles fit, each band's rectangle — is
+computed in an `adapt` function keyed on the rectangle, and recomputed only when
+the rectangle differs. `Draw` reads those cached rectangles and calls the widgets'
+`Draw`. It does not format, wrap, truncate, append or allocate.
 
-```go
-func split(d layout.Direction, weights []int, spacing, available int) []int {
-    cs := make([]layout.Constraint, len(weights))
-    for i, w := range weights {
-        if w > 0 {
-            cs[i] = layout.Fill(w)
-        } else {
-            cs[i] = layout.Length(0)
-        }
-    }
-    return layout.Solve(d, cs, spacing, available)
-}
-```
+That is not discipline for its own sake: **every string in the example is
+formatted off the draw path**, because a `fmt.Sprintf` inside `Draw` is an
+allocation per frame, which is exactly what
+[ADR 0008 §4](/adr/0008-style-and-text/) forbids. `layout.Solve` allocates too —
+it returns a newly allocated slice — which is a second reason it belongs in
+`adapt` and not in `Draw`.
 
-The zero-weight case is `Length(0)`, not `Fill(0)` — a zero-weight `Fill` is a
-weightless share, and expressing "no space here" as a fixed zero is clearer than
-as a share of nothing.
-
-Two more helpers in the same file are worth stealing, because they are the
-arithmetic people write by hand and then get wrong:
+## Focus: a ring, and the keys nobody else wants
 
 ```go
-// below returns the remainder of r under the first frac of its height, so a pair
-// of stacked panes tiles exactly with no gap and no overlap — which is what a
-// caller would otherwise get wrong by subtracting the wrong thing.
-func below(r buffer.Rect, frac float64) buffer.Rect
-
-// areaOf returns the first n hundredths of r vertically, which is how a pane gets
-// "the top half" without a second solver.
-func areaOf(r buffer.Rect, frac float64) buffer.Rect
+d.focusables = []termmosaic.Focusable{d.table, d.tabRow}
 ```
 
-Both clamp the fraction into `[0, 1]`, which is the degenerate-size discipline
-applied to your own arithmetic rather than to a widget.
+Two entries, and the whole composition contract is this:
 
-**This is not on the frame path.** `layoutWidgets` runs at startup and on resize.
-`layout.Solve` allocates — it returns a newly allocated slice — so calling it
-inside `Draw` would add an allocation per frame, which is exactly what
-[ADR 0008 §4](/adr/0008-style-and-text/) forbids.
+> **Widgets own their keys — the table consumes the arrows, the tab row consumes
+> left and right — and the application owns the routing and the keys no widget
+> wants: Tab, space, `r`, `?`, and the quit keys.**
 
-## Focus: a slice, and an index
+Neither half knows about the other, which is why adding a panel to this screen
+means adding it to the focus ring and nothing else. Space is the *application's*
+key rather than a widget's because the thing it pauses is the **fetch**, which no
+widget knows about.
 
-```go
-d.focusable = []termmosaic.Focusable{d.list, d.table, d.tree, d.pager}
-```
+**A key the application claims is consumed even when it did nothing visible**, so
+a form never falls through to the next field because the reader pressed space at
+the end of a list. It is the same rule `form.Select` applies internally, and it is
+what stops `?` reaching the table as a stray rune.
 
-Four entries, and the key handling is deliberately thin:
+> **This is the thing ADR 0009 exists to replace, and it does not exist yet.**
+> The command and keymap layer is **specified and not implemented** — there is no
+> `keymap` package and no command palette, and widgets still dispatch their own
+> keys. So the routing above is what you write today, by hand. `keymap` is slated
+> for v0.3.0. See
+> [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
-> **Tab moves focus between the focusable widgets because none of them consumes
-> it, and `/` begins a search the `Pager`'s read-only API accepts rather than
-> typing into it.**
+## The mouse, and one routing decision worth stealing
 
-That is the composition contract in miniature: **widgets own their keys, the
-application owns the routing.** Note what that implies — the search query goes
-*into* the `Pager` through its API, because `Pager` cannot be typed into. The
-read-only design forced a routing decision rather than being an inconvenience.
+Mouse capture is **opt-in in this example only**, and the previous mode is
+restored on exit. [ADR 0005](/adr/0005-input-decoding/)'s default stays off,
+because capturing the mouse takes the user's shell selection away.
 
-## A clock, and the invalidation discipline
+The screen's help overlay is **modal for keys but deliberately not for the mouse**:
+a reader who opened it and then clicks a table row expects the row to be selected,
+and an overlay that swallowed the mouse too would be worse than no overlay. One
+detail worth copying: while the help is open, `q` still quits — a help panel that
+turned "quit" into "close a panel" for as long as it was open would be a trap.
 
-The dashboard shows live values, so something has to change them:
+**Click routing** offers the event to every focusable widget and takes focus from
+the one that consumed it, so a click on a table row both selects the row and makes
+the table the keyboard's target. No widget can do that on its own.
 
-```go
-func (d *dashboard) Tick() {
-    // ... update the series, move the values ...
-    d.Invalidate()
-}
-```
+**Wheel routing is different, and the reason is a framework limitation:**
 
-**`Tick` mutates fields and invalidates. `Draw` only reads.** That is the rule
-from [Responsiveness](/concepts/responsiveness/): any setter that writes a field
-`Draw` reads must invalidate, or the screen shows stale data with nothing
-anywhere saying why.
+> `form.Tabs` consumes a wheel notch whether or not the pointer is over it — a
+> defensible rule for a form, where scrolling a list does not require focus — but
+> it means a tab row first in the ring swallows **every** notch in the application.
 
-The dashboard does **not** have a heartbeat goroutine calling `InvalidateAll`
-every frame the way `examples/hello` does. `hello` needs one because a frame
-counter has to keep ticking; a dashboard is invalidated by the data it is
-displaying, which is both cheaper and the pattern a real application should use.
+So the example asks **the widget whose rectangle contains the pointer** first, and
+falls back to ring order when the pointer is over none of them. **Focus is
+deliberately not taken by a wheel event**: a reader scrolling is reading, not
+committing to a panel, and moving focus under the pointer would rewrite the key
+hint while they are still looking at the numbers. A click is the gesture that
+commits.
 
-## The viz widgets
+Clicks are *not* routed this way, and the asymmetry is the point — a click is a
+commitment to a panel, and hit-testing is each widget's own business. The widget
+itself is unchanged; see
+[Limitations](/limitations/#input).
 
-```go
-d.meter.SetZones([]viz.Zone{
-    {Name: "ok",   From: 0,  To: 60, Style: stTrack, FillStyle: stAccent},
-    {Name: "warn", From: 60, To: 85, Style: stTrack, FillStyle: stWarn},
-    {Name: "crit", From: 85,          Style: stTrack, FillStyle: stCrit},
-})
-d.meter.Threshold = 85
-```
+## The palette, and monochrome
 
-Three zones and a threshold, and the zones are **named** — which is the point.
-`Meter` carries three non-colour signals: zone boundaries are `+`, the threshold
-is `|`, and the active band is named **in text**.
+Every widget here carries a non-colour signal, **which is the accessibility
+requirement, not a bonus**:
 
-{{< widget-capture "meter" >}}
+- moves are **signed** — an arrow and a sign, never colour alone
+- `Gauge` and `Sparkline` are Braille; `Meter`'s zone boundaries are `+` and its
+  threshold is `|`, with the active band **named in text**
+
+Check it yourself with `NO_COLOR=1`. If anything becomes unreadable, the example
+has a bug rather than a theme — see [Accessibility](/concepts/accessibility/).
 
 {{< widget-capture "gauge" >}}
 
 {{< widget-capture "sparkline" >}}
 
-{{< widget-capture "progressbar" >}}
+{{< widget-capture "meter" >}}
 
 {{< widget-capture "barchart" >}}
 
-### Read those two captures carefully
+### Read those captures carefully
 
 **`Gauge` and `Sparkline` are Braille.** In a web font those glyphs can take a
 different advance width than a terminal gives them, and that destroys the
@@ -183,52 +238,44 @@ alignment the whole widget depends on. **That is why every widget page on this
 site shows the exact plain-text capture beside the colour one.** The text is the
 truth; the colour is the persuasion.
 
-And neither of these can show you the dial *moving* or the series *growing*, which
+And none of these can show you the dial *moving* or the series *growing*, which
 is the other thing a still frame cannot do.
-
-## The palette, and monochrome
-
-The example keeps its palette to **five colours, so that what remains on screen
-in monochrome is still readable**:
-
-> Every widget here carries a non-colour signal too, **which is the accessibility
-> requirement, not a bonus.**
-
-That is a design constraint on the example, not an accident of it. If you build a
-dashboard whose distinctions are only hues, it is unreadable on a monochrome
-terminal and to a colour-blind reader — see
-[Accessibility](/concepts/accessibility/).
 
 ## What this screen does not show
 
-- **Interaction, resize or animation.** It is a program, so it does — but a
-  *capture* of it would not. Every picture on this page is a settled frame.
 - **Performance under your data.** The flat-cost numbers in
   [Virtualization](/concepts/virtualization/) are the catalog's own benchmarks on
   the catalog's own scenes.
 - **A resize against a real terminal.** See
   [Limitations](/limitations/#layout-and-responsiveness).
+- **That the network behaves.** The golden tests render `--offline` precisely so
+  a network failure can never be mistaken for a rendering failure.
+- **A command palette.** There isn't one to show; see
+  [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
 ## Building your own
 
 The order that works:
 
 1. **Solve the layout first**, against `Block.Interior()` — see
-   [Composing with Block](/guides/composing/). Get one constraint list per axis and
-   `layout.Rect` for each child.
-2. **Decide the focus order**, as a slice. It is a list, not a tree walk, and it
+   [Composing with Block](/guides/composing/). Get one constraint list per axis
+   and `layout.Rect` for each child.
+2. **Keep every network call off the frame path**, and hand results over through
+   `Renderer.Post` rather than a shared mutable field.
+3. **Decide the focus order**, as a slice. It is a list, not a tree walk, and it
    makes "Tab moves here" a statement.
-3. **Wire invalidation to the data**, not to a timer. A ticker-driven
-   `InvalidateAll` is a placeholder for not having done this step.
-4. **Check the monochrome case.** `NO_COLOR=1 go run ./examples/dashboard`. If
+4. **Route keys explicitly, and consume what you claim** — including on a no-op.
+5. **Check the monochrome case.** `NO_COLOR=1 go run ./examples/markets`. If
    anything becomes unreadable, add a non-colour signal.
-5. **Test it headlessly** — see
-   [Headless testing](/concepts/headless-testing/). A dashboard is exactly the
-   kind of screen that should have a golden file, because a layout regression
-   shows up as a diff in a string rather than as an exception.
+6. **Test it headlessly** — see [Headless testing](/concepts/headless-testing/).
+   A dashboard is exactly the kind of screen that should have a golden file,
+   because a layout regression shows up as a diff in a string rather than as an
+   exception.
 
 ## Reading next
 
 - [Data display](/guides/data-display/) — choosing the data widgets.
 - [Composing with Block](/guides/composing/) — the chrome and the layout.
 - [Performance](/guides/performance/) — what is measured and what is not.
+- [Limitations](/limitations/) — including the `keymap` gap and the platforms
+  this does not run on.

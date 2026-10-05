@@ -61,7 +61,12 @@ def render(manifest: dict) -> str:
     out: list[str] = [
         "---",
         'title: "Catalog and API"',
-        'slug: "/reference/api"',
+        # No slug: this file is content/reference/api.md, so its URL is already
+        # /reference/api/. Hugo resolves a slug RELATIVE to the section, so the
+        # "/reference/api" that used to be emitted here produced
+        # /reference/reference/api/ and every nav entry 404'd - and a local
+        # Hugo build cannot catch that, because it builds the wrong page happily.
+        # The live-URL check is what found it.
         "weight: 61",
         'description: "Generated from the framework\'s capture manifest: every widget, its constructor, its MinSize and its capture sizes."',
         "toc: true",

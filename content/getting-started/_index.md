@@ -31,21 +31,28 @@ and lists what does not work.
 - **Two dependencies**, both `golang.org/x`: `golang.org/x/sys` and
   `golang.org/x/term`.
 
-## The two examples
+## The examples
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.1.0       # a bordered panel, resize-aware
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0   # list, table, log, meters
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0   # live finance dashboard, no API key
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0     # bordered panel, focus ring, ? help
 ```
 
-`dashboard` is the more useful of the two to read: it is a real screen built out
-of the catalog, and [Dashboards](/guides/dashboards/) walks through how.
+`markets` is the more useful of the two to read: it is a real screen built out of
+the catalog, fed by real network data, and [Dashboards](/guides/dashboards/) walks
+through how. It takes `--offline` to run on bundled sample data if you have no
+network.
+
+**Both are keyboard- and mouse-driven.** Press `?` in either for its key list.
+
+> `examples/dashboard` also still exists and overlaps `markets`. Whether to keep
+> it or retire it is **undecided** — start with `markets`.
 
 ## Then
 
 - **[Concepts](/concepts/)** — the twelve ideas. Start with
   [Renderer and diff](/concepts/renderer/) and
   [Widgets and focus](/concepts/widgets-and-focus/).
-- **[Widgets](/widgets/)** — all 22, with a captured frame each.
-- **[Architecture decisions](/adr/)** — the eight ADRs, verbatim, if you want
+- **[Widgets](/widgets/)** — all 24, with a captured frame each.
+- **[Architecture decisions](/adr/)** — the nine ADRs, verbatim, if you want
   the reasoning rather than the how.

@@ -18,10 +18,10 @@ weight: 11
 
 ## Get it
 
-TermMosaic v0.1.0 is tagged and released, so pin the version:
+TermMosaic v0.2.0 is tagged and released, so pin the version:
 
 ```
-go get github.com/serkanalgur/termmosaic@v0.1.0
+go get github.com/serkanalgur/termmosaic@v0.2.0
 ```
 
 **Prefer to work from a checkout?** That works too, and it is how the framework's
@@ -37,12 +37,14 @@ go test ./...
 ## Check that it built
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.2.0
 ```
 
 You should get a bordered panel titled `termmosaic` showing a live frame counter,
-the negotiated colour depth and `quit  press q`. Press `q`, Escape or Ctrl-C to
-leave.
+the negotiated colour depth and a focus ring. `Tab` moves focus, `?` opens the
+help overlay, and `q`, Escape or Ctrl-C leaves. The panel now spans the terminal
+and re-arranges itself as you resize; below 38×8 it says so in one line rather
+than clipping.
 
 **If `hello` prints "stdout is not a terminal"**, that is the example behaving
 correctly rather than a failure: it checks before it draws, so it stays runnable
@@ -52,8 +54,20 @@ with `go test ./examples/hello/`.
 Then try the more useful one:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/dashboard@v0.1.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0
 ```
+
+That is a live finance dashboard — ECB rates from Frankfurter, crypto from
+CoinGecko, **no API key and nothing to sign up for**. It fetches on its own
+goroutine and needs outbound HTTPS. If you have no network, or want a
+deterministic run, use `--offline`:
+
+```
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.2.0 --offline
+```
+
+`q` quits, `r` refetches immediately, `?` opens the help overlay, and the wheel
+and mouse work on the panels.
 
 ## Windows
 
@@ -82,7 +96,7 @@ broken. See [ADR 0005 §10](/adr/0005-input-decoding/) and
 
 ## What "released" means here
 
-- **v0.1.0 is tagged and the module resolves.** `go get …@v0.1.0` works.
+- **v0.2.0 is tagged and the module resolves.** `go get …@v0.2.0` works.
 - **The API is not stable.** Every release before v1.0.0 is a pre-release, and a
   minor version **may contain behavioural changes**. What is promised: **no
   behavioural change in a patch release.** If v0.1.1 changes behaviour, that is a
