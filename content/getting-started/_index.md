@@ -34,8 +34,8 @@ and lists what does not work.
 ## The examples
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1   # live finance dashboard, no API key
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.4.1     # bordered panel, focus ring, ? help
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard, no API key
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # bordered panel, focus ring, ? help
 ```
 
 `markets` is the more useful of the two to read: it is a real screen built out of
@@ -54,5 +54,5 @@ network.
   [Renderer and diff](/concepts/renderer/) and
   [Widgets and focus](/concepts/widgets-and-focus/).
 - **[Widgets](/widgets/)** — all 24, with a captured frame each.
-- **[Architecture decisions](/adr/)** — the nine ADRs, verbatim, if you want
+- **[Architecture decisions](/adr/)** — the ten ADRs, verbatim, if you want
   the reasoning rather than the how.

@@ -37,7 +37,7 @@ split.New(d layout.Direction, panes ...termmosaic.Widget) *split.Split
 `Split` solves one constraint list and hands each pane a rectangle. It is the only widget that introduces an interface of its own — `Bounded` — for a pane that wants to say what it needs.
 
 - `Direction` — `layout.Direction` — `DirectionRow` or `DirectionColumn`. One axis only; nesting a `Split` inside a `Split` is how you get a grid.
-- `Spacing` — `int` — cells between panes, removed from the pane rects rather than overlapped.
+- `Spacing` — `int`, via `SetSpacing(n)` — cells between panes, removed from the pane rects rather than overlapped. It was an exported field until v0.5.0; assigning it left the cached solve stale and the panes kept their old sizes until the next resize. Read it back with `Spacing()`.
 - `Background` — `buffer.Style` — the gap colour. Visible wherever `Spacing` is non-zero.
 
 ## When not to use it

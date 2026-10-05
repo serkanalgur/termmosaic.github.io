@@ -1,6 +1,6 @@
 ---
 title: "Architecture decisions"
-description: "The nine ADRs, verbatim — what was decided, what was rejected, and why."
+description: "The ten ADRs, verbatim — what was decided, what was rejected, and why."
 weight: 70
 ---
 
@@ -16,7 +16,7 @@ including the parts that did not work out.
 
 ## These are verbatim
 
-**The nine pages below are the framework's own files, copied byte for byte.**
+**The ten pages below are the framework's own files, copied byte for byte.**
 They are not summaries, because a summary is a second source of truth that drifts
 — and a decision record that disagrees with itself is worse than none. The only
 edit is the removal of each file's own `# Title` heading, since the site renders
@@ -42,6 +42,7 @@ If you want the originals:
 | [0007](/adr/0007-responsive-screens/) | [Responsive screens](/adr/0007-responsive-screens/) | Accepted | 2026-10-04 |
 | [0008](/adr/0008-style-and-text/) | [Style, theme and text](/adr/0008-style-and-text/) | Accepted | 2026-10-04 |
 | [0009](/adr/0009-command-and-keymap/) | [Commands and keymap](/adr/0009-command-and-keymap/) | Accepted | 2026-10-05 |
+| [0010](/adr/0010-mouse-routing/) | [Mouse routing](/adr/0010-mouse-routing/) | Accepted | 2026-10-05 |
 
 ## Decisions at a glance
 
@@ -152,6 +153,20 @@ If you want the originals:
   do by hand today. `keymap` is slated for v0.3.0. See
   [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
 
+- **0010 — Mouse routing: widgets hit-test themselves.** One sentence — **a
+  widget handles a pointer event only if the pointer is inside its `Bounds()`** —
+  and it covers every `Mouse` action, wheel included. The alternative considered
+  and rejected is a framework routing helper (`RouteMouse(root, ev) Widget`, or an
+  optional `Hittable` interface): it is new exported API against a `Widget` that
+  ADR 0007 and ADR 0009 both freeze, it needs a tree walk that `Widget` cannot
+  express because there is no `Children()`, and it can only answer "which rect"
+  where a widget can answer "which cell means what". So the fix is three call
+  sites and one shared helper. The defect was real and not cosmetic: `form.Tabs`,
+  first in `examples/markets`' focus ring, consumed **every wheel notch in the
+  application** whether or not the pointer was over it. **Two exemptions are
+  stated rather than left implicit**: a release ends a drag wherever the pointer
+  is, and a drag continues outside `Bounds` once a press has claimed it.
+
 ## Still open
 
 - **Kitty graphics protocol in v1, or stay text-only?** Leaning no. Images
@@ -163,8 +178,11 @@ If you want the originals:
   which makes console mode flags our problem. The packaging half is closed —
   `CGO_ENABLED=0` builds are verified for `windows` and `linux/arm64` — and the
   runtime half is a **stub that returns a loud error**.
-- **The cache-poisoning debug mode is not built.** A rect-keyed cache is only half
-  the contract.
+- **The cache-poisoning debug mode is built, and it found eight stale caches.**
+  It shipped in v0.5.0 as ADR 0007 §3's deferred "expensive half", and
+  `widgets/cacheaudit` fails the build on a finding. What it does *not* cover is
+  every exported raw field — the gate covers the transitions it names, and several
+  same-shaped fields are not named by any.
 - **`docs/adr/README.md`'s "Still open" list is stale in one entry**: it listed
   the colour model as undecided where `docs/STATUS.md` records it as PROPOSED.
   Correcting it means editing an ADR, which the v0.1.0 release gate forbade

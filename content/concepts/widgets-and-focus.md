@@ -8,7 +8,7 @@ toc: true
 # Widgets and focus
 
 The whole widget contract. It is four methods and it has not changed across all
-eight architecture decisions — which is the single most stable thing about this
+ten architecture decisions — which is the single most stable thing about this
 pre-alpha project, and the reason a widget written today will still compile after
 the API settles.
 

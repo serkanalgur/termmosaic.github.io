@@ -140,10 +140,13 @@ so does [Limitations](/limitations/#layout-and-responsiveness).
 
 Two open items from the same area:
 
-- **The cache-poisoning debug mode is not built.** ADR 0007's expensive half: a
-  debug mode that corrupts a widget's cache after `Draw` and asserts the next
-  frame is identical would catch that whole class of bug by machine rather than by
-  review. It remains a convention.
+- **The cache-audit mode is built and gates the build; its coverage is not
+  total.** ADR 0007's expensive half shipped in v0.5.0 — it corrupts a widget's
+  cache after `Draw` and asserts the next frame is byte-identical, and
+  `widgets/cacheaudit` fails the build on a finding. It found **eight** real stale
+  caches on its first run. What remains open is its reach: it audits the
+  transitions it names, and several same-shaped exported raw fields are named by
+  none.
 - **The scripted resize sweep is not a human dragging a window.** The
   degenerate-size sweep and `examples/hello`'s grow/shrink/degenerate/recover
   golden test are real, and they are not the same thing.

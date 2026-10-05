@@ -1,6 +1,6 @@
 {
   "tool": "cmd/capture",
-  "version": "0.4.1",
+  "version": "0.5.2",
   "widths": [
     40,
     80,
@@ -100,7 +100,7 @@
       "text": "split.txt",
       "textBytes": 2100,
       "html": "split.html",
-      "htmlBytes": 27612
+      "htmlBytes": 23020
     },
     {
       "name": "TextInput",
@@ -228,7 +228,7 @@
       "text": "radio.txt",
       "textBytes": 280,
       "html": "radio.html",
-      "htmlBytes": 4860
+      "htmlBytes": 3846
     },
     {
       "name": "Toggle",
@@ -380,7 +380,7 @@
       "text": "table.txt",
       "textBytes": 1951,
       "html": "table.html",
-      "htmlBytes": 18656
+      "htmlBytes": 12800
     },
     {
       "name": "Tree",
@@ -561,7 +561,7 @@
       "text": "barchart.txt",
       "textBytes": 2089,
       "html": "barchart.html",
-      "htmlBytes": 19457
+      "htmlBytes": 19561
     },
     {
       "name": "Menu",
@@ -587,7 +587,7 @@
       "text": "menu.txt",
       "textBytes": 2439,
       "html": "menu.html",
-      "htmlBytes": 16842
+      "htmlBytes": 16689
     },
     {
       "name": "Dialog",

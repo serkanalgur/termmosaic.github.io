@@ -52,7 +52,7 @@ Keys are consumed only while focused. Moving with an arrow SELECTS, as in every 
 | `home / end` | KeyHome / KeyEnd select the first / last tab |
 | `page up/down` | KeyPageUp / KeyPageDown select as many tabs as fit |
 | `activate` | KeyEnter or KeySpace fires OnSelect for the selected tab |
-| `wheel` | MouseWheelUp / MouseWheelDown scroll without selecting |
+| `wheel` | MouseWheelUp / MouseWheelDown scroll without selecting, and only over the pointer being inside Bounds (ADR 0010) |
 
 ## Accessibility
 

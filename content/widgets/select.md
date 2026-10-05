@@ -54,7 +54,7 @@ Keys are consumed only while focused. The wheel is consumed whether or not the w
 | `home / end` | KeyHome / KeyEnd highlight the first / last option |
 | `page up/down` | KeyPageUp / KeyPageDown highlight one screenful |
 | `activate` | KeyEnter or KeySpace accepts the highlighted option, which fires OnSelect without changing the highlight |
-| `wheel` | MouseWheelUp / MouseWheelDown scroll without moving the highlight |
+| `wheel` | MouseWheelUp / MouseWheelDown scroll without moving the highlight, and only over the pointer being inside Bounds (ADR 0010) |
 
 A closed list never changes what it contains, so there is no type-ahead and no Remove: a Select whose options change is a different widget.
 

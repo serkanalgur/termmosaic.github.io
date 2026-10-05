@@ -39,16 +39,20 @@ PAIRS=(
   "docs/adr/README.md:content/adr/README.md"
   "CHANGELOG.md:content/adr/CHANGELOG.md"
   "docs/SITE-PLAN.md:content/adr/SITE-PLAN.md"
-  "docs/adr/0001-backend-strategy.md:content/adr/0001-backend-strategy.md"
-  "docs/adr/0002-buffer-representation.md:content/adr/0002-buffer-representation.md"
-  "docs/adr/0003-renderer-mode.md:content/adr/0003-renderer-mode.md"
-  "docs/adr/0004-layout-engine.md:content/adr/0004-layout-engine.md"
-  "docs/adr/0005-input-decoding.md:content/adr/0005-input-decoding.md"
-  "docs/adr/0006-subbuffer-cell-access.md:content/adr/0006-subbuffer-cell-access.md"
-  "docs/adr/0007-responsive-screens.md:content/adr/0007-responsive-screens.md"
-  "docs/adr/0008-style-and-text.md:content/adr/0008-style-and-text.md"
-  "docs/adr/0009-command-and-keymap.md:content/adr/0009-command-and-keymap.md"
 )
+
+# Every ADR is discovered rather than listed. They were unguarded once and two
+# drifted; they were then listed one by one, and ADR 0010 arrived while it was
+# being added — so a hand-maintained list of "every ADR" is itself the thing that
+# goes stale, one release at a time. A glob over the framework's own directory
+# has no list to forget.
+if [ -d "$ROOT/docs/adr" ]; then
+  for src in "$ROOT"/docs/adr/[0-9]*.md; do
+    [ -e "$src" ] || continue
+    base="$(basename "$src")"
+    PAIRS+=("docs/adr/$base:content/adr/$base")
+  done
+fi
 
 drift=0
 # Compare two markdown files ignoring Hugo front matter and a leading H1, which

@@ -103,7 +103,7 @@
       },
       {
         "name": "Spacing",
-        "doc": "`int` — cells between panes, removed from the pane rects rather than overlapped."
+        "doc": "`int`, via `SetSpacing(n)` — cells between panes, removed from the pane rects rather than overlapped. It was an exported field until v0.5.0; assigning it left the cached solve stale and the panes kept their old sizes until the next resize. Read it back with `Spacing()`."
       },
       {
         "name": "Background",
@@ -277,7 +277,8 @@
     "related": [
       "[`Select`](/widgets/select/) and [`Checkbox`](/widgets/checkbox/) — the other one-of-N and many-of-N shapes.",
       "[Forms](/guides/forms/)"
-    ]
+    ],
+    "accessibility": "The focus gutter column exists on **every** row, because that is what keeps the labels aligned, but it is **not** a focus mark unless the group actually has focus. Until v0.5.1 an unfocused group painted a reverse-video stripe down its left edge, which read as a focus indication on rows that did not have it."
   },
   "toggle": {
     "constructing": "`NewToggle` takes the label; the state is a field.",
@@ -356,7 +357,7 @@
         "doc": "`buffer.Style` — unset means `MutedStyle`, because \"you cannot do this\" should not look available."
       }
     ],
-    "accessibility": "Focus is a **shape**: the label is ringed — `[Save]` — while focused and padded with spaces — ` Save ` — while not. Both rings are the same width, so selecting focus cannot reflow a form, which matters more than it sounds: a row of buttons that reflows on every Tab is worse than one whose focus is a little less obvious.",
+    "accessibility": "Focus is a **shape**: the label is ringed — `[Save]` — while focused and padded with spaces — ` Save ` — while not. Both rings are the same width, so selecting focus cannot reflow a form, which matters more than it sounds: a row of buttons that reflows on every Tab is worse than one whose focus is a little less obvious. `FocusStyle` and `DisabledStyle` are the style of the **whole** button — label included. That is what their documentation has always said; until v0.5.1 they reached the ring and the fill but not the label, so a disabled button rendered brackets around default-coloured text.",
     "whenNotToUse": [
       "**Do not use it as a toggle.** A button presses; it does not hold a state. If pressing it should switch something on and pressing it again should switch it off, that is [`Toggle`](/widgets/toggle/). Getting this wrong means the screen cannot show the current state, which is the one thing a control is for.",
       "**Do not use it to trigger something on a keystroke without checking focus.** `Handle` consumes keys only while the button is focused. Your loop has to move focus — the framework offers events to the focused widget and then to the tree, and it does not decide which of your buttons should be focused.",
@@ -435,7 +436,11 @@
     "fields": [
       {
         "name": "Header",
-        "doc": "`bool` — draw the header row. Toggling this invalidates, and ADR 0007's amendment is about exactly this class of bug: a widget that caches column widths on `Bounds()` and is handed a new flag renders the old layout permanently."
+        "doc": "`bool` — draw the header row. Toggling this invalidates, and ADR 0007's amendment is about exactly this class of bug: a widget that caches column widths on `Bounds()` and is handed a new flag renders the old layout permanently. `HeaderStyle` is now really *patched* with `ItemStyle` as its documentation says, so the header text also carries `ItemStyle`'s **foreground** — `Patch` takes FG as well as BG, and that will show if you gave `ItemStyle` a distinct FG."
+      },
+      {
+        "name": "ItemStyle / SelectedStyle",
+        "doc": "`buffer.Style` — the unselected row's background, and the base the header is patched with; `SelectedStyle` is the selected row's. Since v0.5.1 the row style reaches the **cell text** as well as the fill, so **on the selected row a single-span cell's own `Style` and its column's `CellStyle` no longer show** — the row style overrides them, matching `List` and `Tree`. A cell carrying several spans keeps its own. If your selected row lost its cell colours after upgrading, that is this."
       },
       {
         "name": "Marker",
@@ -498,7 +503,7 @@
     "fields": [
       {
         "name": "Status",
-        "doc": "`bool` — draw the status line: position readout and match count."
+        "doc": "`bool`, via `SetStatus(on)` — draw the status line: position readout and match count. It was an exported field until v0.5.0; the setter drops the layout cache, which is what makes toggling it safe at an unchanged rect. Read it back with `Status()`."
       },
       {
         "name": "MatchStyle",
@@ -526,8 +531,12 @@
         "doc": "`float64` — 0 to 1. Values outside the range are clamped, not an error."
       },
       {
+        "name": "Label",
+        "doc": "`[]buffer.Span`, via `SetLabel(s, st)` for the common single-run case or `SetLabelSpans(spans)` for several styled runs. It was an exported field until v0.5.0. A label is a **measured** region, so a longer one shortens the bar at the same rect — which is why the setters drop the cached budget rather than merely repainting. Read it back with `Label()`, whose returned slice is the widget's own and must not be modified."
+      },
+      {
         "name": "Percentage",
-        "doc": "`bool` — show the percentage. The number is the reading; the bar is the shape."
+        "doc": "`bool`, via `SetPercentage(on)` — show the percentage. The number is the reading; the bar is the shape. It was an exported field until v0.5.0; the setter drops the cached budget so the bar re-solves at the same rect. Read it back with `Percentage()`."
       },
       {
         "name": "FillRune",
@@ -609,9 +618,13 @@
       {
         "name": "ShowName",
         "doc": "`bool` — draw the active zone's **name in words**. This is the signal that makes the meter readable without colour."
+      },
+      {
+        "name": "ShowValue",
+        "doc": "`bool`, via `SetShowValue(on)` — print the reading beside the bar. It was an exported field until v0.5.0, and assigning it left the cached layout budget stale: the number painted over the zone name. The setter drops the cache, so the bar re-solves where it starts. Read it back with `ShowValue()`."
       }
     ],
-    "accessibility": "Three non-colour signals, which is more than any other viz widget: zone boundaries are `+`, the threshold is `|`, and the active band is named in text. `ShowValue` adds the number. A meter is designed to be read correctly on a monochrome terminal, and this is why it is the one widget here whose meaning does not depend on the colour capture at all.",
+    "accessibility": "Three non-colour signals, which is more than any other viz widget: zone boundaries are `+`, the threshold is `|`, and the active band is named in text. `SetShowValue(true)` adds the number. A meter is designed to be read correctly on a monochrome terminal, and this is why it is the one widget here whose meaning does not depend on the colour capture at all.",
     "whenNotToUse": [
       "**Do not use it for work in progress.** It reads a bounded value against zones; it does not track progress toward a completion. That is [`ProgressBar`](/widgets/progressbar/).",
       "**Do not use it without setting `Zones`.** Without named zones the bar is a progress bar with a threshold, and the threshold marker alone will not tell a reader what \"over\" means.",
@@ -689,7 +702,7 @@
         "doc": "`bool` — draw the axis line."
       }
     ],
-    "accessibility": "Each bar carries its **value as text** beside it, and the label is drawn regardless of colour. A reader who cannot distinguish two bar colours can still read every number.",
+    "accessibility": "Each bar carries its **value as text** beside it, and the label is drawn regardless of colour. A reader who cannot distinguish two bar colours can still read every number. A horizontal category label is clipped to **its own column**. A label wider than its column is cut rather than allowed to overwrite the next category's, so keep the labels short — or read the values, which are always printed beside the bars. Fixed in v0.5.1.",
     "whenNotToUse": [
       "**Do not use it for a series over time.** Time is ordered and a bar chart is not; consecutive bars invite reading a trend that the data does not contain. A series is a [`Sparkline`](/widgets/sparkline/).",
       "**Do not use it when the values are close together and the differences matter.** Bars encode magnitude by length from a common baseline, and that is exactly the encoding that hides small differences. Print the numbers, or use a different question.",
@@ -728,7 +741,7 @@
         "doc": "`bool` — use ASCII markers instead of `▸` and `✓` for terminals or fonts that misrender them."
       }
     ],
-    "accessibility": "The selected row carries a `>` in the marker gutter, which is a **character** rather than colour — so it survives `NO_COLOR` and appears in the plain-text capture. Level headers are bracketed when active and not when inactive, so depth is legible without colour. Disabled rows have no marker at all rather than a dimmed one, because a dimmed row is easy to miss entirely.",
+    "accessibility": "The selected row carries a `>` in the marker gutter, which is a **character** rather than colour — so it survives `NO_COLOR` and appears in the plain-text capture. Level headers are bracketed when active and not when inactive, so depth is legible without colour. Disabled rows have no marker at all rather than a dimmed one, because a dimmed row is easy to miss entirely. The check glyph and the submenu arrow are drawn in `CheckStyle`, so on a selected row they are not left in `ItemStyle` against a reversed background — which would be the one unreadable thing on that row. Fixed in v0.5.1.",
     "whenNotToUse": [
       "**Do not use it for a flat list of items.** A row of tabs or a list of results is not a menu, and a menu implies commands with sub-commands. Use [`Tabs`](/widgets/tabs/) or [`List`](/widgets/list/).",
       "**Do not nest it inside a `Dialog` for a simple yes/no.** A confirm is [`Dialog`](/widgets/dialog/) with two actions; building it from a menu loses the modal guarantee and the cancel-by-default behaviour.",
@@ -760,7 +773,7 @@
         "doc": "`buffer.Style` per element role."
       }
     ],
-    "accessibility": "The focused action is marked with a **ring** — a bracket pair of the same width as the idle pair, so moving focus never reflows the row — and reinforced with reverse video. Reverse video survives `NO_COLOR`, because colour is suppressed only at encode time. Focus is restored to whatever had it when the dialog closes, so tabbing order resumes where it was.",
+    "accessibility": "The focused action is marked with a **ring** — a bracket pair of the same width as the idle pair, so moving focus never reflows the row — and reinforced with reverse video. Reverse video survives `NO_COLOR`, because colour is suppressed only at encode time. Focus is restored to whatever had it when the dialog closes, so tabbing order resumes where it was. The focused **choice** label is written in `ChoiceFocusStyle` as well as filled in it — until v0.5.1 it was filled and marked in the focus style while its *text* stayed in the unfocused one, so under the default styles the row a reader is meant to look at rendered dark-on-dark.",
     "whenNotToUse": [
       "**Do not use it for information the user did not ask for.** A dialog blocks the tree beneath it; putting a passive notice in one makes the user dismiss it to get on. Use a status line.",
       "**Do not use it to ask more than one question.** Two questions in one dialog produce two partial answers and one guess at the rest.",

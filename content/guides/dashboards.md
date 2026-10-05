@@ -13,8 +13,8 @@ which is a real screen — a live finance dashboard — composed entirely from t
 catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.4.1 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses
@@ -193,22 +193,31 @@ turned "quit" into "close a panel" for as long as it was open would be a trap.
 the one that consumed it, so a click on a table row both selects the row and makes
 the table the keyboard's target. No widget can do that on its own.
 
-**Wheel routing is different, and the reason is a framework limitation:**
+**Wheel routing is different, and the reason is that no widget can do it alone.**
 
-> `form.Tabs` consumes a wheel notch whether or not the pointer is over it — a
-> defensible rule for a form, where scrolling a list does not require focus — but
-> it means a tab row first in the ring swallows **every** notch in the application.
+Widgets are hit-tested — since v0.5.2, [ADR 0010](/adr/0010-mouse-routing/) says a
+widget handles a pointer event only when the pointer is inside its `Bounds()` — so
+the tab row no longer steals notches aimed at the panels beneath it. **Until
+v0.5.2 it did**: `form.Tabs` consumed a wheel notch whether or not the pointer was
+over it, and it is first in the focus ring, so it swallowed **every** notch in the
+application.
 
-So the example asks **the widget whose rectangle contains the pointer** first, and
-falls back to ring order when the pointer is over none of them. **Focus is
-deliberately not taken by a wheel event**: a reader scrolling is reading, not
-committing to a panel, and moving focus under the pointer would rewrite the key
-hint while they are still looking at the numbers. A click is the gesture that
-commits.
+So the example asks **the widget whose rectangle contains the pointer**, and only
+that one. **Focus is deliberately not taken by a wheel event**: a reader scrolling
+is reading, not committing to a panel, and moving focus under the pointer would
+rewrite the key hint while they are still looking at the numbers. A click is the
+gesture that commits.
+
+**A notch over a KPI tile — which no widget in the ring owns — is now declined by
+all of them and reaches the application**, which is the right outcome: nothing on
+screen scrolls. Before v0.5.2 it scrolled the tab row by three.
+
+The loop still exists, and it is worth knowing why: what it buys is the rule that
+**the wheel never takes focus**, which no widget can implement alone.
 
 Clicks are *not* routed this way, and the asymmetry is the point — a click is a
-commitment to a panel, and hit-testing is each widget's own business. The widget
-itself is unchanged; see
+commitment to a panel, so the click loop falls through to ring order and takes
+focus from whoever consumed it. Hit-testing is each widget's own business; see
 [Limitations](/limitations/#input).
 
 ## The palette, and monochrome

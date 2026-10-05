@@ -59,7 +59,7 @@ The two rings are the same width, so a button's size does not depend on its focu
 
 ## More on accessibility
 
-Focus is a **shape**: the label is ringed — `[Save]` — while focused and padded with spaces — ` Save ` — while not. Both rings are the same width, so selecting focus cannot reflow a form, which matters more than it sounds: a row of buttons that reflows on every Tab is worse than one whose focus is a little less obvious.
+Focus is a **shape**: the label is ringed — `[Save]` — while focused and padded with spaces — ` Save ` — while not. Both rings are the same width, so selecting focus cannot reflow a form, which matters more than it sounds: a row of buttons that reflows on every Tab is worse than one whose focus is a little less obvious. `FocusStyle` and `DisabledStyle` are the style of the **whole** button — label included. That is what their documentation has always said; until v0.5.1 they reached the ring and the fill but not the label, so a disabled button rendered brackets around default-coloured text.
 
 ## When not to use it
 

@@ -52,7 +52,7 @@ Keys are consumed only while focused. Moving with an arrow CHOOSES, which is how
 | `home / end` | KeyHome / KeyEnd choose the first / last option |
 | `page up/down` | KeyPageUp / KeyPageDown choose one screenful away |
 | `activate` | KeyEnter or KeySpace re-fires OnSelect for the chosen option, which is what a user pressing it to confirm expects |
-| `wheel` | MouseWheelUp / MouseWheelDown scroll without choosing |
+| `wheel` | MouseWheelUp / MouseWheelDown scroll without choosing, and only over the pointer being inside Bounds (ADR 0010) |
 
 ## Accessibility
 
@@ -60,6 +60,10 @@ Two independent non-colour signals, which is what a radio group needs and one ch
 
 - the chosen option's marker is "(o)" and every other option's is "( )", so the choice is a SHAPE difference;
 - the focused option carries a ">" in its own focus column, so focus is not signalled by the same thing that signals selection.
+
+## More on accessibility
+
+The focus gutter column exists on **every** row, because that is what keeps the labels aligned, but it is **not** a focus mark unless the group actually has focus. Until v0.5.1 an unfocused group painted a reverse-video stripe down its left edge, which read as a focus indication on rows that did not have it.
 
 ## When not to use it
 

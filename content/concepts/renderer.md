@@ -23,7 +23,7 @@ is not an Elm loop. Three things it deliberately is not:
 - **No incremental-draw interface.** `Draw` is not "draw the changed part". It is
   "draw yourself".
 
-`Widget` is four methods and it has not changed across all eight architecture
+`Widget` is four methods and it has not changed across all ten architecture
 decisions:
 
 ```go

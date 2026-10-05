@@ -39,7 +39,8 @@ viz.NewProgressBar(r buffer.Rect) *viz.ProgressBar
 `NewProgressBar` takes a rect; the ratio is the `Ratio` field.
 
 - `Ratio` — `float64` — 0 to 1. Values outside the range are clamped, not an error.
-- `Percentage` — `bool` — show the percentage. The number is the reading; the bar is the shape.
+- `Label` — `[]buffer.Span`, via `SetLabel(s, st)` for the common single-run case or `SetLabelSpans(spans)` for several styled runs. It was an exported field until v0.5.0. A label is a **measured** region, so a longer one shortens the bar at the same rect — which is why the setters drop the cached budget rather than merely repainting. Read it back with `Label()`, whose returned slice is the widget's own and must not be modified.
+- `Percentage` — `bool`, via `SetPercentage(on)` — show the percentage. The number is the reading; the bar is the shape. It was an exported field until v0.5.0; the setter drops the cached budget so the bar re-solves at the same rect. Read it back with `Percentage()`.
 - `FillRune` — `rune` — the fill glyph, `U+2588 FULL BLOCK` by default.
 - `FillStyle` — `buffer.Style` — the filled part. The difference from `TrackStyle` carries an attribute as well as a colour, so the bar is readable with either suppressed.
 

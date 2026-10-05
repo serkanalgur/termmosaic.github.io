@@ -43,7 +43,7 @@ dialog.New(r buffer.Rect, v dialog.Variant) *dialog.Dialog
 
 ## More on accessibility
 
-The focused action is marked with a **ring** — a bracket pair of the same width as the idle pair, so moving focus never reflows the row — and reinforced with reverse video. Reverse video survives `NO_COLOR`, because colour is suppressed only at encode time. Focus is restored to whatever had it when the dialog closes, so tabbing order resumes where it was.
+The focused action is marked with a **ring** — a bracket pair of the same width as the idle pair, so moving focus never reflows the row — and reinforced with reverse video. Reverse video survives `NO_COLOR`, because colour is suppressed only at encode time. Focus is restored to whatever had it when the dialog closes, so tabbing order resumes where it was. The focused **choice** label is written in `ChoiceFocusStyle` as well as filled in it — until v0.5.1 it was filled and marked in the focus style while its *text* stayed in the unfocused one, so under the default styles the row a reader is meant to look at rendered dark-on-dark.
 
 ## When not to use it
 

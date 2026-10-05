@@ -30,6 +30,196 @@ reversed before v1.0.0.
 
 ---
 
+## [0.5.2] — 2026-10-05
+
+A minor bump, and the reason is a decision with a number attached:
+[ADR 0010](docs/adr/0010-mouse-routing.md) settles who receives a mouse
+event, and the answer exposed three widgets that were getting it wrong.
+
+### Fixed
+
+- **`form.Tabs`, `form.Select` and `form.Radio` consumed a wheel notch
+  regardless of where the pointer was.** `Tabs.Handle` tested the wheel
+  before the `switch ev.Kind`, so a notch never reached the bounds check its
+  click path already used; `Select` and `Radio` reached the same place through
+  the shared `optionlist` helper. A tab row, a select or a radio group
+  therefore took the wheel from whatever sat beneath it.
+  `docs/STATUS.md` recorded this only for `Tabs` — it is three widgets, and
+  the shared helper is where the fix belongs, so a future fourth is correct by
+  construction.
+
+  **Per ADR 0010: a widget handles a pointer event only when the pointer is
+  inside its `Bounds()`.** Two exemptions are stated rather than left
+  implicit — a *release* ends a drag wherever the pointer is, and a *drag*
+  continues outside `Bounds` once a press has claimed it, because the press is
+  the claim and the drag is the continuation.
+
+- **`examples/markets` behaviour changes.** `d.pair` is a `form.Tabs` and is
+  first in the focus ring, so it swallowed **every** wheel notch in the
+  application. The example carried a workaround loop arguing the lenient rule
+  was "defensible for a form"; the loop stays, because what it actually buys
+  is the rule that the wheel never takes focus — which no widget can do alone.
+  A wheel notch over a KPI tile, which no widget in the ring owns, is now
+  consumed by nobody rather than scrolling the tab row by three.
+
+### Added
+
+- **ADR 0010, Mouse routing.** Records that hit-testing belongs to the widget
+  and not to the application or the framework, and why the alternative — a
+  routing helper, or an optional `Hittable` interface — was rejected: it is new
+  exported API against an interface ADR 0007 and ADR 0009 both freeze, it needs
+  a tree walk `Widget` cannot express because there is no `Children()`, and it
+  can only answer "which rect" where a widget answers "which cell means what".
+  This is the decision that gives ADR 0009 §6 — mouse hit-testing being "the
+  one thing widgets are genuinely better at than a global registry" — teeth in
+  the shipped catalog rather than only in the design.
+
+  It also states which widgets decline a wheel outright: `Button`, `Checkbox`,
+  `Toggle` and `Split` have nothing to scroll, and `TextInput`/`TextArea`
+  decline **by decision** — `TextArea` wheel-to-scroll is a plausible feature,
+  but adding one under a routing ADR would be answering a different question,
+  and it will be bounds-correct when it lands because the rule is now written
+  down.
+
+### Known Limitations
+
+- `split.Split` consumes a wheel notch over a pane and moves focus to the pane
+  under the pointer. That is in-bounds behaviour consistent with a click, and a
+  `Split` has no content of its own to scroll, so it is unchanged — but it is
+  stated here rather than left to be discovered.
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+
+## [0.5.1] — 2026-10-05
+
+A minor bump, and the reason is seven defects: **the style a widget computes for
+one cell was stopping where two code paths diverged, and never reaching the text
+beside it.** Three of the five releases before this existed because of this one
+class.
+
+### Fixed
+
+- **`Dialog`: `ChoiceFocusStyle` never reached the choice label.** The row was
+  filled and marked in the focus style while its *text* was written in the
+  unfocused style, because the label cache is built before focus is known. With
+  default styles the focused choice rendered `attr=none` on an `attr=reverse`
+  row — unreadable dark-on-dark on exactly the row the reader is meant to look
+  at. `drawActions` already had this right via a second cached rendition;
+  `drawChoices` now does the same.
+- **`Button`: `FocusStyle` and `DisabledStyle` reached the ring and the fill but
+  not the label**, so a disabled button rendered blue brackets around
+  default-coloured text. The field's own documentation already said the style was
+  "the style of the whole button — background, label and brackets"; the code did
+  not do that. One function now computes the whole-button rendition, so the
+  cached label and the fill cannot diverge.
+- **`Table`: `SelectedStyle` and `ItemStyle` filled the row but never reached the
+  cell text**, so a selected row showed terminal-default text on the
+  terminal-default background in the middle of a highlighted row. The row style
+  now overrides a single-span cell, matching `List` and `Tree`. **The trade:** on
+  the selected row a cell's own `Style` and its column's `CellStyle` do not show.
+  A cell carrying several spans keeps them, as `drawCell` documents.
+- **`Table`: `HeaderStyle` was documented as "patched with `ItemStyle`" and never
+  was.** `HeadingStyle` is attribute-only, so the header text resolved to the
+  terminal background inside a row just filled with `ItemStyle`. It is patched
+  now. Note a visible consequence of fixing both: the header text also carries
+  `ItemStyle`'s **foreground**, because `Patch` takes FG as well as BG. That is
+  `Patch`'s documented semantics and matches the header's stated intent of
+  sitting on the row background, but it will show for a caller who set `ItemStyle`
+  with a distinct FG.
+- **`Menu`: the check glyph and the submenu arrow were drawn in `ItemStyle` on the
+  selected row.** The marker already had the right fallback — the file's own
+  comment names the hazard: "a marker in ItemStyle on a reversed row would be the
+  one unreadable thing". The check glyph and submenu arrow did not, and now do.
+- **`Radio`: the focus gutter was styled as a focus mark on every row.** A blank
+  cell carried `styles.focus`, which inherits `SelectedStyle`'s `AttrReverse`, so
+  an unfocused group painted a reverse-video stripe down its left edge. The
+  column still exists on every row so labels align; only the rendition was wrong.
+- **`BarChart`: axis labels overran their column.** The centring offset was
+  computed and discarded with `_ = lx`, and the label was capped to the whole
+  axis row, so a label wider than its column overwrote the next category's. The
+  horizontal path already did this correctly.
+- **`paintRow`'s multi-span exception is now documented at both call sites**
+  (`List`, `Tree`), not only in the helper. A reader auditing `List` at the call
+  site would conclude `ItemStyle` reaches every row; for a multi-span item it
+  does not.
+
+### Known Limitations
+
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+- The cache-audit gate covers the transitions it names. Other exported raw fields
+  remain the same shape and produce no finding today; see the v0.5.0 entry.
+
+## [0.5.0] — 2026-10-05
+
+A minor bump, and the reason is the first section: **five exported fields are
+now private.** Programs that assign them directly will not compile.
+
+### Breaking
+
+- **`Pager.Status`, `Split.Spacing`, `Meter.ShowValue`, `ProgressBar.Label` and
+  `ProgressBar.Percentage` are no longer exported fields.** Each had a working
+  setter already, so migration is mechanical:
+
+  | Before | After |
+  |---|---|
+  | `p.Status = on` | `p.SetStatus(on)` |
+  | `s.Spacing = n` | `s.SetSpacing(n)` |
+  | `m.ShowValue = on` | `m.SetShowValue(on)` |
+  | `p.Label = s` | `p.SetLabel(s, st)` |
+  | `p.Percentage = on` | `p.SetPercentage(on)` |
+
+  Read-only accessors exist too: `Status()`, `Spacing()`, `ShowValue()`,
+  `Percentage()`, `Label()`.
+
+  The reason is in [ADR 0007](docs/adr/0007-responsive-screens.md) §3: a widget
+  caches its derived layout keyed on `Bounds()`, so a field that changes without
+  an `Invalidate()` produces a stale layout that **nothing ever repairs** — the
+  rect does not change, so the cache keeps hitting. A doc comment saying "call
+  `Invalidate` after assigning" is a rule with no enforcement, no compile error
+  and no reminder. `ProgressBar` is the proof: `SetLabel` already reset the cache
+  correctly, and the field was still assignable, so the API taught the wrong
+  lesson by having both.
+
+  The new setters are behaviour-preserving on a widget that has not yet drawn,
+  and strictly better on one that has.
+
+### Fixed
+
+- **Eight widgets kept a stale layout cache after a documented setter.** Found by
+  the new cache-audit mode, not by review: `Pager.SetStatus`, `Select.SetMarker`,
+  `BarChart.SetData`, `Meter.SetShowValue`, `ProgressBar.SetLabel`/`SetLabelSpans`/
+  `SetPercentage`, `Sparkline.SetValues`, and `Split.Spacing` via direct
+  assignment. Each now drops the cached derivation, and each has a regression
+  test that fails without the fix.
+
+### Added
+
+- **A cache-audit mode**, specified as ADR 0007 §3's deferred "expensive half":
+  it corrupts a widget's cached derivation after a `Draw` and asserts the next
+  frame is byte-identical, so this defect class is caught mechanically instead of
+  by review. Two mechanisms, because one provably does not catch the class — the
+  poison check in `render`, and a cold-twin comparison in `widgettest`. Opt-in via
+  `render.Config.CacheAudit`, and **zero-allocation when disabled**, pinned by
+  `TestRenderIsAllocationFreeWithCacheAuditDisabled`.
+- **`widgets/cacheaudit`** now **fails the build** when a widget in the catalog
+  is flagged. It runs on every push and pull request on all three platforms via
+  the existing `go test ./... -race` job.
+
+### Known Limitations
+
+- The cache-audit gate covers the transitions it names. Other exported raw fields
+  remain — `Select.Marker`, `Gauge.ShowValue`, `BarChart.ShowValue`/`Vertical`/
+  `Data`, `Sparkline.Values`/`Braille`, `TextInput.Placeholder`,
+  `Checkbox.TriState`, and the `Scrollbar`/`Header` fields on `List`/`Table`/
+  `Tree`. None produced a finding, so none is a confirmed defect, and they are the
+  same shape. The gate does not cover them because no transition names them.
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+
 ## [0.4.1] — 2026-10-05
 
 A patch release, and the reason is the only change in it: **the `golang.org/x/term`
@@ -739,6 +929,9 @@ Two performance claims that this release turns from assertion into measurement:
   **60 cursor moves and 19,443 bytes, 3.12× the narrow frame** rather than 11×.
   The ASCII path is unchanged. See ADR 0008's amendment, finding 4.
 
+[0.5.2]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.2
+[0.5.1]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.1
+[0.5.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.0
 [0.4.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.4.0
 [0.3.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.3.0
 [0.2.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.2.0
