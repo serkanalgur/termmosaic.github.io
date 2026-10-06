@@ -83,19 +83,22 @@ capture sits beside every colour capture. See
 
 ## So how do I see a widget work?
 
-**Run it.** Three programs exist today, and both of the flagship ones are driven
+**Run it.** Four programs exist today, and the three that matter are driven
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results, real Wikipedia data
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
-from CoinGecko) and takes `--offline` to run on bundled sample data instead. Press
-`?` in either for its key list.
+from CoinGecko) and takes `--offline` to run on bundled sample data instead.
+`search` queries Wikipedia's own API — no key, no signup — and takes `--offline`
+to run on a transcribed capture; it is **the first example with a focusable
+widget in the focus ring**. Press `?` in any of them for its key list.
 
-> **A third program, `examples/dashboard`, still exists and overlaps `markets`.**
+> **A fourth program, `examples/dashboard`, still exists and overlaps `markets`.**
 > Whether to keep it or retire it is **undecided**, so this site points new
 > readers at `markets` and does not recommend both. It has not been removed.
 
@@ -238,16 +241,21 @@ the only reason to trust either.
 
 ## Is there a command palette?
 
-**No, and the thing that would provide one is specified but not built.**
+**No — but the layer a palette needs shipped in v0.6.0, so the gap is now the
+UI rather than the data.**
 [ADR 0009](/adr/0009-command-and-keymap/) specifies a command and keymap layer —
-a named action reachable by more than one key — and it is accepted. **No `keymap`
-package exists yet and there is no command palette.** `keymap` was targeted at
-v0.4.0, and **both v0.3.0 and v0.4.0 shipped on 2026-10-05 without it**, so
-there is no version it is currently scheduled for.
+a named action reachable by more than one key — and **the `keymap` package is
+built**: `Dispatch` resolves by context specificity (focus, then screen, then
+global, with no numeric priority) at 0 allocs/op, and `Describe` /
+`DescribeGrouped` give you the rows a palette renders. `Widget`, `Event`, `Key`
+and `Mouse` are unchanged, so adopting it is opt-in and breaks nothing.
 
-Until it lands, **widgets dispatch their own keys.** The practical consequence is
-that an application writes its own key routing, which is what both examples do.
-See [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
+**There is no `Ctrl+K` palette widget**, because ADR 0009 §9 puts it in scope and
+explicitly not in that ADR. `examples/hello` and `examples/search` render hint
+lines from the registry today, which is most of what a palette does at smaller
+size. `examples/markets` and `examples/dashboard` still dispatch by their own
+`switch`. See
+[Limitations](/limitations/#there-is-still-no-command-palette).
 
 ## Does the mouse work?
 

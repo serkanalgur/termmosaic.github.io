@@ -13,23 +13,121 @@ widgets that comparable Go TUIs do not ship.
 
 > **TermMosaic is pre-alpha. The public API is not stable and will break
 > without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.5.2**. Read [Limitations](/limitations/) before you rely on any of it —
+> **v0.7.0**. Read [Limitations](/limitations/) before you rely on any of it —
 > the honest list is short, specific, and load-bearing.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.5.2
+go get github.com/serkanalgur/termmosaic@v0.7.0
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0
 ```
+
+## What's new in v0.7.0
+
+A minor bump, and the reason is a fourth example: **[`examples/search`](/getting-started/install/)** —
+search and results on **real Wikipedia data**, no API key and nothing to sign
+up for. A `form.TextInput` query field, a `data.Table` of results, and a detail
+pane fed by the article-summary endpoint. `--offline` runs the whole screen on a
+transcribed capture, so it needs no network at all.
+
+- **It is the first example with a focusable widget in the focus ring**, and that
+  is what makes it worth reading rather than just running. `hello` and `markets`
+  compose screens out of widgets that hold no keyboard focus — their focus ring is
+  an integer the screen owns. Here `TextInput` and `Table` both implement
+  `Focusable` and both have key contracts of their own, so this is the first
+  place the catalog and `keymap` meet under real conditions.
+- **`Table` over `List`, deliberately.** Word counts span two orders of magnitude,
+  and a right-aligned fixed column lets the eye find the longest article by
+  shape; a `List` renders one string per item and would have had the spacing
+  built in by hand.
+- **Nine golden files and 74 tests**, all asserting on **cells** through the
+  headless harness. No escape-sequence assertion anywhere.
+- **No capture on this site moved**, and that is expected: the search example is
+  not in the widget catalog, so no widget's rendering changed.
+
+**Two findings worth knowing if you build a screen with real focus:**
+context-dependence is expressed with `Command.Enabled` rather than `ScopeFocus`
+(no catalog widget implements `Commandable`, so a focus-scoped binding would mean
+the *application* declaring keys on a widget's behalf); and because
+`Registry.SetFocus` still does not exist, `Describe(ScopeFocus)` is
+**over-inclusive rather than incomplete** — fine for a help screen, wrong for a
+hint line. Both are in full on the [Limitations](/limitations/) page.
+
+## What's new in v0.6.1
+
+A minor bump, and the reason is that the first application to actually use
+`keymap` found a shape the specification had not considered.
+
+- **`keymap.Registry.DescribeGrouped(scope)`** — one `Entry` per **command**,
+  carrying every chord in scope for it. `Describe` stays one per **chord**, which
+  is what ADR 0009 §9 specifies for a command palette, where a row consumes
+  `Chords[0]`. The difference is the consumer: `form.KeyHint.SetEntries` joins an
+  entry's chords into one label, so a hint line fed `Describe` printed a
+  three-chord command's description **three times**. `examples/hello` worked
+  around it with its own merge; that is now a framework function.
+- **`examples/hello` dispatches through `keymap`** — six commands, twelve chords,
+  and both the pinned hint line and the `?` overlay render from the registry. A
+  binding and its description are written **once**; the hand-written hint string
+  and the test that checked it against `Handle` are both gone. This retires risk
+  5 of ADR 0009.
+
+**Two visible consequences, if you took `hello` as near-enough-correct.** The
+pinned hint line's **text changed** — it now reads
+`[Q q Esc Ctrl+c] quit  ·  [?] toggle the keys` — and the `?` help overlay **went
+from two rows to three**, because `Describe` spells every chord in full rather
+than saying "arrows". The key contract did not otherwise change: same keys, same
+behaviour, and `Widget.Handle` claims nothing.
+
+## What's new in v0.6.0
+
+A minor bump, and the reason is the longest-deferred item in the project:
+**[`keymap`](/adr/0009-command-and-keymap/) shipped**, after slipping v0.3.0 and
+v0.4.0.
+
+**If you are on v0.5.x, the upgrade is additive. `Widget`, `Event`, `Key` and
+`Mouse` are unchanged, and `Widget.Handle`'s interface is byte-identical — only
+its doc comment changed, to state that events reach a widget after your keymap has
+declined them.** There is no migration to perform, and a program that never
+touches `keymap` behaves exactly as before.
+
+- **Named commands, and a key is one way to invoke one.** A new package holding
+  `Command`, `CommandID`, `Binding`, `Entry`, `Ctx` and a 16-byte comparable
+  `Chord`, with `ParseChord`/`ChordOf` as the single notation function in both
+  directions.
+- **Resolution by context specificity: focus, then screen, then global, with no
+  numeric priority.** `Dispatch` walks a pre-built candidate slice in rank order,
+  which is what lets both `Enabled` and `Run` decline and fall through. Ties break
+  on registration order.
+- **`Dispatch` is 0 allocs/op on every event kind**, measured and pinned across
+  all eleven paths in ADR 0009 §2's table — miss, match, `Enabled` nil,
+  `Enabled` non-nil, `Run` declining, paste, resize and each mouse case. 91 ns/op
+  for a hit, 29.5 ns/op for a miss, both zero-alloc.
+- **`Describe` as the single source of discoverability data**, plus `Chords`, and
+  `KeyHint.SetEntries` so help renders from the registry rather than from a
+  hand-maintained second list.
+- **ADR 0009 gained five corrections** where its code did not compile or
+  contradicted itself. The two worth naming: `Ctx` is **152 bytes, not the 128**
+  the prose claimed, pinned by a test with the arithmetic in the comment; and the
+  precedence table contradicted itself on overrides, where **specificity wins and
+  an override is the within-scope tiebreak** — the only reading under which a
+  user's global `Esc` does not steal a dialog's.
+
+**What this release does not do, plainly: there is no palette.** ADR 0009 §9 puts
+a `Ctrl+K` palette in scope and explicitly not in that ADR. There is also **no
+catalog widget implementing the optional `Commandable` or `Clickable`**, and a
+key the keymap consumes shadows a widget's own `switch` **without the registry
+being able to report it** — it is told a widget's bounds and published chords,
+never what its `Handle` does. The full list is on
+[Limitations](/limitations/#v060-keymap--a-new-package-and-nothing-you-wrote-breaks).
 
 ## What's new in v0.5.2
 
 A minor bump, and the reason is a decision with a number attached:
-**[ADR 0010](/adr/0010-mouse-routing.md) settles who receives a mouse event** —
+**[ADR 0010](/adr/0010-mouse-routing/) settles who receives a mouse event** —
 and the answer exposed three widgets that were getting it wrong.
 
 - **`form.Tabs`, `form.Select` and `form.Radio` consumed a wheel notch regardless
@@ -242,7 +340,8 @@ your app updated the screen from `Post`, it was almost certainly frozen.
   wheel and click, pause, and a help overlay.
 - **[ADR 0009](/adr/0009-command-and-keymap/)** — the command and keymap layer.
   **Specified, not implemented**: there is no `keymap` package and no command
-  palette yet, and widgets still dispatch their own keys.
+  palette yet, and widgets still dispatch their own keys. *(Accurate as of
+  v0.2.0. The package shipped in v0.6.0; the palette still does not exist.)*
 
 **Changed**
 
@@ -314,6 +413,19 @@ It is also what it is, and the limits are not closable:
 Full statement: [Captures are cell grids, not terminal
 screenshots](/limitations/#captures-are-cell-grids-not-terminal-screenshots).
 
+## The four examples
+
+Every one runs with `go run github.com/serkanalgur/termmosaic/examples/<name>`.
+**All four are keyboard- and mouse-driven**, and all four take `--offline` where
+they have a network path.
+
+| Example | What it demonstrates |
+|---|---|
+| **`markets`** | A real dashboard: three reflowing bands, live ECB FX from Frankfurter and crypto from CoinGecko, **no API key**, a two-entry focus ring and per-panel key routing. [Walkthrough](/guides/dashboards/) |
+| **`hello`** | The smallest complete program: a bordered panel that survives a resize, a focus ring, and a `?` help overlay — now both rendered from a `keymap` registry rather than hand-written strings. |
+| **`search`** | Search and results on **real Wikipedia data, no API key**: a `TextInput` query field, a `Table` of results and a detail pane. **The first example with a focusable widget in the focus ring**, which is why it is the one to read if you want the catalog and `keymap` to meet under real conditions. |
+| **`dashboard`** | An older program that **overlaps `markets` heavily.** Whether to keep it or retire it is undecided, so this site points new readers at `markets` and does not present the two as equally recommended. It has not been removed. |
+
 ## The 24 widgets
 
 | Group | Widgets |
@@ -364,11 +476,13 @@ build a real dashboard on is a toy, however elegant its renderer.
 
 ## Honest status, in one paragraph
 
-The renderer, the input layer, the layout solver and the full 24-widget catalog
-are built and tested: 26 packages, 1,041 top-level test functions, a zero-allocation frame
+The renderer, the input layer, the layout solver, the full 24-widget catalog and
+the `keymap` package are built and tested: 26 packages, 1,041 top-level test functions, a zero-allocation frame
 path. Alongside that: **Windows is a stub that returns a loud error from every
-console operation**, **the `keymap` layer is specified but not built — there is no
-command palette**, there is **no IME or preedit**, **tmux DCS passthrough is
+console operation**, **there is still no command palette**, **no catalog widget
+implements the optional `Commandable`/`Clickable`**, **a key the keymap consumes
+shadows a widget's own `switch` and the registry cannot report it**, there is
+**no IME or preedit**, **tmux DCS passthrough is
 missing**, **`TextArea` has no rendered selection**, the **colour quantiser is
 unvalidated**, and **there is no theme** — by decision, argued in
 [ADR 0008](/adr/0008-style-and-text/), not by omission. Everything in that list

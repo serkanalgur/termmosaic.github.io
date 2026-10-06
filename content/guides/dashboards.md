@@ -13,8 +13,8 @@ which is a real screen — a live finance dashboard — composed entirely from t
 catalog.
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, space pauses
@@ -169,13 +169,14 @@ a form never falls through to the next field because the reader pressed space at
 the end of a list. It is the same rule `form.Select` applies internally, and it is
 what stops `?` reaching the table as a stray rune.
 
-> **This is the thing ADR 0009 exists to replace, and it does not exist yet.**
-> The command and keymap layer is **specified and not implemented** — there is no
-> `keymap` package and no command palette, and widgets still dispatch their own
-> keys. So the routing above is what you write today, by hand. `keymap` was
-> targeted at v0.4.0 — and **both v0.3.0 and v0.4.0 shipped on 2026-10-05
-> without it**, so there is no version it is currently scheduled for. See
-> [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
+> **This is the thing ADR 0009 exists to replace, and this example is the one
+> that has not been converted.** The `keymap` layer **shipped in v0.6.0** — but
+> `examples/markets` still dispatches by its own `switch`, so the routing above is
+> what you write by hand here. `examples/hello` and `examples/search` have been
+> converted; see their source for what the registry version of the above looks
+> like. There is still **no command palette**, and a key the keymap consumes
+> shadows a widget's own `switch` without the registry being able to report it.
+> See [Limitations](/limitations/#v060-keymap--a-new-package-and-nothing-you-wrote-breaks).
 
 ## The mouse, and one routing decision worth stealing
 
@@ -261,7 +262,7 @@ is the other thing a still frame cannot do.
 - **That the network behaves.** The golden tests render `--offline` precisely so
   a network failure can never be mistaken for a rendering failure.
 - **A command palette.** There isn't one to show; see
-  [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
+  [Limitations](/limitations/#there-is-still-no-command-palette).
 
 ## Building your own
 

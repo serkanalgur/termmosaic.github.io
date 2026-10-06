@@ -281,7 +281,9 @@ type Command struct {
 
 // Ctx is what a command handler is given.
 //
-// It is passed BY VALUE and is 128 bytes. On a path that runs at most a few
+// It is passed BY VALUE and is 128 bytes — see amendment 1: the shipped size
+// is 152, pinned by TestCtxIsOneHundredFiftyTwoBytes.
+// On a path that runs at most a few
 // hundred times per second, against ADR 0002's 16 ms frame budget, that is the
 // same trade ADR 0005 §8 made for the 112-byte Event: the zero-allocation bar
 // is about not allocating, not about struct copies. Passing *Ctx would put an
@@ -1269,6 +1271,22 @@ job, which is why the palette and help consume `Entry` and never `Binding`.
    both. Trigger: the first application that does. The fix, if it bites, is
    `Warnings()` reporting a chord that is both bound and handled by an attached
    widget, **not** a `Widget` change.
+   **Partly observed, and the observed half is the narrow one.** Two of four
+   example programs now dispatch through a registry, and `examples/search` is the
+   first with a **focusable** widget in a focus ring — a `TextInput` and a `Table`,
+   with `Tab`/`Backtab` moving between them. So the two mechanisms are now in the
+   same application, which is the trigger having fired. What it has *not* shown is
+   the failure this risk is about: `search` uses `Command.Enabled` for every
+   context-dependent binding and declines to bind a single chord a focused widget
+   wants — `Home`/`End` are left to the widgets precisely because a
+   `ScopeScreen` binding outranks both — so its `Handle` and its bindings never
+   compete for the same key, and
+   `TestNoScreenBindingStealsAFocusedWidgetsKey` pins that. It has established
+   that an application *can* mix them safely by construction; it has not observed
+   what happens when one is built without that discipline. `Registry.SetFocus`
+   remains deferred, and `search`'s workaround — tracking focus itself and
+   filtering its hint on `km.Has` — depends on nothing that closure would
+   provide. The risk stays open, and so does `Warnings()`.
 2. **`Chord` normalisation has never been run against a matrix of terminals.**
    Every folding rule in §3 is derived from [ADR 0005](0005-input-decoding.md)
    and `input`'s own tests, none of which have met a real tty — the risk ADR 0005
@@ -1289,7 +1307,219 @@ job, which is why the palette and help consume `Entry` and never `Binding`.
    example uses it yet. Trigger: the first `examples/` change that wants a hint
    line to agree with a binding; that example is the honest test of `Describe`'s
    sorting and of whether `Entry.Chords` as one-row-per-chord is the right shape.
+   **Triggered, and the answer to its own question is NO — one-row-per-chord is
+   the wrong shape for a hint line.** See the second 2026-10-05 amendment at the
+   end of this document. The trigger's other half, no catalog widget
+   implementing `Commandable`, is **still open** and still deferred by §8.
+   **The wrong shape was wrong twice, in the same way, in a second application.**
+   `examples/search` also wanted its hint line to agree with its bindings, and
+   `KeyHint.SetEntries` is now called by **two** example programs
+   (`examples/hello/main.go`, `examples/search/search.go`), both through
+   `DescribeGrouped`. What the two together establish is stronger than the first
+   did alone, and stronger than "the interfaces are unused": an application can
+   have a **fully registry-derived key contract** — every chord, every command,
+   and every hint row written in one place — with `Commandable` unimplemented and
+   unimplemented-by-choice, because `Enabled` is a property of the command rather
+   than of a widget. That is a materially better answer to this risk than the
+   interface simply having no users: the widget-participation design is no longer
+   carrying the discoverability story on its own, so §8's deferral is not
+   blocking. `Clickable` remains unused. What is still missing here is
+   `Registry.SetFocus` (deferred to v1.1), which `search` works around — see the
+   2026-10-05 amendment below.
 6. **The palette's requirements on `Menu` and `Dialog` are stated here and
    implemented there.** If either ships without them, the mismatch is discovered
    at integration rather than here. Trigger: the palette's own PR, which is where
    §9's table must be checked line by line.
+## Amendment 2026-10-05 — implemented, and five places the prose was wrong
+
+The `keymap` package was built in v0.6.0. Building it turned up five points
+where this ADR's prose contradicted the code it specified. All five were found
+while writing the implementation, reported rather than worked around, and fixed
+at the source. Original reasoning is preserved above; this section records what
+changed and why. The spec and its errata are deliberately in one document, so
+the next reader sees both.
+
+**1. `Commandable` and `Clickable` live in `keymap`, not in `widget.go`.** §1's
+file map and §"Forced changes to existing code" both put them in the root
+package beside `Focusable` and `Minimizable`, which is where they read most
+naturally. That is the one arrangement §1's own import-cycle rule forbids: a
+root-package interface named for the keymap cannot name `keymap.Ctx` — or
+`keymap.Scope`, or `keymap.Chord` — without the root package importing the
+package that imports it. The two interfaces are therefore declared in
+`keymap/participation.go`. The consequence for an adopter is nil: a widget
+declares `var _ keymap.Commandable = (*MyWidget)(nil)` and the cycle never
+appears in their code. What the root package keeps is its unchanged `Widget`.
+
+**2. `Ctx` is 152 bytes, not 128.** The field list above — `Event` (ADR 0005's
+112 bytes), `Chord` (16), `Focus` (16), `Synthesised` (bool) — sums to 145, and
+Go pads the struct to the 8-byte alignment its largest field requires: 152. The
+prose figure was an estimate written before the fields were fixed, and it was
+optimistic. `TestCtxIsOneHundredFiftyTwoBytes` pins the real size. The argument
+it supports is unaffected: this is a value on a path that runs at most a few
+hundred times per second, and the property that matters is **0 allocations**,
+which `TestDispatchIsZeroAllocation` pins. Passing `*Ctx` would put an escaping
+pointer on that path and turn a stack copy into a heap object per keystroke,
+which is the reason the ADR gives for by-value in the first place.
+
+**3. §2.1's precedence table contradicted itself about overrides, and
+specificity wins.** The table's rank 1 reads "**User override**, any scope" and
+says it "outranks a default *in the same scope*", then goes on to claim a
+`ScopeScreen` override outranks a `ScopeGlobal` default. Those two statements
+describe two different rules: the first is rank-above-everything-within-a-scope,
+the second is specificity-first. Under the first reading, a global `Bind` of
+`Esc` would outrank the dialog's own `Esc` — which is the exact failure the very
+next paragraph argues against. The shipped rule resolves the contradiction the
+way the paragraph does: **scope specificity orders candidates first, and an
+override is the within-scope tiebreak.** So a user's `app.cancel` on `Esc` wins
+in `ScopeGlobal`, and a screen's `Esc` still wins over it. The paragraph was
+right and the row was wrong.
+
+**4. §3's notation table and §3's normalisation disagreed about `Ctrl+k` versus
+`Ctrl+K`.** The notation prose says modifier names are matched
+**case-insensitively**, "which is what makes `ctrl+k` and `Ctrl+K` the same
+binding" — while the written-form table lists only `Ctrl+K` and its canonical
+form, leaving the reader to guess. They are **two distinct chords**, and
+`ParseChord` accepts either spelling. The case is the *key*, not the modifier:
+the terminal reports `Shift+k` as `ModShift` plus the rune `K`, which is a
+different `Chord` from `Ctrl` plus the rune `k`, and folding them would make a
+documented binding unreachable on the terminal that produces it. Modifier names
+themselves (`ctrl`, `Ctrl`, `CTRL`) are case-insensitive on parse and emitted
+capitalised. The table now says so where a reader will look.
+
+**5. `Entry.Chords` has length 1 in `Describe` output, not "every chord bound to
+this command".** §4 describes `Chords` as "the chords currently bound to `id` in
+scope, in canonical order", which reads as a slice that can hold several. What
+ships is **one `Entry` per chord**: `Describe` walks the resolved binding table
+and emits a separate row for each chord, each with a single-element `Chords`.
+That shape is what §9's palette wants — "a palette row is `Entry.Desc` plus
+`Chords[0]`" — and it is what makes a per-chord help row impossible to
+mis-read, at the cost of a command with three bindings producing three rows
+rather than one row with three chords. Both are defensible; the shipped one is
+pinned by `keymap/describe_test.go`. The field's type stays `[]Chord` because
+that is what a `KeyHint` row and a palette row both consume.
+
+## Amendment 2026-10-05 — risk 5 is triggered, and it is a NO
+
+The first amendment above ended with erratum 5, which recorded that `Describe`
+emits one `Entry` per **chord** and defended that shape as the right one for a
+palette. This one closes risk 5, the last of the six, and the trigger it named
+has now fired: `examples/hello` is the first change that wanted a hint line to
+agree with a binding. It dispatches through a real `keymap.Registry` — six
+commands, twelve chords — and renders both its pinned hint line and its `?`
+overlay from the registry through `KeyHint.SetEntries`.
+
+**The honest answer to risk 5's own question is no: `Entry.Chords` as
+one-row-per-chord is the wrong shape for a hint line.** Not wrong in principle
+and wrong only for palettes — wrong for *hints*, specifically and for a reason
+that is visible in one line of a terminal. `SetEntries` joins an entry's chords
+into **one** label, so handing it `Describe`'s output renders a command with
+three chords as the same description **three times**. That is not a hint, it is
+three rows of noise in a line with room for one. `examples/hello` worked around
+it with a thirteen-line merge of its own before this amendment existed; the
+workaround is now a framework function and is deleted.
+
+**The consequence is a second query rather than a change to the first.**
+`Registry.DescribeGrouped(scope)` returns one `Entry` per **command**, carrying
+every chord in scope for it in canonical order. `Describe` is unchanged and
+remains one row per chord, which is what §9 specifies for a palette — "a palette
+row is `Entry.Desc` plus `Chords[0]`" — and what a help screen wants, because one
+row per chord is easier to scan. A two-function API is the price of two genuinely
+different consumers, and a hint and a palette are genuinely different consumers.
+The two are kept honest by construction rather than by convention: both are
+views of one internal `describeRows`, so they cannot disagree about which
+bindings are in scope, about the order, or about which description a binding
+overrides. `DescribeGrouped` merges `Describe`'s already-sorted rows rather than
+re-sorting, so its entry order and chord order cannot drift from `Describe`'s
+either.
+
+Two rows of `DescribeGrouped` are specified rather than incidental, and both
+are the hint half of the difference. **`Chords` is never empty**: a command
+bound in no scope is *absent* rather than present with no chords, because a row
+with an empty key column renders as a bare description with nothing to press,
+and a hint whose entries are mostly bare descriptions has stopped being a hint.
+`Describe` keeps those rows — a palette-only or mouse-only command must stay
+describable, and a key-only help screen that hid it would be wrong. And **entry
+order matches `Describe`'s command order exactly**, so a hint's rows are stable
+across runs and diffable across versions.
+
+`examples/hello` is what the discoverability story is now tested against, and
+the visible consequences are recorded here because they are what a reader of the
+golden files will notice. The pinned hint reads
+`[Q q Esc Ctrl+c] quit  ·  [?] toggle the keys`, where it read
+`press q to quit  ·  ? keys  ·  arrows move focus`; the navigation is gone from
+the one-line hint because a merged row per navigation command is wider than the
+line, and a hint that truncates a binding label tells the reader less than a
+hint naming the two keys they need first. The help overlay went from **two rows
+to three**, because a derived help spells every chord in full where the prose
+help it replaced said "arrows". Seventeen golden files moved, one row each. The
+hand-written hint string and the test that checked it against `Handle` are both
+deleted: a binding and its description are now written **once**.
+
+**What risk 5 does not close.** Two items survive it, and both are named here
+rather than left to be rediscovered.
+
+**No catalog widget implements `Commandable`, and still none implements
+`Clickable`.** Verified: `grep -rn 'Commandable' widgets/` returns nothing. The
+example that triggered this trigger is an *application* opting in, which is not
+the same thing as a widget contributing its own bindings, so §8's deferral is
+untouched and `examples/hello` deliberately does not implement either — its
+facts are cells it draws, not widgets with bindings of their own.
+
+**`Registry` has no `SetFocus`, so `Describe(ScopeFocus)` is incomplete before
+the first dispatch.** The registry learns what is focused only from the `focus`
+argument `Dispatch` is handed, so a focus-level query asked before anything has
+been dispatched answers as though nothing holds focus. That is not a
+correctness bug for a palette — a palette asks `ScopeGlobal`, and the ADR's §2.1
+specificity order is what makes a focused widget's own keys win over a global
+one anyway. It is a gap for the question §4 actually asks, "what can I do right
+now": an application with real focusable widgets cannot yet ask it. Adding
+`SetFocus` is new API on a shipped type, so it is **deferred to v1.1**.
+`examples/hello` sidesteps it rather than depending on it — its navigation is at
+`ScopeScreen`, which is also the scope that degrades correctly: a focused child
+added later binds its own arrows at `ScopeFocus` and outranks them by
+specificity, with no change to the example.
+
+## Amendment 2026-10-05 — `examples/search`: `SetFocus` is evidence, not a hypothetical
+
+The second amendment above recorded that `Registry.SetFocus` is **deferred to
+v1.1**, on the reasoning that an application with real focusable widgets cannot
+ask "what can I do right now". That reasoning was sound and it was untested.
+`examples/search` is the application that tests it, and it is the first example
+with a `Focusable` widget in a focus ring — `form.TextInput` and `data.Table`,
+moved with `Tab`/`Backtab`, drawn as a visible ring. It reached three findings,
+and none of them closes the deferral.
+
+**A deferral reasoned from "no application needs this yet" is now a deferral
+reasoned from an application that wanted it and could not have it.** `search`
+tracks focus itself and filters its hint on `km.Has` — "registered and currently
+available" — because `Has` is the only predicate that consults the same liveness
+`Dispatch` does. The query an application makes when focus changes is exactly the
+one the registry cannot answer. That is stronger evidence for the v1.1 item than
+the argument that preceded it, and it is also why the item stays open: the
+workaround is eight lines an application has to write correctly on its own.
+
+**`Describe(ScopeFocus)` is not incomplete — it is over-inclusive.** `inScope`
+returns true on an exact-scope match without consulting liveness at all, so a
+focus-scoped query answers "these bindings are in scope" for a binding whose
+command is currently disabled. Applied to a hint, that advertises the *field's*
+arrow bindings on a screen where the *table* has focus and those arrows move a
+selection: a hint wrong in exactly the pane the reader is looking at. `search`
+reaches for neither `ScopeFocus` nor the question, and says so in its own source.
+
+**Context-dependence does not need a fourth scope.** Every binding in `search` is
+`ScopeScreen` or `ScopeGlobal`, and every context-dependent one is gated with
+`Command.Enabled` — which `dispatchChord` skips, reporting the event unconsumed,
+so the tree gets it. That is the framework's own fallthrough, it is exact, and it
+has a consequence worth recording against risk 1: because a screen-scoped
+binding outranks a focused child, the shape is only safe if the application
+declines to bind chords its focusable widgets want. `search` leaves `Home`/`End`
+to the widgets and binds the ring's ends to `Ctrl+Home`/`Ctrl+End` instead. The
+overlap is now demonstrated as *avoidable by discipline*; it is still not
+demonstrated as *handled by the framework*, and `Warnings()` is still the fix if
+it is not.
+
+**`SetEntries` has two consumers now, not one.** `examples/hello` and
+`examples/search` both build their `KeyHint` from `DescribeGrouped`, and the
+answer to risk 5 was the same both times — one `Entry` per chord renders a
+multi-chord command's description once per chord. No catalog widget implements
+`Commandable` or `Clickable`, and §8's deferral of the first is unchanged.

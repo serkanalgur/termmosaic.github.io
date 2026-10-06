@@ -1,6 +1,6 @@
 {
   "tool": "cmd/capture",
-  "version": "0.5.2",
+  "version": "0.7.0",
   "widths": [
     40,
     80,

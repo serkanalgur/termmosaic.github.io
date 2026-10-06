@@ -34,16 +34,26 @@ and lists what does not work.
 ## The examples
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard, no API key
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # bordered panel, focus ring, ? help
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard, no API key
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # bordered panel, focus ring, ? help
+go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results on real Wikipedia data
 ```
 
-`markets` is the more useful of the two to read: it is a real screen built out of
-the catalog, fed by real network data, and [Dashboards](/guides/dashboards/) walks
-through how. It takes `--offline` to run on bundled sample data if you have no
-network.
+`markets` is the more useful of the first two to read: it is a real screen built
+out of the catalog, fed by real network data, and
+[Dashboards](/guides/dashboards/) walks through how. It takes `--offline` to run
+on bundled sample data if you have no network.
 
-**Both are keyboard- and mouse-driven.** Press `?` in either for its key list.
+`search` is the fourth and newest. It searches **real Wikipedia data** with no
+API key and nothing to sign up for, and takes `--offline` to run on a
+transcribed capture. **It is the first example with a focusable widget in the
+focus ring** — `form.TextInput` and `data.Table` both actually hold focus — so
+it is the one to read if you want to see the widget catalog and the
+[`keymap`](/adr/0009-command-and-keymap/) layer meeting under real conditions
+rather than proving each on its own.
+
+**All three are keyboard- and mouse-driven.** Press `?` in any of them for its
+key list.
 
 > `examples/dashboard` also still exists and overlaps `markets`. Whether to keep
 > it or retire it is **undecided** — start with `markets`.

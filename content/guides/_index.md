@@ -25,15 +25,19 @@ working out how to build something.
 
 ## A note on examples
 
-There are three runnable programs today. The two to start with:
+There are four runnable programs today. The three to start with:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2     # bordered panel, focus ring
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # bordered panel, focus ring
+go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results, real Wikipedia data
 ```
 
-`markets` needs no API key and takes `--offline` for bundled sample data. Both are
-keyboard- and mouse-driven; press `?` in either for its key list.
+`markets` needs no API key and takes `--offline` for bundled sample data.
+`search` also needs no API key, also takes `--offline`, and is **the first
+example with a focusable widget in the ring** — the one to read when you want to
+see the key contract under real focus rather than a screen-owned integer. All
+three are keyboard- and mouse-driven; press `?` in any of them for its key list.
 
 > `examples/dashboard` also still exists and **overlaps `markets`**. Whether to
 > keep it or retire it is **undecided**, so the guides point at `markets` and do
