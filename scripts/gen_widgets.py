@@ -450,7 +450,7 @@ def render_index(manifest: dict, prose: dict) -> str:
         "draw *into*, not a widget.",
         "",
         "`widgets/form/optionlist.go` is an unexported shared helper behind `Select`, `Tabs` and `KeyHint`; it is "
-        "not a twenty-third widget.",
+        "not a twenty-fifth widget.",
         "",
         "> There is no `Form` container widget. A `Form` type would have been a second way to do what "
         "[ADR 0004](/adr/0004-layout-engine/)'s constraint solver and the `layout` package already do, so it was "

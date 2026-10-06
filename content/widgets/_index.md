@@ -6,7 +6,7 @@ description: "All 24 widgets, with a captured frame at three widths for each."
 
 TermMosaic ships **24 widgets**. That number is the whole claim and it is counted, not estimated: it is every exported type with a `New…` constructor that satisfies `termmosaic.Widget`, and `buffer.Buffer` is deliberately not on the list because it is what widgets draw *into*, not a widget.
 
-`widgets/form/optionlist.go` is an unexported shared helper behind `Select`, `Tabs` and `KeyHint`; it is not a twenty-third widget.
+`widgets/form/optionlist.go` is an unexported shared helper behind `Select`, `Tabs` and `KeyHint`; it is not a twenty-fifth widget.
 
 > There is no `Form` container widget. A `Form` type would have been a second way to do what [ADR 0004](/adr/0004-layout-engine/)'s constraint solver and the `layout` package already do, so it was not built. See [Forms](/guides/forms/) for how the form widgets compose.
 

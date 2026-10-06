@@ -18,10 +18,10 @@ weight: 11
 
 ## Get it
 
-TermMosaic v0.7.0 is tagged and released, so pin the version:
+TermMosaic v1.0.0 is tagged and released, so pin the version:
 
 ```
-go get github.com/serkanalgur/termmosaic@v0.7.0
+go get github.com/serkanalgur/termmosaic@v1.0.0
 ```
 
 **Prefer to work from a checkout?** That works too, and it is how the framework's
@@ -37,7 +37,7 @@ go test ./...
 ## Check that it built
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0
+go run github.com/serkanalgur/termmosaic/examples/hello@v1.0.0
 ```
 
 You should get a bordered panel titled `termmosaic` showing a live frame counter,
@@ -54,7 +54,7 @@ with `go test ./examples/hello/`.
 Then try the more useful one:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0
 ```
 
 That is a live finance dashboard — ECB rates from Frankfurter, crypto from
@@ -63,7 +63,7 @@ goroutine and needs outbound HTTPS. If you have no network, or want a
 deterministic run, use `--offline`:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, and the wheel
@@ -72,7 +72,7 @@ and mouse work on the panels.
 Then the newest one:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0
+go run github.com/serkanalgur/termmosaic/examples/search@v1.0.0
 ```
 
 That is a search-and-results screen on **real Wikipedia data** — no API key,
@@ -88,12 +88,13 @@ one to read: everything else proves a widget draws and a screen routes keys.
 Windows backend is a stub that returns a loud error from every console
 operation — it will not silently draw nonsense, it will tell you it cannot.
 
-This is deliberate in shape and unfinished in fact. Committing to owning the
-terminal layer (ADR 0001) means Windows console mode flags are TermMosaic's
-problem rather than a library's. The packaging half of that risk is closed:
-cross-compilation to `windows/amd64` and `windows/arm64` is verified in CI. The
-runtime half — an actual console backend — is open, and `docs/STATUS.md` records
-it as a v1.0 risk.
+This is deliberate, and at v1.0.0 it is decided rather than merely unfinished:
+**Windows is out of scope for v1.0.0** (ADR 0001, platform decision recorded
+2026-10-05). Committing to owning the terminal layer means Windows console mode
+flags are TermMosaic's problem rather than a library's. The packaging half is
+closed: cross-compilation to `windows/amd64` and `windows/arm64` is still
+verified in CI. The runtime half — an actual console backend — is not built and
+is not promised for any particular release.
 
 ## Under tmux or GNU screen
 
@@ -102,21 +103,29 @@ TermMosaic program can lose key and mouse reporting, because the sequences
 TermMosaic emits are not wrapped for the multiplexer.
 
 This is deferred with a stated trigger — any tmux user reporting broken keys or
-mouse, or v1.0, whichever comes first. It is a real gap, not a caveat: if you
-develop under tmux, test in a plain terminal before concluding the library is
-broken. See [ADR 0005 §10](/adr/0005-input-decoding/) and
+mouse, or v1.0, whichever comes first. **The v1.0 half of that trigger has
+arrived and the gap remains** — still deferred, still real. It is not a caveat:
+if you develop under tmux, test in a plain terminal before concluding the
+library is broken. See [ADR 0005 §10](/adr/0005-input-decoding/) and
 [Limitations](/limitations/#platform).
 
 ## What "released" means here
 
-- **v0.7.0 is tagged and the module resolves.** `go get …@v0.7.0` works.
-- **The API is not stable.** Every release before v1.0.0 is a pre-release, and a
-  minor version **may contain behavioural changes**. What is promised: **no
-  behavioural change in a patch release.** If v0.1.1 changes behaviour, that is a
-  bug in the release, not policy.
-- **Anything marked PROPOSED may change or be reversed.** The colour model is
-  PROPOSED — built and working, but its 256- and 16-colour rungs have never been
-  checked by a human eye.
+- **v1.0.0 is tagged and the module resolves.** `go get …@v1.0.0` works.
+- **v1.0.0 is the first release that makes a stability promise.** The public API
+  freezes there and Semantic Versioning applies in earnest: a behaviour change
+  means a minor, not a quiet patch. Every release before v1.0.0 was a
+  pre-release under a break-without-notice policy. One honesty note the release
+  carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
+  because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour
+  changes — the promise starts at v1.0.0 and is not retroactive.
+- **The colour model is DECIDED, not PROPOSED.** It moved to DECIDED on
+  measurement at v1.0.0: the 256- and 16-colour rungs now select in Lab space
+  (CIEDE2000), with selection error 0.000 on both rungs. This is a **behaviour
+  change** — the bytes a program emits at those rungs differ from v0.7.x.
+- **Anything else marked PROPOSED may still change or be reversed.** See the
+  decision table in
+  [`docs/STATUS.md`](https://github.com/serkanalgur/termmosaic/blob/main/docs/STATUS.md).
 
 The full statement is on [Limitations](/limitations/). Read it before you commit
 to this in anything you care about.

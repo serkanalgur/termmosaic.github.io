@@ -37,7 +37,8 @@ How a cell gets from your `Draw` to the screen, and why each hop exists.
 6. **[No theme, and why](/concepts/no-theme/)** — the decision that shaped the
    whole styling surface. [ADR 0008](/adr/0008-style-and-text/)
 7. **[Degradation and NO_COLOR](/concepts/degradation/)** — truecolor → 256 → 16,
-   the unvalidated quantiser, and `NO_COLOR` as an encode-time concern.
+   the Lab/CIEDE2000 quantiser decided on measurement, and `NO_COLOR` as an
+   encode-time concern.
 
 ## Composition and responsiveness
 

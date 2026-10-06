@@ -30,6 +30,148 @@ reversed before v1.0.0.
 
 ---
 
+## [Unreleased]
+
+Nothing yet.
+
+---
+
+## [1.0.0] — 2026-10-06
+
+**The first release that makes a stability promise.** The public API freezes
+here: from v1.0.0 the project follows Semantic Versioning in earnest, and a
+behaviour change means a minor, not a quiet patch. Every release before this was
+a pre-release under the policy printed above, and this one retires that
+paragraph.
+
+**Why v1.0.0 and not v0.8.0.** The colour-quantiser replacement below is a
+**behaviour change** — it changes the bytes a program emits at the 256 and 16
+colour rungs — so under the project's own policy it is a minor-level change, and
+it must not land in a patch. A `v0.8.0` would therefore be *correct* under that
+policy. It is v1.0.0 because this is the first release that promises stability,
+and the project's documented policy is that the first release to do so is
+1.0.0. The policy's "behaviour change belongs in a minor" rule is untouched and
+remains the rule for every release after this one; v1.0.0 does not relax it, it
+adopts it as a commitment rather than as a pre-release convenience.
+
+**The version constant moved.** `cmd/capture`'s `version` — the only hard-coded
+version string in the module, recorded in `manifest.json` so a capture file can
+be traced to the program that wrote it — now reads `1.0.0`. Module versioning
+itself remains git tags, as it always has.
+
+### Added
+
+- **A runnable `func Example` for every one of the 24 catalog widgets — 74
+  examples**, in the eight `widgets/*/example_test.go` files. **Test-only, no
+  behaviour change**: `go test` compiles and runs them and nothing else reads
+  them. Each of the eight widget packages also carries a package-level
+  `Example`, and every example renders through `widgets/widgettest`, so its
+  `// Output` comment **is** the cell grid the renderer produced — the
+  documentation and the assertion are one string and cannot drift apart. It
+  required one exception in `vocabulary_test.go`: an explicit `exampleFiles`
+  list exempting those files from the box-drawing rune guard, because a widget
+  whose chrome is a border necessarily names the runes it paints (the same reason
+  `buffer/border_test.go` is excepted).
+
+### Changed
+
+- **PR #22 — the release-gate self-assessment's SemVer criterion is corrected to
+  PARTIALLY MET.** The gate had recorded the criterion as met; the corrected
+  assessment says what actually remains open. Documentation accuracy, no code
+  and no behaviour change.
+- **PR #24 — the SITE-PLAN prose is frozen.** `docs/SITE-PLAN.md`'s plan text is
+  now fixed as the record of what was proposed; future site work updates the
+  site, not this document. Documentation-only.
+
+### Fixed
+
+- **The 256/16-colour quantiser selected by fixed-weight RGB rather than
+  perceptual redmean; it now selects in Lab space (CIEDE2000).** **This is a
+  behaviour change — it changes the bytes a program emits at the 256 and 16
+  colour rungs**, so under the policy above it belongs in a **minor** and must
+  not ship in a patch. The audit in `buffer/colour_quantiser_perceptual_test.go`
+  found why the old code was wrong: `rmean/256` and `(255-rmean)/256` divide to
+  zero in `uint8` arithmetic, so both weights were identically 2 and "redmean"
+  was in practice the fixed `2*dr²+4*dg²+2*db²` in gamma-space RGB, flipping the
+  hue of plausible UI colours. Measured before → after, on the audit's own
+  CIEDE2000 metric and its step-5 lattice (140,608 colours × 2 rungs):
+
+  | | redmean (before) | Lab CIEDE2000 (after) |
+  |---|---|---|
+  | Selection error, 256 rung | mean 1.323, refined max **21.201**, 19.35% above the JND | **0.000** everywhere |
+  | Selection error, 16 rung | mean 3.800, refined max **36.821**, 37.50% above the JND | **0.000** everywhere |
+  | Total error, 256 rung (lattice mean) | 6.338 | 5.015 |
+  | Total error, 16 rung (lattice mean) | 17.657 | 13.857 |
+  | Colour-rungs that got worse | — | **0 of 281,216** |
+  | `Nearest256` steady-state frame path | 224.8 ns/op | **6.611 ns/op, 0 allocs** |
+  | `Nearest16` steady-state frame path | 16.02 ns/op | **7.126 ns/op, 0 allocs** |
+
+  Visible consequences: `markets.down` (`#d86a62`) no longer collapses to grey
+  at the 16 rung and collides with `markets.flat` — the up/flat/down trichotomy
+  is green/grey/red — and `#9b3228` brick red lands on a red rather than on
+  olive. Two goldens move, `examples/hello/testdata/hello_256.sgr` and
+  `hello_16.sgr`, the title accent only, each verified better by the audit's own
+  metric; no other golden or test expectation moves. Selection goes through the
+  existing `buffer.Quantiser` hook, so the diff and the encoder are untouched,
+  and steady state is a memo lookup at 0 allocations — only the first use of a
+  colour pays for an exhaustive CIEDE2000 search.
+- **PR #23 — CI test runs bypass the test-result cache, which is live by
+  default.** A manual re-run without `-count=1` could serve a cached PASS
+  instead of re-executing tests — a green that did not actually run, which is
+  the worst possible outcome under a "12/12 green before merge" rule.
+  `cache: true` was added to the setup-go steps that did not declare it. CI
+  behaviour only; no shipped code changes.
+- **PR #21 — README corrections: the widget count and the install pin.** The
+  README's stated catalog count and its pinned install instruction were both
+  wrong; both now match the code. Documentation-only.
+- **Two stale statements corrected, no behaviour change.** (a) The
+  `setup-go` cache comments in `.github/workflows/ci.yml` said the cache is
+  "keyed on `go.sum`"; since `setup-go` v6 the default dependency hash is
+  `go.mod`, so the comments now say that. Comment-only — no step, input or
+  behaviour changed. (b) `docs/STATUS.md`'s decision table said "The
+  Hugo/Pagefind site itself is not built" while the site has been serving at
+  [serkanalgur.github.io/termmosaic.github.io](https://serkanalgur.github.io/termmosaic.github.io/);
+  the row now records that the plan and captures live in this repository and
+  the built site serves there. Documentation-only.
+
+### Known Limitations
+
+- **Retired: "the colour quantiser is unvalidated".** The entries in the 0.1.0
+  and 0.2.0 sections below — the redmean mapping "has never been checked for
+  perceptual acceptability, treat the 256 and 16 rungs as provisional" — are
+  **no longer true**: the check was performed, it failed, and the quantiser was
+  replaced (see Fixed above). Those entries stay where they were written, as
+  history; this is the entry that says so.
+
+### Open at this release — decided by nobody, recorded here
+
+These three are **not settled**. v1.0.0 does not close them, and reading this
+section as closure would be reading the maintainer's mind, which this document
+does not do.
+
+- **`widgets/widgettest` is public and therefore frozen at v1.0 unless the
+  release notes exclude it — and these do not exclude it, so v1.0.0's promise
+  covers it by default.** It was written for the project's own tests, it happens
+  to live in a public package, and v1.0.0's stability promise lands on it like
+  any other exported identifier. `docs/STATUS.md`'s "Two stability hazards"
+  section names the hazard and names two options — promote it to a decided
+  surface with its own rules, or move it under `internal/` before v1.0.0 — and
+  picks **neither**. That is an open product decision, not a documentation gap:
+  whether this release *should* have frozen that surface is undecided, and this
+  release decides it for nobody. A later release can still move it, but only by
+  breaking something v1.0.0 promised.
+- **The Windows CI leg still runs as a full `test (windows-2025)` matrix leg.**
+  [ADR 0001](docs/adr/0001-backend-strategy.md) says it "goes or is relabelled
+  cross-compile-only"; that decision has **not been applied** — the workflow on
+  this branch still runs the Windows leg as a test, not as a cross-compile
+  check. Whether it goes or is relabelled is open.
+- **`deleteBranchOnMerge` is false at the repository level,** so merged branches
+  persist on the remote. No decision has been made about changing it. Branch
+  `feat/menu-dialogs-input` is unmerged on the remote and is not addressed by
+  this release.
+
+---
+
 ## [0.7.0] — 2026-10-06
 
 A minor bump, and the reason is a fourth example: **`examples/search`** — the
@@ -1135,6 +1277,8 @@ Two performance claims that this release turns from assertion into measurement:
   **60 cursor moves and 19,443 bytes, 3.12× the narrow frame** rather than 11×.
   The ASCII path is unchanged. See ADR 0008's amendment, finding 4.
 
+[Unreleased]: https://github.com/serkanalgur/termmosaic/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v1.0.0
 [0.7.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.7.0
 [0.6.1]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.6.1
 [0.6.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.6.0

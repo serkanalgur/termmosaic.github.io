@@ -89,7 +89,7 @@ widget that was constructed and rendered.
 | [`Sparkline`](/widgets/sparkline/) | `viz.NewSparkline(r buffer.Rect) *viz.Sparkline` | 5×3 | 40×3 × 80×3 × 120×3 |
 | [`BarChart`](/widgets/barchart/) | `viz.NewBarChart(r buffer.Rect) *viz.BarChart` | 8×6 | 40×11 × 80×11 × 120×11 |
 
-### widgets/menu — `widgets/menu`
+### Navigation — `widgets/menu`
 
 [pkg.go.dev/widgets/menu](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/menu)
 
@@ -97,7 +97,7 @@ widget that was constructed and rendered.
 | --- | --- | --- | --- |
 | [`Menu`](/widgets/menu/) | `menu.New(r buffer.Rect, items ...menu.Item) *menu.Menu` | 16×4 | 40×14 × 80×14 × 120×14 |
 
-### widgets/dialog — `widgets/dialog`
+### Modality — `widgets/dialog`
 
 [pkg.go.dev/widgets/dialog](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/dialog)
 
@@ -124,12 +124,17 @@ below it is the application's decision.
 | `term` | `Terminal` and `Sink` — the two narrow interfaces, with the `x/sys` implementation and the headless sink. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/term) |
 | `headless` | The in-memory `Sink` and its cell-grid screen model, for tests without a terminal. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/headless) |
 | `virtual` | The row-virtualization engine shared by `List`, `Table` and `Tree`. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/virtual) |
+| `keymap` | Named commands and chords: `Command`, `CommandID`, `Binding`, `Entry`, `Ctx`, a 16-byte comparable `Chord`, and resolution by context specificity at 0 allocs. Shipped in v0.6.0. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/keymap) |
 | `widgets/block` | `Block` — the catalog's only owner of borders and titles. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/block) |
 | `widgets/basic` | `Text` and `Paragraph`. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/basic) |
 | `widgets/split` | `Split` — the pane composer. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/split) |
 | `widgets/form` | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio`, `Toggle`, `Tabs`, `Button`, `KeyHint`. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/form) |
 | `widgets/data` | `List`, `Table`, `Tree`, `Pager`. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/data) |
 | `widgets/viz` | `ProgressBar`, `Gauge`, `Meter`, `Sparkline`, `BarChart`. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/viz) |
+| `widgets/menu` | `Menu` — a navigable tree with submenus to arbitrary depth. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/menu) |
+| `widgets/dialog` | `Dialog` — a modal with info, confirm and choice variants. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/dialog) |
+| `widgets/cacheaudit` | The catalog-wide cache-audit gate (ADR 0007 §3): every finding fails the build. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/cacheaudit) |
+| `widgets/widgettest` | The headless widget-test harness: `Capture`, the cache-audit helpers, and the screen model the examples assert against. **Public, and therefore frozen at v1.0 by default — whether that surface should be frozen is undecided.** [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/widgettest) |
 
 ## The one interface that is held fixed
 
@@ -142,11 +147,12 @@ type Widget interface {
 }
 ```
 
-**Four methods, unchanged across all eight architecture decisions.** That
-is the most stable thing about a pre-alpha project: a widget written
-against it today is the part most likely to still compile after the API
-settles. The two optional interfaces are `Focusable` and `Minimizable` —
-both discoverable by a type assertion, both costing nothing to omit.
+**Four methods, unchanged across all ten architecture decisions, and
+frozen at v1.0.0** under the stability promise. That is the most stable
+thing in the project: a widget written against it today is the part most
+likely to still compile at v1.1.0. The two optional interfaces are
+`Focusable` and `Minimizable` — both discoverable by a type assertion,
+both costing nothing to omit.
 
 See [Widgets and focus](/concepts/widgets-and-focus/) for what `Draw` may
 and may not do, and [ADR 0003](/adr/0003-renderer-mode/) for why the

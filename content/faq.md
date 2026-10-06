@@ -9,15 +9,20 @@ toc: true
 
 ## Should I use this?
 
-**Not in production.** TermMosaic is **pre-alpha** and the API **will break
-without notice until v1.0.0**. Every release before v1.0.0 is a pre-release, and
-a minor version may contain behavioural changes. What *is* promised: **no
-behavioural change in a patch release.**
+**Not in production yet — but v1.0.0 is the first release that says why that
+can change.** v1.0.0 (2026-10-06) makes a stability promise: the public API
+freezes there and Semantic Versioning applies in earnest — a behaviour change
+means a minor, not a quiet patch. Every release before v1.0.0 was a
+pre-release under a break-without-notice policy. One honesty note the release
+carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
+because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour
+changes. The promise starts at v1.0.0; it is not retroactive.
 
 What you get for the risk: a renderer whose diff writes 141 bytes where a full
 repaint writes 19,979, at 7,133 ns/op and 0 allocs/op; a 24-widget catalog whose
-data widgets render 100,000 items in 14,242 ns; and a headless backend that lets
-you test a widget without a terminal.
+data widgets render 100,000 items in 14,242 ns; a colour quantiser whose
+selection error is 0.000 on both the 256 and 16 rungs; and a headless backend
+that lets you test a widget without a terminal.
 
 Evaluate it on a side project. If you are evaluating rather than adopting, read
 [Limitations](/limitations/) first — it is short, and three of its items will
@@ -25,16 +30,24 @@ change what you plan.
 
 ## Is this production-ready?
 
-No. See above. The honest statement of what *is* finished: the renderer, the input
-layer, the layout solver and the full 24-widget catalog are built and tested —
-26 packages, 1,041 top-level test functions, a zero-allocation frame path.
+Not yet. See above. The honest statement of what *is* finished: the renderer,
+the input layer, the layout solver and the full 24-widget catalog are built and
+tested — 28 packages, 1,186 top-level test functions, a zero-allocation frame
+path — and v1.0.0 is the first release that freezes the API. What keeps it from
+"production-ready" is not instability any more; it is the open items on
+[Limitations](/limitations/#still-open) — no IME, no tmux passthrough, no
+Windows runtime, and `widgets/widgettest`'s compatibility promise undecided.
 
 ## Does it work on Windows?
 
 **It compiles and it does not run.** The Windows backend is a **stub that returns
 a loud error from every console operation**. Cross-compilation to
-`windows/amd64` and `windows/arm64` is verified in CI, so the packaging works;
-the runtime does not. Linux and macOS are the supported platforms.
+`windows/amd64` and `windows/arm64` is still verified in CI (the six
+cross-compile legs are unchanged), so the packaging works; the runtime does
+not. **Linux and macOS are the supported platforms** — narrowed to that by the
+v1.0.0 platform decision ([ADR 0001](/adr/0001-backend-strategy/)). The Windows
+CI **test** leg was dropped at v1.0.0 because running the full suite there
+asserted only that the stub returns its documented error.
 
 ## How many widgets are there?
 
@@ -87,9 +100,9 @@ capture sits beside every colour capture. See
 by keyboard *and* mouse:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # focus ring + ? help overlay
-go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results, real Wikipedia data
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v1.0.0     # focus ring + ? help overlay
+go run github.com/serkanalgur/termmosaic/examples/search@v1.0.0    # search + results, real Wikipedia data
 ```
 
 `markets` runs on live data with no API key (ECB FX from Frankfurter, crypto
@@ -102,9 +115,12 @@ widget in the focus ring**. Press `?` in any of them for its key list.
 > Whether to keep it or retire it is **undecided**, so this site points new
 > readers at `markets` and does not recommend both. It has not been removed.
 
-**The project's `CONTRIBUTING.md` requires a runnable example per widget and that
-requirement is not yet met for all 24.** That gap is recorded rather than hidden.
-See [Limitations](/limitations/#project-stage).
+**As of v1.0.0 every one of the 24 widgets has a runnable example** — 74
+`func Example` functions in the eight `widgets/*/example_test.go` files, each
+rendered through `widgets/widgettest` so its `// Output` comment is the cell
+grid the renderer produced. `CONTRIBUTING.md`'s "a widget without an example is
+not done" requirement is now met; what does *not* exist is a runnable *program*
+per widget, and there the count is still four.
 
 ## Do I get IME support?
 

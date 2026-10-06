@@ -69,7 +69,7 @@ worse for this codebase specifically:
 | Design | Why not |
 |---|---|
 | A global mutable style registry | Every widget's rendering would depend on when it was constructed relative to the registry being set. That is the coupling ADR 0003 already rejected, in a different place. |
-| Widgets taking a `*Theme` parameter | A fourth mandatory constructor parameter, for a concept that does not exist yet, threaded through 22 constructors — and it would have to be threaded again on every API change, which is exactly what pre-alpha already makes expensive. |
+| Widgets taking a `*Theme` parameter | A fourth mandatory constructor parameter, for a concept that does not exist yet, threaded through 24 constructors — and it would have to be threaded again on every API change, which under the v1.0.0 stability promise means a major version rather than a tweak. |
 | A style **role** enum, set per widget | This is the shape the decision converges on when the trigger fires. It costs one field per widget and no constructor change, because a role resolves to a `Style` at draw time. |
 
 That third row is the point: **the trigger is reachable without a breaking change

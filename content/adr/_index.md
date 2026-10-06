@@ -183,16 +183,28 @@ If you want the originals:
 - **Windows console support.** ADR 0001 commits to owning the terminal layer,
   which makes console mode flags our problem. The packaging half is closed —
   `CGO_ENABLED=0` builds are verified for `windows` and `linux/arm64` — and the
-  runtime half is a **stub that returns a loud error**.
+  runtime half is a **stub that returns a loud error**. At v1.0.0 this was
+  narrowed from "risk" to **decision**: Windows is out of scope for v1.0.0, the
+  supported platforms are Linux and macOS, and the Windows CI test leg was
+  dropped (the cross-compile legs remain).
+- **`widgets/widgettest`'s compatibility promise.** It is public, so v1.0.0's
+  stability promise covers it by default — the release notes do not exclude it.
+  Whether that surface *should* be frozen is **undecided**: `docs/STATUS.md`
+  names two options (promote it to a decided surface, or move it under
+  `internal/`) and picks neither.
 - **The cache-poisoning debug mode is built, and it found eight stale caches.**
   It shipped in v0.5.0 as ADR 0007 §3's deferred "expensive half", and
   `widgets/cacheaudit` fails the build on a finding. What it does *not* cover is
   every exported raw field — the gate covers the transitions it names, and several
   same-shaped fields are not named by any.
-- **`docs/adr/README.md`'s "Still open" list is stale in one entry**: it listed
-  the colour model as undecided where `docs/STATUS.md` records it as PROPOSED.
-  Correcting it means editing an ADR, which the v0.1.0 release gate forbade
-  except for ADR 0008's risk 5, so it is recorded in `docs/STATUS.md` instead.
+- **The colour model is no longer open.** It moved **PROPOSED → DECIDED on
+  measurement** at v1.0.0 (2026-10-06): PR #18's CIEDE2000 audit found the
+  redmean weights inert and PR #19 replaced the quantiser through the
+  `buffer.Quantiser` hook. An earlier entry on this page recorded that
+  `docs/adr/README.md`'s open list disagreed with `docs/STATUS.md` on this —
+  the framework's README has since been corrected, and both now record the
+  model as decided. The record of what was wrong is kept in the audit's own
+  source rather than erased.
 
 Full detail is in
 [`docs/STATUS.md`](https://github.com/serkanalgur/termmosaic/blob/main/docs/STATUS.md).

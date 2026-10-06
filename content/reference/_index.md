@@ -27,7 +27,7 @@ which package each widget belongs to.
 - **[The widget catalog](/widgets/)** — one page per widget, with a captured
   frame at three widths, the key contract from the godoc, the accessibility
   signals, and a hand-written "when not to use it".
-- **[Architecture decisions](/adr/)** — the eight ADRs, verbatim.
+- **[Architecture decisions](/adr/)** — the ten ADRs, verbatim.
 - **[API docs](https://pkg.go.dev/github.com/serkanalgur/termmosaic)** — every
   package, every export.
 - **[Source](https://github.com/serkanalgur/termmosaic)** — including

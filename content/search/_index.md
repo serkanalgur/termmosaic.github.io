@@ -9,7 +9,7 @@ sitemap:
 # Search
 
 Search covers every page of this site — the widget pages, the concepts, the
-guides and the eight ADRs. The index is built by
+guides and the ten ADRs. The index is built by
 [Pagefind](https://pagefind.app/) from the rendered HTML after Hugo runs, so it
 never disagrees with what is on the page.
 
@@ -21,7 +21,7 @@ reachable from [the start page]({{ "/" | relURL }}) without search.
 ## What search covers, and what it does not
 
 - **It covers the prose.** Widget summaries, key contracts, the concepts, and
-  the full text of all eight ADRs.
+  the full text of all ten ADRs.
 - **It covers widget pages**, including their "when not to use it" sections,
   which are the parts most likely to answer the question you arrived with.
 - **The captures are not searchable.** A cell grid is a grid of characters to a

@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.7.0. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v1.0.0. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -74,10 +74,13 @@ is the failure mode this page exists to prevent.
 
 ## Project stage
 
-- **Pre-alpha. The API will break without notice before v1.0.0.** Every release
-  before v1.0.0 is a pre-release and a minor version may contain behavioural
-  changes. What *is* promised: **no behavioural change in a patch release.** If
-  v0.1.1 changes behaviour, that is a bug in the release, not policy.
+- **v1.0.0 is the first release that makes a stability promise.** The public API
+  freezes there and Semantic Versioning applies in earnest: a behaviour change
+  means a minor, not a quiet patch. Every release before v1.0.0 was a
+  pre-release under a break-without-notice policy. One honesty note the release
+  carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
+  because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour
+  changes. The promise starts at v1.0.0; it is not retroactive.
 - **`Widget` is the one thing held fixed.** Four methods — `Bounds`, `Draw`,
   `Invalidate`, `Handle` — unchanged across all ten architecture decisions.
 - **Anything marked PROPOSED may change or be reversed.** See the decision table
@@ -86,17 +89,70 @@ is the failure mode this page exists to prevent.
   decision rather than an oversight: the widget pages are generated from the
   current source, so a version selector would have to render from a checkout, not
   from a site.
-- **Not every widget has a runnable example yet.** `CONTRIBUTING.md` requires one
-  per widget. Four programs exist today: `examples/markets` (the flagship — a
-  live finance dashboard, keyboard and mouse driven),
-  `examples/hello` (a responsive panel with a focus ring and a `?` help overlay),
+- **Every widget has a runnable example — as of v1.0.0.** `CONTRIBUTING.md`
+  requires one per widget. PR #17 closed that gap with **74 `func Example`
+  functions covering all 24 catalog widgets**, in the eight
+  `widgets/*/example_test.go` files, each rendered through `widgets/widgettest`
+  so its `// Output` comment **is** the cell grid the renderer produced. There
+  are still only four runnable *programs*: `examples/markets` (the flagship — a
+  live finance dashboard, keyboard and mouse driven), `examples/hello` (a
+  responsive panel with a focus ring and a `?` help overlay),
   `examples/search` (search and results on real Wikipedia data, and **the first
   example with a focusable widget in the focus ring**), and `examples/dashboard`.
   **`examples/dashboard` overlaps `examples/markets` heavily and whether to keep
   it or retire it is undecided.** It has not been removed; the documentation
   points new readers at `markets` and does not present the two as equally
-  recommended. Where a widget's page has no program to point at, that is the gap,
-  and it is not papered over on the widget page.
+  recommended.
+
+## v1.0.0 — the stability promise, a replaced quantiser, and eleven checks
+
+**v1.0.0 (2026-10-06) is the first release that makes a stability promise.**
+The public API freezes there and Semantic Versioning applies in earnest. The
+reason it is v1.0.0 rather than v0.8.0 is the quantiser replacement below,
+which is a behaviour change and therefore a minor-level change under the
+project's own policy — and the policy says the first release to promise
+stability is 1.0.0.
+
+- **The 256/16-colour quantiser changed behaviour, and the bytes a program
+  emits at those rungs change.** The old "redmean" mapping was replaced with
+  Lab-space (CIEDE2000) selection through the existing `buffer.Quantiser` hook.
+  What was wrong: `rmean/256` and `(255-rmean)/256` divide to zero in `uint8`
+  arithmetic, so both weights were identically 2 and "redmean" was in practice
+  the fixed `2*dr²+4*dg²+2*db²` in gamma-space RGB. The CIEDE2000 audit (PR
+  #18) measured selection error of **256 rung max 21.201, 19.35% above the
+  just-noticeable difference; 16 rung max 36.821, 37.50% above** — with
+  `markets.down` collapsing to grey at the 16 rung and colliding with
+  `markets.flat`. After the replacement (PR #19): **selection error 0.000 on
+  both rungs, 0 of 281,216 colour-rungs regressed, frame path 224.8 → 6.6
+  ns/op at 0 allocs.** Two goldens moved in the framework
+  (`examples/hello/testdata/hello_256.sgr` and `hello_16.sgr`, the title accent
+  only), each verified better by the audit's own metric. If you diff output at
+  a degraded rung across the upgrade, this is why it differs.
+- **`widgets/widgettest` is public and therefore frozen at v1.0 — and whether
+  that is right is undecided.** It was written for the project's own tests, it
+  happens to live in a public package, and v1.0.0's stability promise lands on
+  it like any other exported identifier, because the release notes do not
+  exclude it. The framework's `docs/STATUS.md` names the hazard and two options
+  — promote it to a decided surface with its own rules, or move it under
+  `internal/` — and picks **neither**. This is an open product decision, not a
+  documentation gap. A later release can still move it, but only by breaking
+  something v1.0.0 promised.
+- **The Windows CI test leg was dropped; eleven checks are required now.**
+  `test (windows-2025)` ran the full `-race` suite on a Windows runner to
+  assert that a deliberate stub returns its documented error — the most
+  expensive check gating a platform that is out of scope. ADR 0001 scopes
+  v1.0.0 to **Linux and macOS**; Windows stays a loud-error stub by decision.
+  The six `cross-compile` legs (including windows/amd64 and windows/arm64) are
+  untouched, so "it builds for Windows" is still verified; "it runs on
+  Windows" is not claimed. **The macOS test leg still runs** — a further
+  reduction has been discussed but not done, so do not read the Windows drop as
+  a trend.
+- **CI test runs bypass the test-result cache now.** `-count=1` closes a hole
+  where a manual re-run could serve a cached PASS instead of re-executing
+  tests, and `cache: true` was added to the setup-go steps that did not declare
+  it.
+- **`deleteBranchOnMerge` is false at repo level.** Merged branches persist on
+  the remote. No decision has been made about changing it.
 
 ## v0.6.0 `keymap` — a new package, and nothing you wrote breaks
 
@@ -475,6 +531,13 @@ Breaking.
   on rather than new ones it has only read about. **What that green run does not
   cover is the item below**, which no CI configuration has ever covered.
 
+  *Dated note (v1.0.0, 2026-10-06): the twelve-check configuration above is
+  history. CI now requires **eleven** checks — the `test (windows-2025)` leg was
+  dropped at v1.0.0 because a full `-race` run on Windows asserted only that a
+  deliberate stub returns its documented error. The six cross-compile legs,
+  including both windows targets, are unchanged. See
+  [v1.0.0](#v100--the-stability-promise-a-replaced-quantiser-and-eleven-checks).*
+
 **And one long-standing item that this release did not fix.** The Windows backend
 still runs **zero tests at runtime**. `term/terminal_windows_test.go` is
 compile-only verified — `GOOS=windows go vet ./...` is the only check that has
@@ -530,16 +593,24 @@ invisible, because nothing else about row styling worked either.
 
 ## Platform
 
+- **Linux and macOS are the supported platforms — narrowed to that by the
+  v1.0.0 platform decision (ADR 0001), recorded 2026-10-05.** The claim was
+  previously "Linux, macOS and Windows"; it amends to two because Windows is
+  not close and pretending otherwise was the bigger risk.
 - **Windows is a stub that returns a loud error from every console operation.**
   The package compiles and cross-compiles cleanly for `windows/amd64` and
   `windows/arm64`, so the packaging works and the runtime does not. **On Windows
-  this framework does not currently draw anything.** Linux and macOS are the
-  supported platforms.
+  this framework does not currently draw anything.** The Windows CI **test**
+  leg was dropped at v1.0.0 — running the full test suite there asserted only
+  that the stub returns its documented error — but the cross-compile legs
+  still build both windows targets, so "it builds" remains verified.
 - **tmux and GNU screen DCS passthrough is missing.** Under tmux on a modern
   terminal, a TermMosaic program can lose key and mouse reporting, because the
   sequences TermMosaic emits are not wrapped for the multiplexer. Deferred with a
   stated trigger: any tmux user reporting broken keys or mouse, or v1.0,
-  whichever comes first.
+  whichever comes first. **v1.0.0 has shipped and the gap remains** — the
+  trigger arrived and nothing was built, which is the honest state: still
+  deferred, still real.
 
 ## Input
 
@@ -612,11 +683,32 @@ invisible, because nothing else about row styling worked either.
 
 ## Colour
 
-- **The colour quantiser is unvalidated.** The redmean mapping from truecolor to
-  the 256- and 16-colour rungs is implemented and works, but **nobody has checked
-  that its output is perceptually acceptable.** Treat the 256 and 16 rungs as
-  provisional. The `buffer.Quantiser` interface exists so a Lab-space mapping can
-  replace it without touching anything else.
+- **The colour quantiser selects in Lab space (CIEDE2000), decided on
+  measurement — 2026-10-06, at v1.0.0.** Truecolor maps to the 256 and 16
+  colour rungs through an exhaustive CIEDE2000 search behind a per-colour
+  memo, via the existing `buffer.Quantiser` hook. Selection error is **0.000
+  on both rungs**; every threshold in the audit is pinned at 0, so a non-zero
+  measurement means the metric, the palettes or the wiring changed without a
+  re-audit.
+  *History, kept because the record of what was wrong matters:* through v0.7.0
+  this page described the quantiser as **unvalidated redmean** — "nobody has
+  checked that its output is perceptually acceptable; treat the 256 and 16
+  rungs as provisional." That was true when written. The check was then
+  performed (PR #18's CIEDE2000 audit), it **failed**: the "redmean" weights
+  were inert — `rmean/256` and `(255-rmean)/256` divide to zero in `uint8`
+  arithmetic, so both weights were identically 2 and the formula was fixed
+  `2*dr²+4*dg²+2*db²` in gamma-space RGB — measuring selection error of 21.201
+  (256 rung) and 36.821 (16 rung) at worst, 19.35% and 37.50% of the lattice
+  above the just-noticeable difference. The quantiser was then **replaced**
+  (PR #19). The colour model moved **PROPOSED → DECIDED** because it was
+  measured, not asserted; reopening it after v1.0.0 is a release-defining
+  re-audit, not a tweak.
+- **This is a behaviour change at v1.0.0.** The bytes a program emits at the
+  256 and 16 colour rungs differ from v0.7.x. Visible consequence named in the
+  release: `markets.down` (`#d86a62`) no longer collapses to grey at the 16
+  rung and collides with `markets.flat` — the up/flat/down trichotomy is
+  green/grey/red again — and `#9b3228` brick red lands on a red rather than on
+  olive.
 - **`Caps.Unicode` is a proxy, not a probe.** It is the honest one available
   without querying the terminal out of band, and a terminal configured out of
   band will disagree with it.
@@ -680,6 +772,18 @@ invisible, because nothing else about row styling worked either.
 
 ## Still open
 
+- **`widgets/widgettest`'s compatibility promise.** It is public, so v1.0.0's
+  stability promise covers it by default — the release notes do not exclude it.
+  Whether that surface *should* be frozen is **undecided**: the framework's
+  `docs/STATUS.md` names two options (promote it to a decided surface with its
+  own rules, or move it under `internal/`) and picks neither. A later release
+  can still move it, but only by breaking something v1.0.0 promised.
+- **Whether the macOS test leg should also go.** The Windows test leg was
+  dropped at v1.0.0; the macOS leg still runs the full `-race` suite. A further
+  reduction has been discussed but **not done** — do not read the Windows drop
+  as a trend.
+- **`deleteBranchOnMerge` is false at repo level.** Merged branches persist on
+  the remote. No decision has been made about changing it.
 - **Kitty graphics protocol in v1, or stay text-only?** Leaning no. Images
   undermine the grid-of-cells assumption the whole renderer rests on. Still open
   because "no" has not been formally decided.

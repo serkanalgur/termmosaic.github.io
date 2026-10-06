@@ -156,7 +156,7 @@
     "related": [
       "[Input](/concepts/input/) — the event model, paste-as-one-event, and why the key path is 0-alloc.",
       "[Forms](/guides/forms/) — the nine form widgets as one workflow.",
-      "[Limitations](/limitations/) — IME, wide glyphs and the unvalidated colour quantiser."
+      "[Limitations](/limitations/) — IME, wide glyphs, and the colour model now decided at v1.0.0."
     ]
   },
   "textarea": {

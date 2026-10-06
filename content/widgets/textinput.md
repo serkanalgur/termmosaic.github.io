@@ -89,6 +89,6 @@ The caret, the selection and focus are all **shapes or attributes**, not colours
 
 - [Input](/concepts/input/) — the event model, paste-as-one-event, and why the key path is 0-alloc.
 - [Forms](/guides/forms/) — the nine form widgets as one workflow.
-- [Limitations](/limitations/) — IME, wide glyphs and the unvalidated colour quantiser.
+- [Limitations](/limitations/) — IME, wide glyphs, and the colour model now decided at v1.0.0.
 - [TermMosaic limitations that apply to every widget](/limitations/)
 - Source: [`widgets/form` on GitHub](https://github.com/serkanalgur/termmosaic/tree/main/widgets/form)

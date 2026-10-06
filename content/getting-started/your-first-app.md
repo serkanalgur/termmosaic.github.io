@@ -11,8 +11,8 @@ page adds the two things a real application needs and the quickstart deliberatel
 omits: **a widget that takes keys**, and **a layout with more than one thing in
 it**.
 
-Everything here is still pre-alpha. The [limitations](/limitations/) page applies
-in full.
+Everything here is written against v1.0.0, the first release that makes a
+stability promise. The [limitations](/limitations/) page applies in full.
 
 ## The shape of a TermMosaic program
 

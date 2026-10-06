@@ -12,10 +12,12 @@ not measured.** That second list is the point. A docs page that lists six
 benchmarks and no caveats is a page you should distrust on the other five things
 it says.
 
-All figures come from the framework's own benchmarks and `docs/STATUS.md` at
-v0.1.0, measured on **darwin/arm64 (Apple M1)**. They were taken by decisions 1
-and 2, which were made **empirically** — a scratch benchmark module built outside
-the repository.
+All figures come from the framework's own benchmarks and `docs/STATUS.md`,
+measured on **darwin/arm64 (Apple M1)** unless noted. The renderer, buffer and
+catalog figures were taken by decisions 1 and 2 at v0.1.0, **empirically** — a
+scratch benchmark module built outside the repository. The colour-quantiser
+figures below are v1.0.0 measurements recorded in the framework's release notes
+and `buffer` benchmarks.
 
 ## Measured: the renderer
 
@@ -72,6 +74,22 @@ that widget tests need, is what settled
 | 100,000 | 14,242 ns | 17,885 ns |
 
 **Ten times the data for seven percent more time, both at zero allocations.**
+
+## Measured: colour-quantiser selection (v1.0.0)
+
+Steady-state frame-path cost of mapping a truecolor `Colour` to the nearest
+entry in the 256- and 16-colour rungs, after the Lab/CIEDE2000 replacement:
+
+| | Before (redmean) | After (Lab CIEDE2000) |
+|---|---|---|
+| `Nearest256` | 224.8 ns/op | **6.611 ns/op**, 0 allocs |
+| `Nearest16` | 16.02 ns/op | **7.126 ns/op**, 0 allocs |
+
+**The replacement is faster as well as correct**, which is not the usual shape
+of a fix: selection goes through a per-colour memo, so only the first use of a
+colour pays for the exhaustive CIEDE2000 search. The audit's own selection-error
+metric reads **0.000 on both rungs**, with 0 of 281,216 colour-rungs regressed.
+Source: the framework's `buffer` benchmarks and the v1.0.0 release notes.
 
 ## Measured: wide glyphs
 
