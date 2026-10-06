@@ -17,10 +17,11 @@ loop is where the design decisions show up.
 3. **[Your first app](/getting-started/your-first-app/)** — terminal, renderer,
    input, and a frame loop, end to end, with the failure modes named.
 
-Before any of it: **TermMosaic is pre-alpha and the API will break without notice
-until v1.0.0.** See [Limitations](/limitations/). If you are evaluating it rather
-than adopting it, that page is the thing to read first — it is short, specific,
-and lists what does not work.
+Before any of it: **v1.0.0 is the first TermMosaic release that makes a
+stability promise** — the public API freezes there and Semantic Versioning
+applies in earnest. See [Limitations](/limitations/). If you are evaluating it
+rather than adopting it, that page is the thing to read first — it is short,
+specific, and lists what does not work.
 
 ## What you need
 
@@ -34,9 +35,9 @@ and lists what does not work.
 ## The examples
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard, no API key
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # bordered panel, focus ring, ? help
-go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results on real Wikipedia data
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0   # live finance dashboard, no API key
+go run github.com/serkanalgur/termmosaic/examples/hello@v1.0.0     # bordered panel, focus ring, ? help
+go run github.com/serkanalgur/termmosaic/examples/search@v1.0.0    # search + results on real Wikipedia data
 ```
 
 `markets` is the more useful of the first two to read: it is a real screen built

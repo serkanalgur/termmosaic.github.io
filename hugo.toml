@@ -18,12 +18,19 @@ disableKinds = ["taxonomy", "term"]
   pagerSize = 200
 
 [params]
-  description = "Documentation for TermMosaic: a terminal UI framework for Go. A cell-buffer renderer and 24 widgets, pre-alpha."
+  description = "Documentation for TermMosaic: a terminal UI framework for Go. A cell-buffer renderer and 24 widgets, at v1.0.0."
   repo = "https://github.com/serkanalgur/termmosaic"
   repoBranch = "main"
   godoc = "https://pkg.go.dev/github.com/serkanalgur/termmosaic"
   # Stated in the footer of every page, per docs/SITE-PLAN.md §3.2.
-  stability = "pre-alpha — the API will break without notice until v1.0.0"
+  #
+  # v1.0.0 (2026-10-06) is the first release that makes a stability promise:
+  # the public API freezes there and Semantic Versioning applies in earnest.
+  # The framework's own README and docs/STATUS.md still open with a
+  # pre-alpha / "will break before v1.0" block written before that release;
+  # the release notes and CHANGELOG are the more recent statement, so the
+  # site follows them.
+  stability = "v1.0.0 — the first release that makes a stability promise: the public API freezes here and Semantic Versioning applies in earnest"
 
 [markup]
   [markup.goldmark]

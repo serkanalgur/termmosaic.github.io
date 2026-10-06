@@ -28,9 +28,9 @@ working out how to build something.
 There are four runnable programs today. The three to start with:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0   # live finance dashboard
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0     # bordered panel, focus ring
-go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0    # search + results, real Wikipedia data
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0   # live finance dashboard
+go run github.com/serkanalgur/termmosaic/examples/hello@v1.0.0     # bordered panel, focus ring
+go run github.com/serkanalgur/termmosaic/examples/search@v1.0.0    # search + results, real Wikipedia data
 ```
 
 `markets` needs no API key and takes `--offline` for bundled sample data.
@@ -43,9 +43,11 @@ three are keyboard- and mouse-driven; press `?` in any of them for its key list.
 > keep it or retire it is **undecided**, so the guides point at `markets` and do
 > not present the two as equally recommended. It has not been removed.
 
-**The project's `CONTRIBUTING.md` requires a runnable example per widget, and that
-requirement is not yet met for all 24.** Where a widget page has no program to
-point at, that is the gap — and it is recorded on
+**As of v1.0.0 every one of the 24 widgets has a runnable example** — 74
+`func Example` functions in the eight `widgets/*/example_test.go` files, each
+rendered through `widgets/widgettest`. What does *not* exist is a runnable
+*program* per widget, and there the count is still four — where a widget page
+has no program to point at, that is the gap, and it is recorded on
 [Limitations](/limitations/#project-stage) rather than papered over. Widget pages
 carry captured frames instead, and a capture cannot show interaction: see
 [Limitations](/limitations/#captures-are-cell-grids-not-terminal-screenshots).

@@ -1,6 +1,6 @@
 ---
 title: "Degradation and NO_COLOR"
-description: "Truecolor to 256 to 16, the unvalidated quantiser, NO_COLOR as an encode-time concern, and the ASCII fallback."
+description: "Truecolor to 256 to 16, the Lab/CIEDE2000 quantiser decided on measurement, NO_COLOR as an encode-time concern, and the ASCII fallback."
 weight: 32
 toc: true
 ---
@@ -51,22 +51,45 @@ What that buys:
   and a `Meter`'s threshold marker all survive a `NO_COLOR` terminal — see
   [Accessibility](/concepts/accessibility/).
 
-## The quantiser is unvalidated
+## The quantiser selects in Lab space (CIEDE2000)
 
-**Say this plainly: the redmean mapping from truecolor to the 256- and 16-colour
-rungs is implemented and works, and nobody has checked that its output is
-perceptually acceptable.**
+**The 256 and 16 colour rungs select their nearest palette entry with an
+exhaustive CIEDE2000 search in Lab space, behind a per-colour memo.** This is
+**DECIDED** in the project's decision table — moved from PROPOSED on
+measurement, 2026-10-06, at v1.0.0. Selection error is **0.000 on both rungs**,
+and every threshold in the audit is pinned at 0, so a non-zero measurement
+means the metric, the palettes or the wiring changed without a re-audit.
 
-So:
+How it got there, because the history is the argument:
 
-- **Treat the 256 and 16 rungs as provisional.** The colour model is **PROPOSED**,
-  not DECIDED, in the project's decision table.
-- **`buffer.Quantiser` is the escape hatch.** It exists so a Lab-space mapping can
-  replace the redmean one **without touching anything else** — which is what makes
-  replacing it a non-event rather than a rewrite.
+- Through v0.7.0 the rungs used a **"redmean"** mapping — a weighted RGB
+  distance with weights that adapt to the mean red of the two colours. It was
+  implemented, it worked, and **nobody had checked that its output was
+  perceptually acceptable.** The project's own docs said so: treat the rungs as
+  provisional, the colour model was PROPOSED, and `buffer.Quantiser` existed as
+  the escape hatch for a Lab-space replacement.
+- The check was then performed (PR #18, a CIEDE2000 audit) and it **failed**.
+  The "redmean" weights were inert: `rmean/256` and `(255-rmean)/256` divide to
+  zero in `uint8` arithmetic, so both weights were identically 2 and the
+  formula was in practice the fixed `2*dr²+4*dg²+2*db²` in gamma-space RGB —
+  a distance that flips the hue of plausible UI colours. Measured selection
+  error: **256 rung max 21.201, 19.35% of the lattice above the just-noticeable
+  difference; 16 rung max 36.821, 37.50% above**, with `markets.down`
+  collapsing to grey at the 16 rung and colliding with `markets.flat`.
+- The quantiser was then **replaced** (PR #19) through the
+  `buffer.Quantiser` hook — the seam the docs had pointed at all along — so
+  the diff and the encoder are untouched. After: selection error **0.000 on
+  both rungs, 0 of 281,216 colour-rungs regressed**, frame path 224.8 → 6.6
+  ns/op at 0 allocs. Only the first use of a colour pays for the exhaustive
+  search; steady state is a memo lookup.
 
-This is a real limitation, not a caveat: a colour-blind user, or a user whose
-terminal is in 256-colour mode, will get a mapping nobody has looked at.
+**This is a behaviour change at v1.0.0**: the bytes a program emits at the 256
+and 16 rungs differ from v0.7.x. Visible in `examples/markets`, where
+`markets.down` is red again rather than collapsing to grey.
+
+**What is still true of the ladder:** a terminal in 256-colour mode, or a user
+who cannot distinguish two colours, sees a *mapped* palette — the rungs are
+perceptually nearest, not identical. That is what a quantiser is.
 
 ## `Caps.Unicode` is a proxy, not a probe
 

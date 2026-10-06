@@ -144,10 +144,14 @@ proves it.
 A `Colour` is truecolor, a named 16, or a 256-index, plus a `ColourDepth` rung
 and a default. `Colour.Hex()` renders it.
 
-**The quantiser is unvalidated.** The redmean mapping from truecolor down to the
-256 and 16 rungs is implemented and works, and **nobody has checked that its
-output is perceptually acceptable.** Treat those rungs as provisional;
-`buffer.Quantiser` is the escape hatch for a Lab-space replacement. See
+**The quantiser selects in Lab space (CIEDE2000), decided on measurement at
+v1.0.0.** Truecolor maps down to the 256 and 16 rungs through an exhaustive
+CIEDE2000 search behind a per-colour memo, via the `buffer.Quantiser` hook;
+selection error is 0.000 on both rungs. This replaced a "redmean" mapping whose
+weights were inert (`uint8` division made both identically 2) — the audit that
+found it and the numbers that rejected it are kept in the framework's test
+source rather than erased. This is a **behaviour change at v1.0.0**: the bytes
+emitted at those rungs differ from v0.7.x. See
 [Degradation and NO_COLOR](/concepts/degradation/).
 
 ## Reading next

@@ -29,6 +29,8 @@ GROUP_TITLES = {
     "widgets/form": "Forms",
     "widgets/data": "Data",
     "widgets/viz": "Visualization",
+    "widgets/menu": "Navigation",
+    "widgets/dialog": "Modality",
 }
 
 # Every package the framework ships, whether or not it holds widgets. Read from
@@ -43,12 +45,17 @@ PACKAGES = [
     ("term", "`Terminal` and `Sink` — the two narrow interfaces, with the `x/sys` implementation and the headless sink."),
     ("headless", "The in-memory `Sink` and its cell-grid screen model, for tests without a terminal."),
     ("virtual", "The row-virtualization engine shared by `List`, `Table` and `Tree`."),
+    ("keymap", "Named commands and chords: `Command`, `CommandID`, `Binding`, `Entry`, `Ctx`, a 16-byte comparable `Chord`, and resolution by context specificity at 0 allocs. Shipped in v0.6.0."),
     ("widgets/block", "`Block` — the catalog's only owner of borders and titles."),
     ("widgets/basic", "`Text` and `Paragraph`."),
     ("widgets/split", "`Split` — the pane composer."),
     ("widgets/form", "`TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio`, `Toggle`, `Tabs`, `Button`, `KeyHint`."),
     ("widgets/data", "`List`, `Table`, `Tree`, `Pager`."),
     ("widgets/viz", "`ProgressBar`, `Gauge`, `Meter`, `Sparkline`, `BarChart`."),
+    ("widgets/menu", "`Menu` — a navigable tree with submenus to arbitrary depth."),
+    ("widgets/dialog", "`Dialog` — a modal with info, confirm and choice variants."),
+    ("widgets/cacheaudit", "The catalog-wide cache-audit gate (ADR 0007 §3): every finding fails the build."),
+    ("widgets/widgettest", "The headless widget-test harness: `Capture`, the cache-audit helpers, and the screen model the examples assert against. **Public, and therefore frozen at v1.0 by default — whether that surface should be frozen is undecided.**"),
 ]
 
 
@@ -145,11 +152,12 @@ def render(manifest: dict) -> str:
         "}",
         "```",
         "",
-        "**Four methods, unchanged across all eight architecture decisions.** That",
-        "is the most stable thing about a pre-alpha project: a widget written",
-        "against it today is the part most likely to still compile after the API",
-        "settles. The two optional interfaces are `Focusable` and `Minimizable` —",
-        "both discoverable by a type assertion, both costing nothing to omit.",
+        "**Four methods, unchanged across all ten architecture decisions, and",
+        "frozen at v1.0.0** under the stability promise. That is the most stable",
+        "thing in the project: a widget written against it today is the part most",
+        "likely to still compile at v1.1.0. The two optional interfaces are",
+        "`Focusable` and `Minimizable` — both discoverable by a type assertion,",
+        "both costing nothing to omit.",
         "",
         "See [Widgets and focus](/concepts/widgets-and-focus/) for what `Draw` may",
         "and may not do, and [ADR 0003](/adr/0003-renderer-mode/) for why the",

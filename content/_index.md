@@ -1,6 +1,6 @@
 ---
 title: "TermMosaic"
-description: "A terminal UI framework for Go: a cell-buffer renderer with two-tier diffing and 24 ready-to-use widgets. Pre-alpha."
+description: "A terminal UI framework for Go: a cell-buffer renderer with two-tier diffing and 24 ready-to-use widgets. v1.0.0."
 toc: true
 ---
 
@@ -11,20 +11,76 @@ renderer double-buffers cells, diffs at two tiers, and tracks dirty rectangles;
 the catalog is the part that is the point — including the five measurement
 widgets that comparable Go TUIs do not ship.
 
-> **TermMosaic is pre-alpha. The public API is not stable and will break
-> without notice until v1.0.0.** Everything on this site is accurate as of
-> **v0.7.0**. Read [Limitations](/limitations/) before you rely on any of it —
-> the honest list is short, specific, and load-bearing.
+> **v1.0.0 is the first release that makes a stability promise.** The public
+> API freezes there and Semantic Versioning applies in earnest — a behaviour
+> change means a minor, not a quiet patch. Everything on this site is accurate
+> as of **v1.0.0** (released 2026-10-06). Read [Limitations](/limitations/)
+> before you rely on any of it — the honest list is short, specific, and
+> load-bearing, and it names what is still open at this release.
 
 ```go
-go get github.com/serkanalgur/termmosaic@v0.7.0
+go get github.com/serkanalgur/termmosaic@v1.0.0
 ```
 
 Then read the [quickstart](/getting-started/quickstart/), or run the example:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0
+go run github.com/serkanalgur/termmosaic/examples/markets@v1.0.0
 ```
+
+## What's new in v1.0.0
+
+The first release that makes a stability promise — and the reason it is
+v1.0.0 rather than v0.8.0 is a behaviour change below.
+
+- **The public API freezes here.** From v1.0.0 the project follows Semantic
+  Versioning in earnest: a behaviour change means a minor, not a quiet patch.
+  Every release before this was a pre-release under a break-without-notice
+  policy, and v1.0.0 retires that paragraph. One honesty note the release
+  carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
+  because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour
+  changes. The promise starts at v1.0.0; it is not retroactive.
+- **The colour quantiser was replaced, and that is a behaviour change.** PR #18
+  audited the 256/16-colour selection with CIEDE2000 and found the "redmean"
+  mapping inert — `rmean/256` and `(255-rmean)/256` divide to zero in `uint8`
+  arithmetic, so both weights were identically 2 and the formula was fixed
+  `2*dr²+4*dg²+2*db²` in gamma-space RGB, flipping the hue of plausible UI
+  colours. Measured selection error before: 256 rung max **21.201** (19.35%
+  above the just-noticeable difference), 16 rung max **36.821** (37.50% above),
+  with `markets.down` collapsing to grey at the 16 rung and colliding with
+  `markets.flat`. PR #19 replaced the quantiser with Lab-space (CIEDE2000)
+  selection through the existing `buffer.Quantiser` hook: selection error is
+  **0.000 on both rungs**, 0 of 281,216 colour-rungs regressed, and the frame
+  path went 224.8 → 6.6 ns/op at 0 allocs. **The bytes a program emits at the
+  256 and 16 colour rungs change.** The colour model moved **PROPOSED → DECIDED
+  on measurement** — decided because it was measured, not asserted.
+- **Every widget now has a runnable example.** 74 `func Example` functions
+  covering all 24 catalog widgets, in the eight `widgets/*/example_test.go`
+  files — each rendered through `widgets/widgettest`, so its `// Output`
+  comment **is** the cell grid the renderer produced. This closes the
+  framework's largest unmet criterion ("every widget has a runnable example").
+  Test-only: no behaviour change.
+- **Platform claim narrowed to Linux and macOS** (ADR 0001). Windows is a
+  deliberate loud-error stub, out of scope for v1.0.0 — every console
+  operation fails loudly instead of half-working. The Windows CI **test** leg
+  was dropped: the full test suite on a Windows runner spent minutes
+  asserting only that the stub returns its documented error. CI is now
+  **11 required checks**: `test (ubuntu-24.04)`, `test (macos-15)`, `gofmt`,
+  `golangci-lint`, `zero-allocation diff`, and six `cross-compile` legs
+  (linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64,
+  windows/arm64) — Windows is still build-verified, just not test-run.
+- **Two CI correctness fixes**: `-count=1` on test runs (a manual re-run could
+  otherwise serve a cached PASS instead of re-executing) and `cache: true` on
+  the setup-go steps that did not declare it.
+
+**Open at this release — decided by nobody.** v1.0.0 does not close these, and
+reading the release as closure would be reading the maintainer's mind:
+`widgets/widgettest` is public and therefore frozen at v1.0 **by default**
+unless the release notes exclude it — and they do not, so the promise covers it,
+but whether that surface *should* be frozen is **undecided**; the macOS test
+leg still runs and a further reduction has been discussed but not done; and
+`deleteBranchOnMerge` is false at repo level. The full list is on
+[Limitations](/limitations/#still-open).
 
 ## What's new in v0.7.0
 
@@ -368,6 +424,7 @@ estimate.
 | `Table` render cost, 10,000 items → 100,000 items | **16,801 ns → 17,885 ns**, same shape | `widgets/data` benchmarks |
 | The key-decoding path | **0 allocations**, pinned by test | [ADR 0005](/adr/0005-input-decoding/) |
 | `tcell`'s flush, same one-row-dirty workload | **280,814 ns/op** against our **7,133 ns/op** — the measurement that settled [ADR 0001](/adr/0001-backend-strategy/) | [ADR 0001](/adr/0001-backend-strategy/) |
+| Colour-quantiser selection, steady state (v1.0.0) | `Nearest256` **224.8 → 6.611 ns/op**, `Nearest16` **16.02 → 7.126 ns/op**, both **0 allocs** — the Lab/CIEDE2000 replacement selects through a per-colour memo, so only the first use of a colour pays for the exhaustive search | Framework `buffer` benchmarks, recorded in the v1.0.0 release notes |
 
 **There are no benchmarks on this site for the widgets' visual output, for
 frame pacing under load, or for drag-resize.** The resize costs in
@@ -385,7 +442,7 @@ tool from the cells the renderer produced.
 
 Every capture on this site is a **cell grid**, not a screenshot of anyone's
 terminal. It is produced by `cmd/capture` in the framework repo, which runs each
-widget through `widgettest.Capture` — the same path the 1,041 top-level test functions assert
+widget through `widgettest.Capture` — the same path the 1,186 top-level test functions assert
 on — and converts `MemorySink.Cells()` to HTML. That is what makes it trustworthy: the
 docs cannot show something no test pins.
 
@@ -477,16 +534,20 @@ build a real dashboard on is a toy, however elegant its renderer.
 ## Honest status, in one paragraph
 
 The renderer, the input layer, the layout solver, the full 24-widget catalog and
-the `keymap` package are built and tested: 26 packages, 1,041 top-level test functions, a zero-allocation frame
+the `keymap` package are built and tested: 28 packages, 1,186 top-level test functions, a zero-allocation frame
 path. Alongside that: **Windows is a stub that returns a loud error from every
 console operation**, **there is still no command palette**, **no catalog widget
 implements the optional `Commandable`/`Clickable`**, **a key the keymap consumes
 shadows a widget's own `switch` and the registry cannot report it**, there is
 **no IME or preedit**, **tmux DCS passthrough is
-missing**, **`TextArea` has no rendered selection**, the **colour quantiser is
-unvalidated**, and **there is no theme** — by decision, argued in
-[ADR 0008](/adr/0008-style-and-text/), not by omission. Everything in that list
-is on [Limitations](/limitations/) with the reason.
+missing**, **`TextArea` has no rendered selection**, and **there is no theme** —
+by decision, argued in
+[ADR 0008](/adr/0008-style-and-text/), not by omission. Two decisions made at
+v1.0.0 are recorded as open rather than settled: **`widgets/widgettest`'s
+compatibility promise** (it is public, so v1.0.0 freezes it by default — but
+whether that surface *should* be frozen is undecided) and **whether the macOS
+test leg should also go**. Everything in that list is on
+[Limitations](/limitations/) with the reason.
 
 ## Elsewhere
 

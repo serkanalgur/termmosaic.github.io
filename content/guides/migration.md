@@ -139,14 +139,18 @@ And two that are missing for reasons that are not philosophy:
 
 ## And before you commit
 
-**TermMosaic is pre-alpha and the API will break without notice until v1.0.0.**
-Migrating a working application onto it means accepting that the next minor
-version may require changes. What *is* promised: **no behavioural change in a
-patch release.**
+**v1.0.0 is the first release that makes a stability promise.** The public API
+freezes there and Semantic Versioning applies in earnest: from v1.0.0 a
+behaviour change means a minor, not a quiet patch. Migrating a working
+application onto it still means accepting that the next minor version may
+change what a widget *draws* — the promise is about the API surface, and the
+release notes say so explicitly: "the v1.0 promise is really a promise about
+pixel output, not signatures."
 
-The one thing deliberately held fixed is `Widget` — four methods, unchanged
-across all ten architecture decisions. If you write a widget against it today,
-it is the part most likely to still compile after the API settles.
+The one thing deliberately held fixed since the beginning is `Widget` — four
+methods, unchanged across all ten architecture decisions and now frozen under
+the v1.0.0 promise. If you write a widget against it today, it is the part most
+likely to still compile at v1.1.0.
 
 ## Reading next
 
