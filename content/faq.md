@@ -12,7 +12,9 @@ toc: true
 **Not in production yet — but v1.0.0 is the first release that says why that
 can change.** v1.0.0 (2026-10-06) makes a stability promise: the public API
 freezes there and Semantic Versioning applies in earnest — a behaviour change
-means a minor, not a quiet patch. Every release before v1.0.0 was a
+means a minor, not a quiet patch — with one documented exception:
+`widgets/widgettest`, the test harness, is excluded from that promise, because
+it must evolve with the framework. Every release before v1.0.0 was a
 pre-release under a break-without-notice policy. One honesty note the release
 carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
 because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour
@@ -35,8 +37,8 @@ the input layer, the layout solver and the full 24-widget catalog are built and
 tested — 28 packages, 1,186 top-level test functions, a zero-allocation frame
 path — and v1.0.0 is the first release that freezes the API. What keeps it from
 "production-ready" is not instability any more; it is the open items on
-[Limitations](/limitations/#still-open) — no IME, no tmux passthrough, no
-Windows runtime, and `widgets/widgettest`'s compatibility promise undecided.
+[Limitations](/limitations/#still-open) — no IME, no tmux passthrough, and no
+Windows runtime.
 
 ## Does it work on Windows?
 

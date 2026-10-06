@@ -114,7 +114,9 @@ library is broken. See [ADR 0005 §10](/adr/0005-input-decoding/) and
 - **v1.0.0 is tagged and the module resolves.** `go get …@v1.0.0` works.
 - **v1.0.0 is the first release that makes a stability promise.** The public API
   freezes there and Semantic Versioning applies in earnest: a behaviour change
-  means a minor, not a quiet patch. Every release before v1.0.0 was a
+  means a minor, not a quiet patch — with one documented exception:
+  `widgets/widgettest`, the test harness, is excluded from that promise,
+  because it must evolve with the framework. Every release before v1.0.0 was a
   pre-release under a break-without-notice policy. One honesty note the release
   carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
   because v0.5.1, v0.5.2 and v0.6.1 were patch numbers that carried behaviour

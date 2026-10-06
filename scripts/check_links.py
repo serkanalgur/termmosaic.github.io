@@ -42,24 +42,35 @@ REPO = Path(__file__).resolve().parent.parent
 # The built tree under public/ has no such prefix, so the checker has to strip
 # it before comparing. Read from hugo.toml rather than hardcoding, so changing
 # baseURL cannot silently turn every link into a false alarm.
-try:
-    import tomllib as _toml
-    _cfg = _toml.loads((REPO / "hugo.toml").read_text(encoding="utf-8"))
-    _base = str(_cfg.get("baseURL", "")).rstrip("/")
-    PREFIX = _base[len("https://serkanalgur.github.io"):] if _base.startswith("https://serkanalgur.github.io") else ""
-except Exception:  # noqa: BLE001 - a missing config must not crash the checker
-    PREFIX = ""
+# baseURL carries the deploy sub-path, and PREFIX is what keeps the checker's
+# page index in the same shape as the hrefs Hugo emits. Deriving it wrong is
+# not a subtle miss — with no prefix every internal link on a sub-path site
+# reports as broken — so parse it two ways rather than trusting one
+# interpreter to have the parser.
+_cfg_text = (REPO / "hugo.toml").read_text(encoding="utf-8") if (REPO / "hugo.toml").is_file() else ""
+_base = ""
+if _cfg_text:
+    try:
+        import tomllib as _toml
+        _base = str(_toml.loads(_cfg_text).get("baseURL", "")).rstrip("/")
+    except ImportError:
+        # tomllib is Python 3.11+. The old fallback here was PREFIX="", which
+        # compares Hugo's correctly-prefixed hrefs against an unprefixed page
+        # index and reports all of them broken. Parse the one key we need from
+        # the raw config text instead, so the check means the same thing on
+        # every interpreter.
+        _m = re.search(r'(?m)^baseURL\s*=\s*"([^"]*)"', _cfg_text)
+        _base = _m.group(1).rstrip("/") if _m else ""
+    except Exception:  # noqa: BLE001 - a corrupt config must not crash the checker
+        _base = ""
+PREFIX = _base[len("https://serkanalgur.github.io"):] if _base.startswith("https://serkanalgur.github.io") else ""
 if PREFIX and not PREFIX.startswith("/"):
     PREFIX = "/" + PREFIX
 
 # Origin of this site, derived from baseURL, so an absolute link back to our
 # own pages is recognised as internal rather than waved through as external.
-try:
-    import re as _re
-    _m = _re.match(r"^(https?://[^/]+)", _base)
-    SITE_ORIGIN = _m.group(1) if _m else ""
-except Exception:  # noqa: BLE001
-    SITE_ORIGIN = ""
+_m = re.match(r"^(https?://[^/]+)", _base)
+SITE_ORIGIN = _m.group(1) if _m else ""
 
 # Hugo emits ids on headings as <h2 id="...">, and Pagefind does not add any.
 ID_ATTR = re.compile(r'\bid="([^"]+)"')

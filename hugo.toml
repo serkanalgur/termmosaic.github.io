@@ -29,7 +29,11 @@ disableKinds = ["taxonomy", "term"]
   # The framework's own README and docs/STATUS.md now state the same thing
   # (PR #27, 2026-10-06); before that correction they still opened with a
   # pre-alpha block, and the site followed the release notes instead.
-  stability = "v1.0.0 — the first release that makes a stability promise: the public API freezes here and Semantic Versioning applies in earnest"
+  #
+  # PR #28 (2026-10-06) records one documented exception: widgets/widgettest
+  # is excluded from the promise, because a test harness must evolve with the
+  # framework. The framework README and docs/STATUS.md both carry it now.
+  stability = "v1.0.0 — the first release that makes a stability promise: the public API freezes here and Semantic Versioning applies in earnest, with one documented exception — widgets/widgettest is excluded from that promise, because it must evolve with the framework"
 
 [markup]
   [markup.goldmark]

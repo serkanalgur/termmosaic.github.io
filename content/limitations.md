@@ -75,7 +75,9 @@ is the failure mode this page exists to prevent.
 ## Project stage
 
 - **v1.0.0 is the first release that makes a stability promise.** The public API
-  freezes there and Semantic Versioning applies in earnest: a behaviour change
+  freezes there and Semantic Versioning applies in earnest, **with one
+  documented exception: `widgets/widgettest`, the test harness, is excluded
+  from that promise — it must evolve with the framework**. A behaviour change
   means a minor, not a quiet patch. Every release before v1.0.0 was a
   pre-release under a break-without-notice policy. One honesty note the release
   carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
@@ -107,7 +109,9 @@ is the failure mode this page exists to prevent.
 ## v1.0.0 — the stability promise, a replaced quantiser, and eleven checks
 
 **v1.0.0 (2026-10-06) is the first release that makes a stability promise.**
-The public API freezes there and Semantic Versioning applies in earnest. The
+The public API freezes there and Semantic Versioning applies in earnest — with
+one documented exception: `widgets/widgettest`, the test harness, is excluded
+from the promise, because it must evolve with the framework. The
 reason it is v1.0.0 rather than v0.8.0 is the quantiser replacement below,
 which is a behaviour change and therefore a minor-level change under the
 project's own policy — and the policy says the first release to promise
@@ -128,15 +132,18 @@ stability is 1.0.0.
   (`examples/hello/testdata/hello_256.sgr` and `hello_16.sgr`, the title accent
   only), each verified better by the audit's own metric. If you diff output at
   a degraded rung across the upgrade, this is why it differs.
-- **`widgets/widgettest` is public and therefore frozen at v1.0 — and whether
-  that is right is undecided.** It was written for the project's own tests, it
-  happens to live in a public package, and v1.0.0's stability promise lands on
-  it like any other exported identifier, because the release notes do not
-  exclude it. The framework's `docs/STATUS.md` names the hazard and two options
-  — promote it to a decided surface with its own rules, or move it under
-  `internal/` — and picks **neither**. This is an open product decision, not a
-  documentation gap. A later release can still move it, but only by breaking
-  something v1.0.0 promised.
+- **`widgets/widgettest` is excluded from the stability promise — decided
+  2026-10-06.** The package is public — all 74 `func Example` functions in
+  `widgets/*/example_test.go` import it — so v1.0.0's promise would have
+  frozen it by default, making every future helper a breaking change. The
+  decision excludes it explicitly instead: it is a test harness whose value
+  depends on evolving alongside the framework, and freezing it would either
+  prevent useful helpers from being added or force a major bump every time
+  one is — it serves nobody. The window to relocate it under `internal/`
+  has closed, because v1.0.0 is tagged and published, so the exclusion is
+  documented rather than the freeze pretended workable. The package is not
+  moved, not renamed, and unchanged in code. Recorded in the framework's
+  `docs/STATUS.md` and `CHANGELOG.md` ([Unreleased]).
 - **The Windows CI test leg was dropped; eleven checks are required now.**
   `test (windows-2025)` ran the full `-race` suite on a Windows runner to
   assert that a deliberate stub returns its documented error — the most
@@ -772,12 +779,6 @@ invisible, because nothing else about row styling worked either.
 
 ## Still open
 
-- **`widgets/widgettest`'s compatibility promise.** It is public, so v1.0.0's
-  stability promise covers it by default — the release notes do not exclude it.
-  Whether that surface *should* be frozen is **undecided**: the framework's
-  `docs/STATUS.md` names two options (promote it to a decided surface with its
-  own rules, or move it under `internal/`) and picks neither. A later release
-  can still move it, but only by breaking something v1.0.0 promised.
 - **Whether the macOS test leg should also go.** The Windows test leg was
   dropped at v1.0.0; the macOS leg still runs the full `-race` suite. A further
   reduction has been discussed but **not done** — do not read the Windows drop
