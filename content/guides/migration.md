@@ -141,7 +141,9 @@ And two that are missing for reasons that are not philosophy:
 
 **v1.0.0 is the first release that makes a stability promise.** The public API
 freezes there and Semantic Versioning applies in earnest: from v1.0.0 a
-behaviour change means a minor, not a quiet patch. Migrating a working
+behaviour change means a minor, not a quiet patch — with one documented
+exception: `widgets/widgettest`, the test harness, is excluded from that
+promise, because it must evolve with the framework. Migrating a working
 application onto it still means accepting that the next minor version may
 change what a widget *draws* — the promise is about the API surface, and the
 release notes say so explicitly: "the v1.0 promise is really a promise about

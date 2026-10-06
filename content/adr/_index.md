@@ -187,16 +187,19 @@ If you want the originals:
   narrowed from "risk" to **decision**: Windows is out of scope for v1.0.0, the
   supported platforms are Linux and macOS, and the Windows CI test leg was
   dropped (the cross-compile legs remain).
-- **`widgets/widgettest`'s compatibility promise.** It is public, so v1.0.0's
-  stability promise covers it by default — the release notes do not exclude it.
-  Whether that surface *should* be frozen is **undecided**: `docs/STATUS.md`
-  names two options (promote it to a decided surface, or move it under
-  `internal/`) and picks neither.
 - **The cache-poisoning debug mode is built, and it found eight stale caches.**
   It shipped in v0.5.0 as ADR 0007 §3's deferred "expensive half", and
   `widgets/cacheaudit` fails the build on a finding. What it does *not* cover is
   every exported raw field — the gate covers the transitions it names, and several
   same-shaped fields are not named by any.
+- **The `widgets/widgettest` compatibility question is no longer open.** It moved
+  undecided → **DECIDED on 2026-10-06**: the package is **excluded** from the
+  v1.0.0 stability promise, because a test harness must evolve with the
+  framework. It was undecided at release time because v1.0.0 shipped without
+  excluding it, which froze the public package by default; PR #28 records the
+  exclusion in the framework's `docs/STATUS.md` and `CHANGELOG.md`. An earlier
+  entry on this page listed the question as open; it is recorded here as
+  decided rather than erased.
 - **The colour model is no longer open.** It moved **PROPOSED → DECIDED on
   measurement** at v1.0.0 (2026-10-06): PR #18's CIEDE2000 audit found the
   redmean weights inert and PR #19 replaced the quantiser through the

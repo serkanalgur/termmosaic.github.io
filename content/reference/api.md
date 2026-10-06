@@ -134,7 +134,7 @@ below it is the application's decision.
 | `widgets/menu` | `Menu` — a navigable tree with submenus to arbitrary depth. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/menu) |
 | `widgets/dialog` | `Dialog` — a modal with info, confirm and choice variants. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/dialog) |
 | `widgets/cacheaudit` | The catalog-wide cache-audit gate (ADR 0007 §3): every finding fails the build. [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/cacheaudit) |
-| `widgets/widgettest` | The headless widget-test harness: `Capture`, the cache-audit helpers, and the screen model the examples assert against. **Public, and therefore frozen at v1.0 by default — whether that surface should be frozen is undecided.** [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/widgettest) |
+| `widgets/widgettest` | The headless widget-test harness: `Capture`, the cache-audit helpers, and the screen model the examples assert against. **Public, and explicitly excluded from the v1.0.0 stability promise — decided 2026-10-06: it is a test harness that must evolve with the framework.** [pkg.go.dev](https://pkg.go.dev/github.com/serkanalgur/termmosaic/widgets/widgettest) |
 
 ## The one interface that is held fixed
 

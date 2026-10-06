@@ -19,7 +19,9 @@ loop is where the design decisions show up.
 
 Before any of it: **v1.0.0 is the first TermMosaic release that makes a
 stability promise** — the public API freezes there and Semantic Versioning
-applies in earnest. See [Limitations](/limitations/). If you are evaluating it
+applies in earnest, with one documented exception: `widgets/widgettest`, the
+test harness, is excluded from that promise, because it must evolve with the
+framework. See [Limitations](/limitations/). If you are evaluating it
 rather than adopting it, that page is the thing to read first — it is short,
 specific, and lists what does not work.
 

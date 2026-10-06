@@ -13,7 +13,9 @@ widgets that comparable Go TUIs do not ship.
 
 > **v1.0.0 is the first release that makes a stability promise.** The public
 > API freezes there and Semantic Versioning applies in earnest — a behaviour
-> change means a minor, not a quiet patch. Everything on this site is accurate
+> change means a minor, not a quiet patch — with one documented exception:
+> `widgets/widgettest`, the test harness, is excluded from that promise,
+> because it must evolve with the framework. Everything on this site is accurate
 > as of **v1.0.0** (released 2026-10-06). Read [Limitations](/limitations/)
 > before you rely on any of it — the honest list is short, specific, and
 > load-bearing, and it names what is still open at this release.
@@ -34,7 +36,9 @@ The first release that makes a stability promise — and the reason it is
 v1.0.0 rather than v0.8.0 is a behaviour change below.
 
 - **The public API freezes here.** From v1.0.0 the project follows Semantic
-  Versioning in earnest: a behaviour change means a minor, not a quiet patch.
+  Versioning in earnest: a behaviour change means a minor, not a quiet patch —
+  with one documented exception: `widgets/widgettest`, the test harness, is
+  excluded from the promise, because it must evolve with the framework.
   Every release before this was a pre-release under a break-without-notice
   policy, and v1.0.0 retires that paragraph. One honesty note the release
   carries itself: the gate's SemVer criterion is recorded **PARTIALLY MET**,
@@ -74,12 +78,12 @@ v1.0.0 rather than v0.8.0 is a behaviour change below.
   the setup-go steps that did not declare it.
 
 **Open at this release — decided by nobody.** v1.0.0 does not close these, and
-reading the release as closure would be reading the maintainer's mind:
-`widgets/widgettest` is public and therefore frozen at v1.0 **by default**
-unless the release notes exclude it — and they do not, so the promise covers it,
-but whether that surface *should* be frozen is **undecided**; the macOS test
-leg still runs and a further reduction has been discussed but not done; and
-`deleteBranchOnMerge` is false at repo level. The full list is on
+reading the release as closure would be reading the maintainer's mind: the
+macOS test leg still runs and a further reduction has been discussed but not
+done; and `deleteBranchOnMerge` is false at repo level. One item that was
+undecided here has since been settled — `widgets/widgettest` is **excluded**
+from the v1.0.0 stability promise (decided 2026-10-06), because a test harness
+must evolve with the framework. The full list is on
 [Limitations](/limitations/#still-open).
 
 ## What's new in v0.7.0
@@ -542,11 +546,11 @@ shadows a widget's own `switch` and the registry cannot report it**, there is
 **no IME or preedit**, **tmux DCS passthrough is
 missing**, **`TextArea` has no rendered selection**, and **there is no theme** —
 by decision, argued in
-[ADR 0008](/adr/0008-style-and-text/), not by omission. Two decisions made at
-v1.0.0 are recorded as open rather than settled: **`widgets/widgettest`'s
-compatibility promise** (it is public, so v1.0.0 freezes it by default — but
-whether that surface *should* be frozen is undecided) and **whether the macOS
-test leg should also go**. Everything in that list is on
+[ADR 0008](/adr/0008-style-and-text/), not by omission. One decision made at
+v1.0.0 is recorded as open rather than settled: **whether the macOS test leg
+should also go**. (`widgets/widgettest`'s compatibility promise was in that
+list too; it has since been decided — the package is **excluded** from the
+v1.0.0 stability promise, 2026-10-06.) Everything in that list is on
 [Limitations](/limitations/) with the reason.
 
 ## Elsewhere
