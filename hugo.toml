@@ -26,10 +26,9 @@ disableKinds = ["taxonomy", "term"]
   #
   # v1.0.0 (2026-10-06) is the first release that makes a stability promise:
   # the public API freezes there and Semantic Versioning applies in earnest.
-  # The framework's own README and docs/STATUS.md still open with a
-  # pre-alpha / "will break before v1.0" block written before that release;
-  # the release notes and CHANGELOG are the more recent statement, so the
-  # site follows them.
+  # The framework's own README and docs/STATUS.md now state the same thing
+  # (PR #27, 2026-10-06); before that correction they still opened with a
+  # pre-alpha block, and the site followed the release notes instead.
   stability = "v1.0.0 — the first release that makes a stability promise: the public API freezes here and Semantic Versioning applies in earnest"
 
 [markup]

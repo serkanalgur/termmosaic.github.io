@@ -98,7 +98,7 @@ site is written in YAML — a TOML-only parser reports every page as broken.
 ## Sponsoring
 
 This site documents [TermMosaic](https://github.com/serkanalgur/termmosaic),
-which is a solo pre-alpha project. If it saves you any time:
+which is a solo project. If it saves you any time:
 [GitHub Sponsors](https://github.com/sponsors/serkanalgur).
 
 ## Editing
