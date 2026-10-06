@@ -8,7 +8,7 @@ toc: true
 
 This page is not an appendix. It is linked from the landing page, from every
 widget page's footer, and from the [FAQ](/faq/), and every item on it is
-traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.5.2. If
+traceable to the framework's `docs/STATUS.md` or `CHANGELOG.md` at v0.7.0. If
 something is missing here and you find it in the repository, that is a bug in
 this page — [open an issue](https://github.com/serkanalgur/termmosaic/issues).
 
@@ -87,39 +87,165 @@ is the failure mode this page exists to prevent.
   current source, so a version selector would have to render from a checkout, not
   from a site.
 - **Not every widget has a runnable example yet.** `CONTRIBUTING.md` requires one
-  per widget. Three programs exist today: `examples/markets` (the flagship — a
+  per widget. Four programs exist today: `examples/markets` (the flagship — a
   live finance dashboard, keyboard and mouse driven),
   `examples/hello` (a responsive panel with a focus ring and a `?` help overlay),
-  and `examples/dashboard`.
+  `examples/search` (search and results on real Wikipedia data, and **the first
+  example with a focusable widget in the focus ring**), and `examples/dashboard`.
   **`examples/dashboard` overlaps `examples/markets` heavily and whether to keep
   it or retire it is undecided.** It has not been removed; the documentation
   points new readers at `markets` and does not present the two as equally
   recommended. Where a widget's page has no program to point at, that is the gap,
   and it is not papered over on the widget page.
 
-## The `keymap` layer is specified, not built
+## v0.6.0 `keymap` — a new package, and nothing you wrote breaks
 
-**[ADR 0009](/adr/0009-command-and-keymap/) is Accepted, and nothing implements
-it.** There is no `keymap` package in the framework, and **no command palette
-exists.** `keymap` was targeted at v0.4.0, and **both v0.3.0 and v0.4.0
-shipped on 2026-10-05 without it**, so there is no version it is currently
-scheduled for.
+**`keymap` shipped in v0.6.0**, after slipping v0.3.0 and v0.4.0. It is a new
+package — `Command`, `CommandID`, `Binding`, `Entry`, `Ctx`, and a 16-byte
+comparable `Chord` with `ParseChord`/`ChordOf` as the one notation function in
+both directions. **If you do not adopt it, nothing about your program changes.**
 
-**What you have today: widgets dispatch their own keys.** A `Table` consumes the
-arrows, a `Menu` consumes its navigation, and the application writes the routing
-plus the keys no widget wants — Tab, the quit keys, and anything specific to the
-app. That is the pattern both examples use, and it is what ADR 0009 exists to
-replace.
+**No migration, and this is worth stating rather than leaving you to check.**
+`Widget`, `Event`, `Key` and `Mouse` are **unchanged**. `Widget.Handle`'s *doc
+comment* now states the precedence — events reach a widget only after the
+application's keymap has declined them — but **no method was added, changed or
+deprecated, and the interface is byte-identical.** A widget that knows nothing
+about `keymap` is fully supported.
 
-**Why it is listed here rather than left implicit:** a reader who reads ADR 0009
-and finds no `keymap` package should conclude the ADR is unimplemented, not that
-they missed something. The spec is real and the code is absent, and this site does
-not blur the two.
+**Four things this release does not do:**
 
-One consequence already visible in the framework: `examples/markets` hand-rolls
-its key routing and needs a `bindings()` function plus a help overlay that lists
-the keys by hand. A command layer would make that declarative. Until then, it is
-boilerplate you write yourself.
+- **A key the keymap consumes shadows a widget's own `switch`, and the registry
+  cannot tell you.** This is documented on `Widget.Handle` and is the designed
+  outcome: a `ScopeFocus` binding is the fix, and it goes inert when focus moves.
+  The registry is told a widget's bounds and its published chords, **never what
+  its `Handle` does** — so `Warnings` **cannot** report the overlap. Not
+  "does not yet"; cannot, on the current interface. A test asserts the silence
+  deliberately, so the limit is recorded rather than implied.
+- **No command palette.** ADR 0009 §9 puts a `Ctrl+K` palette in scope and
+  explicitly not in that ADR. `Describe` is the discoverability *data* for one;
+  the palette is the UI, and it is not built.
+- **`Commandable` and `Clickable` are optional interfaces, and no catalog widget
+  implements either.** The deferred half of ADR 0009 §8. A widget implementing
+  neither is fully supported, so this is a limit on how much the registry can
+  learn, not on what your program can do.
+- **`Registry` has no `Unregister`**, so a command renamed at runtime leaves a
+  chordless row in help. Visible rather than silent.
+
+Also unchanged from ADR 0009's own risk list: no real terminal has met `Chord`'s
+folding rules (`Ctrl+k` and `Ctrl+K` are two chords, because a kitty terminal
+reports them as two gestures), and three scopes may be too coarse.
+
+**`examples/markets` and `examples/dashboard` still dispatch by their own
+`switch`.** Only `examples/hello` and `examples/search` route through the
+registry, so the mixed-mechanism risk ADR 0009 names is live in two of four
+examples. `markets` still hand-rolls a `bindings()` function plus a hand-written
+help overlay; the command layer would make that declarative, and there it does
+not yet.
+
+## v0.6.1 `DescribeGrouped` — and `examples/hello`'s hint text changed
+
+**`Describe` returns one `Entry` per chord. `DescribeGrouped` returns one per
+command**, carrying every chord in scope for it. That is the ordering ADR 0009
+§9 specifies for a *command palette*, where a row consumes `Chords[0]`. Both
+orderings exist because the consumer differs: `form.KeyHint.SetEntries` joins an
+entry's chords into one label, so a hint line fed `Describe` printed a
+three-chord command's description **three times**.
+
+**Pick by what you are rendering.** `Describe` for a palette row;
+`DescribeGrouped` for a hint line or any merged display.
+
+**`examples/hello`'s pinned hint line text changed, and if you took that example
+as near-enough-correct, it no longer matches.** It now reads:
+
+```
+[Q q Esc Ctrl+c] quit  ·  [?] toggle the keys
+```
+
+where it used to read `press q to quit  ·  ? keys  ·  arrows move focus`. The
+**`?` help overlay also went from two rows to three**, because `Describe` spells
+every chord in full rather than saying "arrows" — twelve chords is about eighty
+cells of bracketed labels before a single description, which needs three rows at
+the narrowest interior the panel draws at.
+
+That change is the visible half of what v0.6.1 actually did: `examples/hello`
+now **dispatches through `keymap`**, and both the hint line and the overlay
+render from the registry. A binding and its description are written **once** —
+the hand-written hint string and the test that checked it against `Handle` are
+both gone. **The example's key contract did not otherwise change:** same keys,
+same behaviour, and `Widget.Handle` claims nothing.
+
+**`Registry` has no `SetFocus`**, so `Describe(ScopeFocus)` cannot answer "what
+can the focused widget do right now" — the registry only learns what is focused
+by dispatching. Deferred to v1.1. `examples/hello` avoids it by using
+`ScopeScreen`. One more consequence worth knowing: **`Attach` must be called even
+when no widget implements `Commandable`**, purely so a scope-bound owner is
+`IsAttached` — a registry that reports no `Warnings` requires it.
+
+## v0.7.0 `examples/search` — the first example with something actually focused
+
+**`examples/search` shipped in v0.7.0**, with **nine golden files and 74 tests**,
+all asserting on cells through the headless harness.
+
+It is a search-and-results screen on real Wikipedia data — no API key — with a
+`form.TextInput` query field, a `data.Table` of results and a detail pane.
+`--offline` runs the whole screen on a transcribed capture. **It is the first
+example with a focusable widget in the focus ring**, and that is what makes it
+interesting to read rather than merely runnable.
+
+**What it establishes, and the two limits it exposed:**
+
+- **Context-dependence is expressed with `Command.Enabled`, not `ScopeFocus` —
+  and that is a finding, not a simplification.** No catalog widget implements
+  `keymap.Commandable`, so a focus-scoped binding would mean the *application*
+  declaring keys on a widget's behalf with an owner it picked, which is the one
+  thing `Commandable` exists to stop being necessary for. `Enabled` is
+  documented as "an unavailable command is not run by a key press", and `Dispatch`
+  skips it and keeps looking, so a screen-scoped arrow binding with `Enabled`
+  false while the table has focus is simply not claimed and the event falls
+  through to the tree.
+- **`Registry.SetFocus` is missing, so `Describe(ScopeFocus)` is
+  over-inclusive, not incomplete.** `inScope` returns true for an exact-scope
+  match without consulting liveness, so a focus query reports *every*
+  focus-scoped binding whatever has focus. Harmless for a help screen, which
+  arguably wants the superset; **wrong for a hint line.** `examples/search`
+  worked around it by tracking focus itself, and a test pins the gap so neither
+  the workaround nor the gap can be quietly forgotten. One line, once `SetFocus`
+  exists. Deferred to v1.1.
+
+**Also, if you build a screen this shape:**
+
+- **A key bound anywhere outranks a focused widget's own key.** `q` has to
+  decline explicitly or you have a search box you cannot type "quit" into — and
+  the decline must check that the field has focus **and** that the chord is an
+  unmodified printable, because `Ctrl-C` arrives as `Ctrl+'c'`: a printable rune
+  with a modifier.
+- **`Home` and `End` are deliberately left unbound.** Both widgets claim the
+  bare forms — the field moves the caret, the table selects first and last — and a
+  screen binding outranks both, so binding them would silently break both. The
+  ring's ends are `Ctrl+Home`/`Ctrl+End`, which neither widget consumes.
+- **`data.Table` has no `Ascii` flag for its selection marker**, so its default
+  `›` has no ASCII rung and would leak onto a terminal whose caps report no
+  Unicode. The example overrides the marker, making it an application decision.
+- **`TextInput` does not expose its horizontal scroll offset**, so the example
+  computes the caret cell from the rune index and clamps — exact for any query
+  shorter than the field, approximate beyond.
+- **The arrow step from the field to the table is one-way.** The table consumes
+  `Up`, so at its first row `Up` moves nothing and the way back is `Shift-Tab`. A
+  ring whose arrows worked both ways would need the table to *decline* `Up` at
+  row 0, which is not something a widget can express.
+
+## There is still no command palette
+
+**[ADR 0009](/adr/0009-command-and-keymap/)'s command layer is built; its
+palette is not.** `keymap.Describe` and `DescribeGrouped` give you the data a
+palette needs and the ordering to render it in, and there is **no `Ctrl+K` palette
+UI in the framework.** ADR 0009 §9 scopes it out of that ADR deliberately, so
+this is a stated omission rather than an unfinished implementation.
+
+**An application that wants one writes it, and the registry is what makes that
+cheap**: one `Entry` per command with its chords, rendered from data the
+application already owns rather than a second hand-maintained list. That is
+exactly what `examples/hello` and `examples/search` do for their hint lines.
 
 ## The v0.5.0 field-to-setter migration breaks compilation — read this before upgrading
 

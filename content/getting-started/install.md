@@ -18,10 +18,10 @@ weight: 11
 
 ## Get it
 
-TermMosaic v0.5.2 is tagged and released, so pin the version:
+TermMosaic v0.7.0 is tagged and released, so pin the version:
 
 ```
-go get github.com/serkanalgur/termmosaic@v0.5.2
+go get github.com/serkanalgur/termmosaic@v0.7.0
 ```
 
 **Prefer to work from a checkout?** That works too, and it is how the framework's
@@ -37,7 +37,7 @@ go test ./...
 ## Check that it built
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0
 ```
 
 You should get a bordered panel titled `termmosaic` showing a live frame counter,
@@ -54,7 +54,7 @@ with `go test ./examples/hello/`.
 Then try the more useful one:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0
 ```
 
 That is a live finance dashboard — ECB rates from Frankfurter, crypto from
@@ -63,11 +63,24 @@ goroutine and needs outbound HTTPS. If you have no network, or want a
 deterministic run, use `--offline`:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/markets@v0.5.2 --offline
+go run github.com/serkanalgur/termmosaic/examples/markets@v0.7.0 --offline
 ```
 
 `q` quits, `r` refetches immediately, `?` opens the help overlay, and the wheel
 and mouse work on the panels.
+
+Then the newest one:
+
+```
+go run github.com/serkanalgur/termmosaic/examples/search@v0.7.0
+```
+
+That is a search-and-results screen on **real Wikipedia data** — no API key,
+nothing to sign up for — with a `form.TextInput` query field, a `data.Table` of
+results and a detail pane. `--offline` runs the whole screen on a transcribed
+capture, so it works with no network at all. It is also the **first example with
+a focusable widget in the focus ring**, which is what makes it the interesting
+one to read: everything else proves a widget draws and a screen routes keys.
 
 ## Windows
 
@@ -96,7 +109,7 @@ broken. See [ADR 0005 §10](/adr/0005-input-decoding/) and
 
 ## What "released" means here
 
-- **v0.5.2 is tagged and the module resolves.** `go get …@v0.5.2` works.
+- **v0.7.0 is tagged and the module resolves.** `go get …@v0.7.0` works.
 - **The API is not stable.** Every release before v1.0.0 is a pre-release, and a
   minor version **may contain behavioural changes**. What is promised: **no
   behavioural change in a patch release.** If v0.1.1 changes behaviour, that is a

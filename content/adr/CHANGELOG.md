@@ -30,6 +30,212 @@ reversed before v1.0.0.
 
 ---
 
+## [0.7.0] — 2026-10-06
+
+A minor bump, and the reason is a fourth example: **`examples/search`** — the
+first with a focusable widget in it, and therefore the first place the catalog
+and `keymap` meet under load.
+
+### Added
+
+- **`examples/search`** — a search-and-results screen on real Wikipedia data, no
+  API key and no signup: a `form.TextInput` query field, a `data.Table` of
+  results (article / words / updated), and a detail pane fed by the
+  article-summary endpoint. `data.Table` over `data.List` because the word counts
+  span two orders of magnitude, and a right-aligned fixed column lets the eye
+  find the longest article by shape; a `List` renders one string per item and
+  would have had the spacing built in by hand.
+- **Nine golden files and 74 tests**, all asserting on **cells** through the
+  headless harness. No escape-sequence assertion anywhere.
+- **`--offline`** runs the whole screen on a transcribed 2026-10-05 capture of a
+  real response, mirroring `examples/markets`' `source` interface with four
+  implementations (live, offline, empty, failed). The snippet markup is stored
+  **raw** and stripped in the view layer, so the offline path pins the same
+  stripping the live path does. The capture's clock is a pinned constant, not
+  `time.Now()`, because a golden reading the wall clock fails every run.
+
+### What it establishes
+
+- **Context-dependence is expressed with `Command.Enabled`, not `ScopeFocus`.**
+  No binding in the example is focus-scoped, and that is a finding rather than a
+  simplification. No catalog widget implements `keymap.Commandable`, so a
+  focus-scoped binding would mean the *application* declaring keys on a widget's
+  behalf with an owner it picked — which is exactly what `Commandable` exists to
+  stop being necessary for. `Enabled` is documented as "an unavailable command is
+  not run by a key press", and `Dispatch` skips it and keeps looking, so a
+  screen-scoped arrow binding with `Enabled` false while the table has focus is
+  simply not claimed and the event falls through to the tree.
+- **`TextInput` declines `KeyUp`/`KeyDown`/`KeyEnter`/`KeyTab` deliberately**, so
+  the screen owns them. `TestNoScreenBindingStealsAFocusedWidgetsKey` walks every
+  binding against a **per-pane** list of widget-owned chords and fails if the
+  registry claims one — the per-pane split being the whole point, since
+  `TextInput` declines the arrows and `Table` consumes them.
+- **`Home`/`End` are deliberately unbound.** Both widgets claim the bare forms —
+  the field moves the caret, the table selects first and last — and a screen
+  binding outranks both, so binding them would silently break both. The ring's
+  ends are `Ctrl+Home`/`Ctrl+End`, which neither widget consumes.
+- **`q` has to decline.** ADR 0009 §2 asks the registry before the tree, so a
+  global `q` reaches the command before the field sees it. Without a decline this
+  would be a search box you cannot type "quit" into. The decline checks that the
+  field has focus **and** that the chord is an unmodified printable, because
+  `Ctrl-C` arrives as `Ctrl+'c'` — a printable rune with a modifier — and must
+  always quit.
+
+### Known Limitations
+
+- **`Registry.SetFocus` is now evidenced, not hypothetical.** `Search` worked
+  around it by tracking focus itself and filtering the hint on `km.Has`, which
+  means **the one query an application makes when focus changes is the one query
+  it cannot make**. `TestDescribeScopeFocusCannotNarrowToTheFocusedWidget` pins
+  the gap so the workaround cannot be quietly deleted and the gap cannot be
+  quietly forgotten. Still deferred to v1.1.
+- **`Describe(ScopeFocus)` is over-inclusive, not incomplete.** `inScope` returns
+  true for an exact-scope match without consulting liveness, so a focus query
+  reports every focus-scoped binding whatever has focus. Harmless for a help
+  screen, which arguably wants the superset; wrong for a hint. One line, once
+  `SetFocus` exists.
+- **`data.Table` has no `Ascii` flag for its selection marker**, so its default
+  `›` has no ASCII rung and would leak onto a terminal whose caps report no
+  Unicode. The example overrides the marker instead, which makes it an
+  application decision rather than a per-widget one.
+- **`TextInput` does not expose its horizontal scroll offset**, so the example
+  computes the caret cell from the rune index and clamps. Exact for any query
+  shorter than the field, approximate beyond.
+- **The arrow step from the field to the table is one-way.** The table consumes
+  `Up`, so at its first row `Up` moves nothing and the way back is `Shift-Tab`.
+  A ring whose arrows worked both ways would need the table to *decline* `Up` at
+  row 0, which is not something a widget can express. Asserted, not hidden.
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+
+## [0.6.1] — 2026-10-05
+
+A minor bump, and the reason is that the first application to actually use
+`keymap` found a shape the specification had not considered.
+
+### Added
+
+- **`keymap.Registry.DescribeGrouped(scope)`** — one `Entry` per **command**,
+  carrying every chord in scope for it in canonical order. `Describe` remains
+  one `Entry` per **chord**, which is what ADR 0009 §9 specifies for a command
+  palette, where a row consumes `Chords[0]`.
+  The difference is the consumer, not the data: `form.KeyHint.SetEntries` joins
+  an entry's chords into one label, so a hint line fed `Describe` printed a
+  three-chord command's description **three times**. `examples/hello` worked
+  around it with its own thirteen-line merge; that is now a framework function
+  and the workaround is gone.
+- Both orderings are inherited rather than re-sorted: `DescribeGrouped` merges
+  `Describe`'s already-sorted rows, so entry order and chord order cannot drift
+  apart from each other or from `Describe`.
+
+### Changed
+
+- **`examples/hello` dispatches through `keymap`.** Its key contract is a real
+  registry — six commands, twelve chords, with `q`/`Esc`/`Ctrl+c` and `?` at
+  `ScopeGlobal` and the navigation at `ScopeScreen` — and both the pinned hint
+  line and the `?` overlay render from the registry. This is the first use of
+  `KeyHint.SetEntries` in the tree, and it **retires risk 5 of ADR 0009**.
+  The hand-written hint string and the test that checked it against `Handle`
+  are both gone: a binding and its description are now written **once**, and
+  `Widget.Handle` claims nothing.
+  The navigation keys are at `ScopeScreen`, not `ScopeFocus`, deliberately:
+  nothing in this example holds keyboard focus, so focus-scoping them would make
+  them go silently dead the moment anything else took focus. Screen scope
+  degrades correctly — a focused child added later binds its own arrows and
+  outranks them by specificity, with no change here.
+
+### Known Limitations
+
+- **`Registry` has no `SetFocus`,** so `Describe(ScopeFocus)` returns an
+  incomplete answer before the first dispatch — the registry only learns what
+  is focused by dispatching. An application with real focusable widgets cannot
+  yet answer "what can I do right now" for the focused one. Deferred to v1.1;
+  `examples/hello` avoids it by using `ScopeScreen`.
+- **`Attach` must be called even when no widget implements `Commandable`,**
+  purely so a scope-bound owner is `IsAttached`, because a registry that
+  reports no `Warnings` requires it.
+- **The palette is still not built.** ADR 0009 §9 scopes it out deliberately.
+- **`examples/markets` and `examples/dashboard` still dispatch by their own
+  `switch`,** so the mixed-mechanism risk ADR 0009 names is live in two of
+  three examples.
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+
+## [0.6.0] — 2026-10-05
+
+A minor bump, and the reason is the longest-deferred item in the project:
+**`keymap`, specified by [ADR 0009](docs/adr/0009-command-and-keymap.md) and
+accepted on 2026-10-05, was implemented.** It was targeted at v0.4.0 and
+shipped in neither v0.3.0 nor v0.4.0; `docs/STATUS.md` carried an apology
+paragraph about that. This is the paragraph's replacement.
+
+### Added
+
+- **`keymap` — named commands, and a key is one way to invoke one.** A new
+  package holding `Command`, `CommandID`, `Binding`, `Entry`, `Ctx` and a
+  16-byte comparable `Chord`, with `ParseChord`/`ChordOf` as the single
+  notation function in both directions.
+- **Resolution by context specificity: focus, then screen, then global, with no
+  numeric priority.** `Dispatch` walks a pre-built candidate slice in rank
+  order, which is what lets both `Enabled` and `Run` decline and fall through.
+  Ties break on registration order.
+- **`Dispatch` is 0 allocs/op on every event kind**, measured and pinned by
+  `TestDispatchIsZeroAllocation` across all eleven paths in ADR 0009 §2's table
+  — miss, match with `Enabled` nil, match with `Enabled` non-nil, `Run`
+  declining, paste, resize, and each mouse case. The benchmark reports 91 ns/op
+  for a hit and 29.5 ns/op for a miss, both zero-alloc.
+- **`Describe` as the single source of discoverability data**, plus `Chords`,
+  and `KeyHint.SetEntries` so a widget's help renders from the registry rather
+  than from a hand-maintained second list.
+- **`Commandable` and `Clickable`, both optional.** A widget that implements
+  neither is fully supported; nothing in the catalog implements them yet, which
+  is the deferred half ADR 0009 §8 scoped separately.
+
+### Changed
+
+- **`Widget.Handle`'s doc comment** now states the precedence: events reach a
+  widget only after the application's keymap has declined them. **No method was
+  added, changed or deprecated**, and the interface is byte-identical.
+- ADR 0009 gained five corrections where its code did not compile or
+  contradicted itself; each is recorded in the ADR and in code. The two worth
+  naming:
+  - **`Ctx` is 152 bytes, not the 128 the prose claimed.** The field list is the
+    specification and it sums to 145, padded to 152; 128 was reachable only as
+    `Event` + `Chord` with neither `Focus` nor `Synthesised`. Pinned by
+    `TestCtxIsOneHundredFiftyTwoBytes`, with the arithmetic in the comment.
+  - **The precedence table contradicted itself on overrides.** One table row put
+    a user override above every scope, while its own justification, the section
+    headed *"Why an override does not outrank a more specific scope"*, and the
+    Consequences section all say the opposite. **Specificity wins, and an
+    override is the within-scope tiebreak** — three passages against one row, and
+    it is the only reading under which a user's global `Esc` does not steal a
+    dialog's.
+
+### Known Limitations
+
+- **A key the keymap consumes shadows a widget's own `switch`.** This is
+  documented on `Widget.Handle` and is the designed outcome, not a defect: a
+  `ScopeFocus` binding is the fix, and it goes inert when focus moves. The
+  registry is told a widget's bounds and its published chords, never what its
+  `Handle` does, so `Warnings` **cannot** report the overlap. `TestTheShadowedKeyIsSilent`
+  asserts that silence deliberately, so the limit is recorded rather than
+  implied.
+- **No real terminal has met `Chord`'s folding rules.**
+  `TestParseChordRoundTrips` walks 467 chords, but that is the specification
+  checking itself. `Ctrl+k` and `Ctrl+K` are two chords because a kitty terminal
+  reports them as two gestures.
+- **Three scopes may be too coarse.** Unchanged from the ADR's own risk list.
+- **No palette.** ADR 0009 §9 puts a `Ctrl+K` palette in scope but explicitly
+  not in that ADR. No persistence, no leader keys, no drag-as-command — all
+  deferred by §8.
+- `Registry` has no `Unregister`, so a command renamed at runtime leaves a
+  chordless row in help. Visible rather than silent.
+- `term/terminal_windows_test.go` is still **compile-only** verified
+  (`GOOS=windows go vet`) and has never been executed; the Windows backend still
+  runs zero tests at runtime.
+
 ## [0.5.2] — 2026-10-05
 
 A minor bump, and the reason is a decision with a number attached:
@@ -929,6 +1135,9 @@ Two performance claims that this release turns from assertion into measurement:
   **60 cursor moves and 19,443 bytes, 3.12× the narrow frame** rather than 11×.
   The ASCII path is unchanged. See ADR 0008's amendment, finding 4.
 
+[0.7.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.7.0
+[0.6.1]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.6.1
+[0.6.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.6.0
 [0.5.2]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.2
 [0.5.1]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.1
 [0.5.0]: https://github.com/serkanalgur/termmosaic/releases/tag/v0.5.0

@@ -14,7 +14,7 @@ It is also, near enough, `examples/hello` — so if a line here does not match w
 you see in the repository, the repository is the source of truth:
 
 ```
-go run github.com/serkanalgur/termmosaic/examples/hello@v0.5.2
+go run github.com/serkanalgur/termmosaic/examples/hello@v0.7.0
 ```
 
 ## The program

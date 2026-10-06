@@ -50,9 +50,9 @@ The selected row carries a `>` in the marker gutter, which is a **character** ra
 
 **Do not nest it inside a `Dialog` for a simple yes/no.** A confirm is [`Dialog`](/widgets/dialog/) with two actions; building it from a menu loses the modal guarantee and the cancel-by-default behaviour.
 
-**Do not use it as a command palette.** A palette is fuzzy-matched text over many commands, and this is an exact list over a known tree. [ADR 0009](/adr/0009-command-and-keymap/) specifies the keymap layer that a palette needs; it is not built yet.
+**Do not use it as a command palette.** A palette is fuzzy-matched text over many commands, and this is an exact list over a known tree. The [`keymap`](/adr/0009-command-and-keymap/) package gives you the rows a palette renders — `DescribeGrouped` returns one entry per command — but there is still no palette UI in the framework.
 
-**Instead:** A flat set of modes is [`Tabs`](/widgets/tabs/); a modal question is [`Dialog`](/widgets/dialog/); key commands with help text and rebinding need [ADR 0009](/adr/0009-command-and-keymap/), which is specified but not built yet.
+**Instead:** A flat set of modes is [`Tabs`](/widgets/tabs/); a modal question is [`Dialog`](/widgets/dialog/); named commands with help text rendered from one place need the [`keymap`](/adr/0009-command-and-keymap/) package, which shipped in v0.6.0 — it has no palette of its own yet.
 
 ## Related
 

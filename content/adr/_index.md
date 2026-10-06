@@ -145,13 +145,19 @@ If you want the originals:
   `buffer` and one `Block` as the only thing in the catalog that draws one.
 
 - **0009 — Commands and keymap: a named action, and a key as one way to reach
-  it. Specified, not implemented.** Read [ADR 0009](/adr/0009-command-and-keymap/)
-  for the reasoning; the operative fact for anyone reading this site is that **no
-  `keymap` package exists and there is no command palette.** Widgets still
-  dispatch their own keys and applications still write their own routing — which is
-  exactly the boilerplate the ADR exists to remove, and exactly what both examples
-  do by hand today. `keymap` is slated for v0.3.0. See
-  [Limitations](/limitations/#the-keymap-layer-is-specified-not-built).
+  it. Implemented in v0.6.0; no palette.** Read
+  [ADR 0009](/adr/0009-command-and-keymap/) for the reasoning. The `keymap`
+  package shipped — named commands, a 16-byte comparable `Chord`, and resolution
+  by context specificity (**focus, then screen, then global, with no numeric
+  priority**) at 0 allocs/op — and `Widget` is byte-identical, so nothing you
+  wrote breaks. **What has not shipped:** the `Ctrl+K` palette UI that ADR 0009
+  §9 deliberately scopes out; the optional `Commandable`/`Clickable` interfaces,
+  which **no catalog widget implements**; and `Registry.SetFocus`, so
+  `Describe(ScopeFocus)` is over-inclusive rather than incomplete. A key the
+  keymap consumes shadows a widget's own `switch` and **the registry cannot
+  report that overlap** — it is told a widget's bounds and published chords,
+  never what its `Handle` does. See
+  [Limitations](/limitations/#v060-keymap--a-new-package-and-nothing-you-wrote-breaks).
 
 - **0010 — Mouse routing: widgets hit-test themselves.** One sentence — **a
   widget handles a pointer event only if the pointer is inside its `Bounds()`** —

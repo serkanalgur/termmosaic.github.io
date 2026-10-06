@@ -12,7 +12,7 @@ push to `main` and the workflow publishes.
 
 | Path | What it is |
 |---|---|
-| `content/` | All pages. 62 Markdown files. |
+| `content/` | All pages. 70 Markdown files. |
 | `content/widgets/` | **24 widget pages, one per widget.** Generated — see below. |
 | `content/adr/` | The 10 Architecture Decision Records, **copied verbatim**. |
 | `content/concepts/`, `content/guides/`, `content/getting-started/` | Hand-written. |
@@ -76,7 +76,7 @@ a deploy:
 
 ```bash
 pip install PyYAML
-python3 scripts/check_frontmatter.py    # 69 pages, TOML/YAML/JSON
+python3 scripts/check_frontmatter.py    # 70 pages, TOML/YAML/JSON
 bash    scripts/check_captures.sh       # 24 widgets, 3 widths, no failure markers
 bash    scripts/check_verbatim.sh       # ADR/STATUS/CHANGELOG match the framework
 python3 scripts/check_links.py          # every internal link resolves (after hugo)
